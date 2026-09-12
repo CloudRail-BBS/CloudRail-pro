@@ -202,6 +202,16 @@ export default {
         const list = this.filteredCacheList.filter(i => Number(i.category_id) === Number(cat.id))
         if (list.length > 0) groups.push({ id: cat.id, name: cat.name, list })
       })
+      // 兜底: 分类接口异常/为空时, 按圈子自带的分类名分组, 避免有分类的圈子不显示
+      if (groups.length === 0) {
+        const map = {}
+        this.filteredCacheList.forEach(i => {
+          if (!Number(i.category_id || 0)) return
+          const k = i.category_name || '其他圈子'
+          if (!map[k]) { map[k] = { id: i.category_id, name: k, list: [] }; groups.push(map[k]) }
+          map[k].list.push(i)
+        })
+      }
       return groups
     }
   },
