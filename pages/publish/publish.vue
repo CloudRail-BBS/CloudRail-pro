@@ -292,20 +292,29 @@
           <text class="ph-close" @click="closeCirclePicker">×</text>
         </view>
         <scroll-view scroll-y class="picker-scroll">
-          <view class="grid-options">
-            <block v-for="(item, index) in circleList" :key="item.id">
-              <view
-                v-if="checkCircleVisible(item)"
-                class="grid-item"
-                :class="{ selected: tempCircleIndex === index }"
-                @click="tempCircleIndex = index; confirmCirclePicker()"
-              >
-                <image v-if="item.image || item.icon" :src="item.image || item.icon" class="grid-circle-icon" mode="aspectFill"></image>
-                <view v-else class="grid-circle-fallback">{{ (item.name || '圈').slice(0, 1) }}</view>
-                <text class="grid-text">{{ item.name }}</text>
-                <image src="/static/icon/check-red.svg" class="grid-icon" v-if="tempCircleIndex === index" mode="aspectFit"></image>
-              </view>
-            </block>
+          <view v-for="(group, gi) in groupedCircles" :key="'g' + gi" class="circle-group">
+            <view class="circle-group-title">
+              <image v-if="groupIconSrc(group)" :src="groupIconSrc(group)" class="circle-group-icon" mode="aspectFill"></image>
+              <text v-else-if="group.icon" class="circle-group-emoji">{{ group.icon }}</text>
+              <text class="circle-group-name">{{ group.name }}</text>
+              <text class="circle-group-count">{{ group.items.length }}</text>
+            </view>
+            <view class="grid-options">
+              <block v-for="item in group.items" :key="item.id">
+                <view
+                  v-if="checkCircleVisible(item)"
+                  class="grid-item"
+                  :class="{ selected: circleList[tempCircleIndex] && circleList[tempCircleIndex].id === item.id }"
+                  @click="onSelectCircle(item)"
+                >
+                  <image v-if="circleIconSrc(item)" :src="circleIconSrc(item)" class="grid-circle-icon" mode="aspectFill"></image>
+                  <view v-else-if="item.icon" class="grid-circle-emoji">{{ item.icon }}</view>
+                  <view v-else class="grid-circle-fallback">{{ (item.name || '圈').slice(0, 1) }}</view>
+                  <text class="grid-text">{{ item.name }}</text>
+                  <image src="/static/icon/check-red.svg" class="grid-icon" v-if="circleList[tempCircleIndex] && circleList[tempCircleIndex].id === item.id" mode="aspectFit"></image>
+                </view>
+              </block>
+            </view>
           </view>
           <view v-if="circleList.length === 0" class="empty-data">暂无圈子</view>
         </scroll-view>
@@ -630,6 +639,20 @@ export default {
         return this.uploadImages[0];
       }
       return '';
+    },
+    // 圈子按分类分组（分类标题 + 该分类下的圈子）
+    groupedCircles() {
+      const groups = [];
+      const map = {};
+      this.circleList.forEach(c => {
+        const key = c.category_id || 0;
+        if (!map[key]) {
+          map[key] = { name: c.category_name || '其他圈子', icon: c.category_icon || '', items: [] };
+          groups.push(map[key]);
+        }
+        map[key].items.push(c);
+      });
+      return groups;
     }
   },
 
@@ -1507,6 +1530,21 @@ export default {
 
     closeCirclePicker() {
       this.showCirclePicker = false;
+    },
+
+    onSelectCircle(item) {
+      this.tempCircleIndex = this.circleList.findIndex(c => c.id === item.id);
+      this.confirmCirclePicker();
+    },
+
+    // 圈子/分类图标: 仅 URL 返回, emoji/空 返回空串走文本兜底
+    circleIconSrc(item) {
+      const v = (item && (item.image || item.icon)) || '';
+      return /^(https?:)?\/\//i.test(v) ? v : '';
+    },
+    groupIconSrc(group) {
+      const v = (group && group.icon) || '';
+      return /^(https?:)?\/\//i.test(v) ? v : '';
     },
 
     confirmCirclePicker() {
@@ -2462,6 +2500,51 @@ export default {
   padding: 30rpx;
 }
 
+.circle-group {
+  padding-bottom: 6rpx;
+}
+
+.circle-group-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 24rpx 30rpx 0;
+}
+
+.circle-group-icon {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #f2f3f5;
+  flex-shrink: 0;
+}
+
+.circle-group-emoji {
+  font-size: 26rpx;
+  line-height: 1;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #f2f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.circle-group-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.circle-group-count {
+  font-size: 22rpx;
+  color: #999;
+  margin-left: auto;
+  padding-right: 30rpx;
+}
+
 .grid-item {
   background: var(--capsule-bg);
   padding: 24rpx;
@@ -2493,6 +2576,17 @@ export default {
   color: #2563eb;
   font-size: 36rpx;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-circle-emoji {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: #f2f3f5;
+  font-size: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
