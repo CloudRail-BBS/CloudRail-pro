@@ -189,6 +189,7 @@
             <text class="setting-required">必选</text>
           </view>
           <view class="setting-value">
+            <image v-if="circleList[circleIndex] && (circleList[circleIndex].image || circleList[circleIndex].icon)" :src="circleList[circleIndex].image || circleList[circleIndex].icon" class="setting-circle-icon" mode="aspectFill"></image>
             <text :class="['setting-text', { placeholder: !circleList[circleIndex] }]">
               {{ circleList[circleIndex]?.name || '选择圈子' }}
             </text>
@@ -299,6 +300,8 @@
                 :class="{ selected: tempCircleIndex === index }"
                 @click="tempCircleIndex = index; confirmCirclePicker()"
               >
+                <image v-if="item.image || item.icon" :src="item.image || item.icon" class="grid-circle-icon" mode="aspectFill"></image>
+                <view v-else class="grid-circle-fallback">{{ (item.name || '圈').slice(0, 1) }}</view>
                 <text class="grid-text">{{ item.name }}</text>
                 <image src="/static/icon/check-red.svg" class="grid-icon" v-if="tempCircleIndex === index" mode="aspectFit"></image>
               </view>
@@ -2117,6 +2120,14 @@ export default {
   align-items: center;
   max-width: 55%;
 }
+.setting-circle-icon {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  margin-right: 10rpx;
+  flex-shrink: 0;
+  background: #f2f3f5;
+}
 .setting-text {
   font-size: 26rpx;
   color: var(--text-color);
@@ -2459,6 +2470,30 @@ export default {
   border: 2rpx solid transparent;
   transition: all 0.2s;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.grid-circle-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: #f2f3f5;
+}
+
+.grid-circle-fallback {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8f0fe, #dbe7fd);
+  color: #2563eb;
+  font-size: 36rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .grid-icon {
