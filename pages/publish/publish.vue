@@ -311,6 +311,7 @@
                   <view v-else-if="item.icon" class="grid-circle-emoji">{{ item.icon }}</view>
                   <view v-else class="grid-circle-fallback">{{ (item.name || '圈').slice(0, 1) }}</view>
                   <text class="grid-text">{{ item.name }}</text>
+                  <text class="grid-desc">{{ item.description || '欢迎加入，一起交流分享' }}</text>
                   <image src="/static/icon/check-red.svg" class="grid-icon" v-if="circleList[tempCircleIndex] && circleList[tempCircleIndex].id === item.id" mode="aspectFit"></image>
                 </view>
               </block>
@@ -640,14 +641,14 @@ export default {
       }
       return '';
     },
-    // 圈子按分类分组（分类标题 + 该分类下的圈子）
+    // 圈子按分类分组（未分类 → 推荐圈子，与圈子页一致）
     groupedCircles() {
       const groups = [];
       const map = {};
       this.circleList.forEach(c => {
         const key = c.category_id || 0;
         if (!map[key]) {
-          map[key] = { name: c.category_name || '其他圈子', icon: c.category_icon || '', items: [] };
+          map[key] = { name: key === 0 ? '推荐圈子' : (c.category_name || '其他圈子'), icon: key === 0 ? '' : (c.category_icon || ''), items: [] };
           groups.push(map[key]);
         }
         map[key].items.push(c);
@@ -2598,6 +2599,25 @@ export default {
   position: absolute;
   top: 8rpx;
   right: 8rpx;
+}
+
+.grid-text {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.grid-desc {
+  font-size: 20rpx;
+  color: #999;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .grid-item.selected {
