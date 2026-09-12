@@ -297,7 +297,6 @@
               <image v-if="groupIconSrc(group)" :src="groupIconSrc(group)" class="circle-group-icon" mode="aspectFill"></image>
               <text v-else-if="group.icon" class="circle-group-emoji">{{ group.icon }}</text>
               <text class="circle-group-name">{{ group.name }}</text>
-              <text class="circle-group-count">{{ group.items.length }}</text>
             </view>
             <view class="grid-options">
               <block v-for="item in group.items" :key="item.id">
@@ -2536,13 +2535,6 @@ export default {
   font-size: 28rpx;
   font-weight: 600;
   color: var(--text-color);
-}
-
-.circle-group-count {
-  font-size: 22rpx;
-  color: #999;
-  margin-left: auto;
-  padding-right: 30rpx;
 }
 
 .grid-item {
