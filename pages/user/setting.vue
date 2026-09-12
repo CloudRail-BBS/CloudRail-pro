@@ -1,0 +1,703 @@
+<template>
+  <view class="setting-page">
+    <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
+      <view class="nav-left" @click="goBack">
+        <image src="/static/icon/arrow-left-dark.svg" class="back-arrow" mode="aspectFit"></image>
+      </view>
+      <text class="nav-title">设置</text>
+      <view class="nav-right"></view>
+    </view>
+    <view class="content" :style="{ paddingTop: (statusBarHeight + 44) + 'px' }">
+      <view class="group-title">账号资料</view>
+      <view class="cell-group">
+        <view class="cell-item" @click="openNameModal">
+          <text class="cell-label">修改昵称</text>
+          <view class="cell-right">
+            <text class="cell-val">{{ userInfo.name || userInfo.nickname || userInfo.username }}</text>
+            <text class="arrow">></text>
+          </view>
+        </view>
+      </view>
+
+      <view class="group-title">账号安全</view>
+      <view class="cell-group">
+        <view class="cell-item" @click="toBindPhone">
+          <text class="cell-label">手机号</text>
+          <view class="cell-right">
+            <text class="cell-val">{{ security.has_phone ? security.phone_masked : '未绑定' }}</text>
+            <text class="arrow">></text>
+          </view>
+        </view>
+        <view class="cell-item" @click="toBindEmail">
+          <text class="cell-label">邮箱</text>
+          <view class="cell-right">
+            <text class="cell-val">{{ security.has_email ? security.email_masked : '未绑定' }}</text>
+            <text class="arrow">></text>
+          </view>
+        </view>
+        <view class="cell-item" @click="handleWxBind">
+          <text class="cell-label">微信</text>
+          <view class="cell-right">
+            <text class="cell-val" :class="{ 'status-bind': security.has_wx }">
+                {{ security.has_wx ? '已绑定' : '未绑定' }}
+            </text>
+            <text class="arrow">></text>
+          </view>
+        </view>
+        <view class="cell-item" @click="handleQQBind">
+          <text class="cell-label">QQ</text>
+          <view class="cell-right">
+            <text class="cell-val" :class="{ 'status-bind': security.has_qq }">
+                {{ security.has_qq ? '已绑定' : '未绑定' }}
+            </text>
+            <text class="arrow">></text>
+          </view>
+        </view>
+        <view class="cell-item" @click="toPwd">
+          <view class="label-box">
+            <text class="cell-label">{{ isSocialUserNoPwd ? '设置初始密码' : '修改/找回密码' }}</text>
+            <text class="cell-desc" v-if="isSocialUserNoPwd">当前为快捷登录账号，建议设置密码以便独立登录</text>
+          </view>
+          <view class="cell-right"><text class="arrow">></text></view>
+        </view>
+        <view class="cell-item" @click="toPayPassword">
+          <text class="cell-label">支付密码</text>
+          <view class="cell-right">
+            <text class="cell-val">{{ security.has_pay_password ? '已设置' : '未设置' }}</text>
+            <text class="arrow">></text>
+          </view>
+        </view>
+      </view>
+
+      <view class="group-title">我的资产</view>
+      <view class="cell-group">
+        <view class="cell-item" @click="topay">
+          <text class="cell-label">我的钱包</text>
+          <view class="cell-right"><text class="arrow">></text></view>
+        </view>
+        <view class="cell-item" @click="toorder">
+          <text class="cell-label">我的订单</text>
+          <view class="cell-right"><text class="arrow">></text></view>
+        </view>
+        <view class="cell-item" @click="toqpsc">
+          <text class="cell-label">气泡商城</text>
+          <view class="cell-right"><text class="arrow">></text></view>
+        </view>
+      </view>
+
+      <view class="group-title">隐私设置</view>
+      <view class="cell-group">
+        <view class="cell-item">
+          <view class="label-box">
+            <text class="cell-label">私密账号</text>
+            <text class="cell-desc">私密模式他人无法查看你的帖子及私信等...</text>
+          </view>
+          <switch :checked="isPrivate" color="#ff2442" style="transform:scale(0.8)" @change="togglePrivate" />
+        </view>
+        <view class="cell-item">
+          <view class="label-box">
+            <text class="cell-label">关闭评论区</text>
+            <text class="cell-desc">所有帖子禁止他人新评论</text>
+          </view>
+          <switch :checked="closeComment" color="#ff2442" style="transform:scale(0.8)" @change="toggleComment" />
+        </view>
+      </view>
+
+      <view class="group-title">通知设置</view>
+      <view class="cell-group">
+        <view class="cell-item">
+          <view class="label-box">
+            <text class="cell-label">评论通知邮件</text>
+            <text class="cell-desc">收到评论或回复时发送邮件提醒</text>
+          </view>
+          <switch :checked="notifyComment" color="#ff2442" style="transform:scale(0.8)" @change="e => toggleNotify('notify_comment', e.detail.value, 'notifyComment')" />
+        </view>
+        <view class="cell-item">
+          <view class="label-box">
+            <text class="cell-label">点赞通知邮件</text>
+            <text class="cell-desc">收到点赞时发送邮件提醒</text>
+          </view>
+          <switch :checked="notifyLike" color="#ff2442" style="transform:scale(0.8)" @change="e => toggleNotify('notify_like', e.detail.value, 'notifyLike')" />
+        </view>
+        <view class="cell-item">
+          <view class="label-box">
+            <text class="cell-label">私信通知邮件</text>
+            <text class="cell-desc">收到私信时发送邮件提醒</text>
+          </view>
+          <switch :checked="notifyMessage" color="#ff2442" style="transform:scale(0.8)" @change="e => toggleNotify('notify_message', e.detail.value, 'notifyMessage')" />
+        </view>
+      </view>
+
+      <view class="group-title">关于与帮助</view>
+      <view class="cell-group">
+        <view class="cell-item" @click="toCustomerService">
+          <text class="cell-label">联系客服</text>
+          <view class="cell-right"><text class="arrow">></text></view>
+        </view>
+        <view class="cell-item" @click="openAbout">
+          <text class="cell-label">关于我们</text>
+          <view class="cell-right"><text class="arrow">></text></view>
+        </view>
+      </view>
+
+      <view class="switch-btn" hover-class="btn-hover" @click="openSwitchModal">切换账号</view>
+      <view class="logout-btn" hover-class="btn-hover" @click="askLogout">退出登录</view>
+      <view class="safe-bottom"></view>
+    </view>
+
+    <view class="modal-mask" :class="{show: showUnbindModal}" v-if="showUnbindModal" @click="showUnbindModal=false">
+        <view class="modal-box" @click.stop>
+            <view class="modal-title">解绑{{ unbindType === 'qq' ? 'QQ' : '微信' }}</view>
+            <view class="modal-content">解绑后将无法使用{{ unbindType === 'qq' ? 'QQ' : '微信' }}快捷登录。确定要解绑吗？</view>
+            <view class="modal-btns">
+                <view class="m-btn cancel" hover-class="m-btn-hover" @click="showUnbindModal=false">取消</view>
+                <view class="m-btn confirm" hover-class="m-btn-hover" @click="confirmUnbind">确定解绑</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="modal-mask" :class="{ show: showNameModal }" v-if="showNameModal" @click="closeNameModal">
+      <view class="modal-box" @click.stop>
+        <view class="modal-title">修改昵称</view>
+        <view class="modal-content">昵称将展示给其他用户（不影响登录账号）</view>
+        <view class="modal-input-area">
+          <input class="modal-input" type="text" v-model="editingName" maxlength="12" placeholder="请输入新昵称" :cursor-spacing="140" />
+        </view>
+        <view class="modal-btns">
+          <view class="m-btn cancel" hover-class="m-btn-hover" @click="closeNameModal">取消</view>
+          <view class="m-btn confirm" hover-class="m-btn-hover" @click="confirmName">保存</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="modal-mask" :class="{ show: showAboutModal }" v-if="showAboutModal" @click="closeAbout">
+      <view class="modal-box modal-box-about" @click.stop>
+        <view class="modal-title">关于我们</view>
+        <scroll-view scroll-y class="about-scroll">
+          <view v-if="aboutLoading" class="about-loading">
+            <view class="ios-spinner"></view>
+            <text class="about-loading-text">加载中...</text>
+          </view>
+          <view v-else-if="aboutContent" class="about-content">{{ aboutContent }}</view>
+          <view v-else class="about-content about-empty">暂无内容</view>
+        </scroll-view>
+        <view class="modal-btns">
+          <view class="m-btn confirm" hover-class="m-btn-hover" @click="closeAbout" style="flex:1;">关闭</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="modal-mask" :class="{ show: showLogoutModal }" v-if="showLogoutModal" @click="showLogoutModal = false">
+      <view class="modal-box" @click.stop>
+        <view class="modal-title">提示</view>
+        <view class="modal-content">确定要退出当前登录账号吗？</view>
+        <view class="modal-btns">
+          <view class="m-btn cancel" hover-class="m-btn-hover" @click="showLogoutModal = false">取消</view>
+          <view class="m-btn confirm" hover-class="m-btn-hover" @click="confirmLogout">确定</view>
+        </view>
+      </view>
+    </view>
+
+        <view class="modal-mask" :class="{show: showSwitchModal}" v-if="showSwitchModal" @click="closeSwitchModal">
+      <view class="modal-box switch-box" @click.stop>
+        <view class="modal-title">切换账号</view>
+        <scroll-view scroll-y class="switch-list">
+          <view class="switch-item" v-for="(a,i) in accounts" :key="a.uid" @click="doSwitch(a)">
+            <image class="switch-avatar" :src="a.avatar || '/static/logo.png'" mode="aspectFill"></image>
+            <view class="switch-info">
+              <text class="switch-name">{{ a.name }}</text>
+              <text class="switch-uid">ID: {{ a.uid }}</text>
+            </view>
+            <text v-if="currentUid === a.uid" class="switch-current">当前</text>
+            <view v-else class="switch-del" @click.stop="delAccount(a.uid)">删除</view>
+          </view>
+        </scroll-view>
+        <view class="modal-btns">
+          <view class="m-btn cancel" hover-class="m-btn-hover" @click="closeSwitchModal">取消</view>
+          <view class="m-btn confirm" hover-class="m-btn-hover" @click="addAccount">添加账号</view>
+        </view>
+      </view>
+    </view>
+<view class="ios-hud-mask" v-if="hud.show" @click="hideHud()">
+      <view class="ios-hud-box">
+        <view v-if="hud.type === 'loading'" class="ios-spinner"></view>
+        <view v-if="hud.type === 'success'" class="ios-success-icon"><view class="ios-checkmark"></view></view>
+        <view v-if="hud.type === 'error'" class="ios-error-icon"><view class="ios-error-mark"></view></view>
+        <text class="ios-hud-text">{{ hud.text }}</text>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import { request, getKefuUrl } from '../../common/request.js';
+import { getAccounts, switchAccount, removeAccount } from '../../common/auth.js';
+export default {
+  data() {
+    return {
+      statusBarHeight: 20,
+      userInfo: { id: 0, username: '', name: '', email: '', is_private: 0, close_comment: 0 },
+      isPrivate: false,
+      closeComment: false,
+      notifyComment: true,
+      notifyLike: true,
+      notifyMessage: true,
+      security: {
+        has_phone: false, phone_masked: '',
+        has_email: false, email_masked: '',
+        has_wx: false, has_qq: false,
+        has_pay_password: false
+      },
+      showUnbindModal: false,
+      unbindType: '',
+      showLogoutModal: false,
+      showNameModal: false,
+      editingName: '',
+      hud: { show: false, type: 'loading', text: '' },
+      kefuLink: '',
+      showAboutModal: false,
+      accounts: [],
+      showSwitchModal: false,
+      aboutContent: '',
+      aboutLoading: false
+    };
+  },
+  computed: {
+    isSocialUserNoPwd() {
+      const s = this.security;
+      return (s.has_qq || s.has_wx) && (!s.has_email && !s.has_phone);
+    },
+    currentUid() {
+      const u = uni.getStorageSync('userInfo');
+      return u ? String(u.id || u.uid || '') : '';
+    }
+  },
+  onLoad(opt) {
+    const sys = uni.getSystemInfoSync();
+    this.statusBarHeight = sys.statusBarHeight || 20;
+    if (opt.bindSuccess) {
+      this.showHud('success', '绑定成功');
+      setTimeout(() => {
+        this.hideHud();
+        this.loadData();
+      }, 1500);
+    }
+    if (opt.bindError) {
+      const msg = decodeURIComponent(opt.bindError);
+      this.showHud('error', msg || '绑定失败');
+      setTimeout(() => this.hideHud(), 2000);
+    }
+  },
+  onShow() {
+    if (this.hud.show && this.hud.type === 'loading') this.hideHud();
+    this.loadData();
+  },
+  methods: {
+    goBack() { uni.navigateBack(); },
+    // 将QQ头像转换为高清版本
+    convertToHighQualityAvatar(avatarUrl) {
+      if (!avatarUrl) return avatarUrl;
+      // QQ头像URL通常包含大小参数，如 /100 表示100x100像素
+      // 替换为大尺寸头像
+      return avatarUrl.replace(/\/(\d+)\/?$/, '/400/');
+    },
+    showHud(type, text) { this.hud = { show: true, type: type || 'loading', text: text || '' }; },
+    hideHud(delayMs = 0) { delayMs ? setTimeout(() => (this.hud.show = false), delayMs) : (this.hud.show = false); },
+    async loadData() {
+      try {
+        const uRes = await request('user.php', { action: 'getUserInfo' });
+        if (uRes.code === 0) {
+          this.userInfo = uRes.data || this.userInfo;
+          if (!this.userInfo.name) this.userInfo.name = this.userInfo.username;
+          this.isPrivate = (this.userInfo.is_private == 1);
+          this.closeComment = (this.userInfo.close_comment == 1);
+        }
+        const sRes = await request('user.php', { action: 'getAccountSecurity' });
+        if (sRes.code === 0) {
+          this.security = Object.assign({}, this.security, sRes.data || {});
+          this.notifyComment = (sRes.data.notify_comment ?? 1) == 1;
+          this.notifyLike    = (sRes.data.notify_like    ?? 1) == 1;
+          this.notifyMessage = (sRes.data.notify_message ?? 1) == 1;
+        }
+      } catch (e) {}
+    },
+    toBindEmail() { uni.navigateTo({ url: '/pages/user/email' }); },
+    toBindPhone() { uni.navigateTo({ url: '/pages/user/phone' }); },
+    toPayPassword() { uni.navigateTo({ url: '/pages/user/pay-password' }); },
+    topay() { uni.navigateTo({ url: '/pages/user/wallet', fail: () => { this.showHud('error', '跳转失败'); this.hideHud(1000); } }); },
+    toorder() { uni.navigateTo({ url: '/pages/market/orders', fail: () => { this.showHud('error', '跳转失败'); this.hideHud(1000); } }); },
+    toPwd() { uni.navigateTo({ url: '/pages/forget-pwd/forget-pwd', fail: () => { this.showHud('error', '跳转失败'); this.hideHud(1000); } }); },
+    toqpsc() { uni.navigateTo({ url: '/pages/user/bubble', fail: () => { this.showHud('error', '跳转失败'); this.hideHud(1000); } }); },
+    handleQQBind() {
+      if (this.security.has_qq) this.checkBeforeUnbind('qq');
+      else this.doBindQQ();
+    },
+    handleWxBind() {
+      if (this.security.has_wx) this.checkBeforeUnbind('wx');
+      else this.doBindWeixin();
+    },
+    checkBeforeUnbind(type) {
+      if (!this.security.has_email && !this.security.has_phone) {
+        this.showHud('error', '为确保账号安全，请先绑定手机/邮箱或设置密码');
+        return this.hideHud(2000);
+      }
+      this.unbindType = type;
+      this.showUnbindModal = true;
+    },
+    // 微信绑定（使用uniapp官方API）
+    doBindWeixin() {
+      // #ifdef APP-PLUS
+      this.showHud('loading', '微信授权中...');
+      uni.login({
+        provider: 'weixin',
+        success: (loginRes) => {
+          uni.getUserInfo({
+            provider: 'weixin',
+            success: (infoRes) => {
+              this.bindSocial('wx', loginRes.code, infoRes.userInfo);
+            },
+            fail: () => {
+              this.showHud('error', '获取用户信息失败');
+              this.hideHud(1500);
+            }
+          });
+        },
+        fail: () => {
+          this.showHud('error', '微信授权失败');
+          this.hideHud(1500);
+        }
+      });
+      // #endif
+      // #ifdef H5
+      this.doBindSocialH5('wx');
+      // #endif
+      // #ifdef MP-WEIXIN
+      this.showHud('loading', '微信授权中...');
+      uni.login({
+        provider: 'weixin',
+        success: (loginRes) => {
+          uni.getUserProfile({
+            desc: '用于绑定微信账号',
+            success: (infoRes) => {
+              this.bindSocial('wx', loginRes.code, infoRes.userInfo);
+            },
+            fail: () => {
+              this.showHud('error', '请授权用户信息');
+              this.hideHud(1500);
+            }
+          });
+        },
+        fail: () => {
+          this.showHud('error', '微信授权失败');
+          this.hideHud(1500);
+        }
+      });
+      // #endif
+      // #ifdef MP
+      this.showHud('error', '小程序暂不支持此操作');
+      this.hideHud(1500);
+      // #endif
+    },
+    // QQ绑定（使用uniapp官方API）
+    doBindQQ() {
+      // #ifdef APP-PLUS
+      this.showHud('loading', 'QQ授权中...');
+      uni.login({
+        provider: 'qq',
+        success: (loginRes) => {
+          uni.getUserInfo({
+            provider: 'qq',
+            success: (infoRes) => {
+              // 将 openid 合并到 userInfo 中
+              const userInfoWithOpenId = {
+                ...infoRes.userInfo,
+                openid: loginRes.openid || loginRes.openId || '',
+                // 处理QQ头像为高清版本
+                avatarUrl: this.convertToHighQualityAvatar(infoRes.userInfo.avatarUrl)
+              }
+              this.bindSocial('qq', loginRes.code, userInfoWithOpenId);
+            },
+            fail: () => {
+              // 如果获取用户信息失败，也尝试用 openid 绑定
+              const userInfoWithOpenId = {
+                openid: loginRes.openid || loginRes.openId || ''
+              }
+              this.bindSocial('qq', loginRes.code, userInfoWithOpenId);
+            }
+          });
+        },
+        fail: () => {
+          this.showHud('error', 'QQ授权失败');
+          this.hideHud(1500);
+        }
+      });
+      // #endif
+      // #ifdef H5
+      this.doBindSocialH5('qq');
+      // #endif
+      // #ifdef MP
+      this.showHud('error', '小程序暂不支持此操作');
+      this.hideHud(1500);
+      // #endif
+    },
+    // H5端绑定（跳转到SDK页面）
+    async doBindSocialH5(type) {
+      this.showHud('loading', '正在唤起...');
+      try {
+        const res = await request('user.php', { action: 'getBindSocialUrl', type: type });
+        if (res.code === 0 && res.data.url) {
+          window.location.href = res.data.url;
+        } else {
+          this.showHud('error', res.msg || '获取链接失败');
+          this.hideHud(1500);
+        }
+      } catch (e) {
+        this.showHud('error', '网络错误');
+        this.hideHud(1500);
+      }
+    },
+    // 绑定社交账号到当前用户
+    async bindSocial(type, code, userInfo) {
+      this.showHud('loading', '绑定中...');
+      try {
+        const res = await request('user.php', {
+          action: 'bindSocial',
+          type: type,
+          code: code,
+          userInfo: JSON.stringify(userInfo)
+        });
+        if (res.code === 0) {
+          if (type === 'qq') this.security.has_qq = true;
+          if (type === 'wx') this.security.has_wx = true;
+          this.showHud('success', '绑定成功');
+          this.hideHud(1500);
+        } else {
+          console.error('绑定失败:', res.msg);
+          this.showHud('error', res.msg || '绑定失败');
+          this.hideHud(1500);
+        }
+      } catch (e) {
+        console.error('绑定异常:', e);
+        // 检查是否是HTTP错误或网络错误
+        if (e && e.msg) {
+          this.showHud('error', e.msg);
+        } else {
+          this.showHud('error', '绑定失败，请检查网络后重试');
+        }
+        this.hideHud(1500);
+      }
+    },
+    async confirmUnbind() {
+      this.showUnbindModal = false;
+      const type = this.unbindType;
+      this.showHud('loading', '解绑中...');
+      try {
+        const res = await request('user.php', { action: 'unbindSocial', type: type });
+        if (res.code === 0) {
+          if (type === 'qq') this.security.has_qq = false;
+          if (type === 'wx') this.security.has_wx = false;
+          this.showHud('success', '已解绑');
+          this.hideHud(1500);
+        } else {
+          this.showHud('error', res.msg || '解绑失败');
+          this.hideHud(1500);
+        }
+      } catch (e) {
+        this.showHud('error', '异常');
+        this.hideHud(1500);
+      }
+    },
+    async toCustomerService() {
+      const link = await getKefuUrl()
+      if (!link) {
+        this.showHud('error', '客服未配置')
+        this.hideHud(1500)
+        return
+      }
+      this.kefuLink = link
+      // #ifdef APP-PLUS
+      plus.runtime.openURL(link, () => { this.showHud('error', '无法打开链接'); });
+      // #endif
+      // #ifdef H5
+      window.location.href = link;
+      // #endif
+      // #ifdef MP
+      uni.setClipboardData({
+        data: link,
+        success: () => { this.showHud('success', '链接已复制，请在浏览器打开'); }
+      });
+      // #endif
+    },
+    async openAbout() {
+      // 已有内容则直接展示，避免重复请求
+      if (this.aboutContent) {
+        this.showAboutModal = true;
+        return;
+      }
+      this.showAboutModal = true;
+      this.aboutLoading = true;
+      try {
+        const res = await request('post.php?action=get_runtime_config', {}, 'GET');
+        if (res.code === 0 && res.data) {
+          this.aboutContent = (res.data.about_us || '').trim();
+        } else {
+          this.aboutContent = '';
+        }
+      } catch (e) {
+        this.aboutContent = '';
+      } finally {
+        this.aboutLoading = false;
+      }
+    },
+    closeAbout() {
+      this.showAboutModal = false;
+    },
+    openNameModal() { this.editingName = (this.userInfo.name || this.userInfo.username || '').trim(); this.showNameModal = true; },
+    closeNameModal() { this.showNameModal = false; },
+    async confirmName() {
+      const newName = (this.editingName || '').trim();
+      if (!newName) { this.showHud('error', '昵称不能为空'); return this.hideHud(1200); }
+      if (newName.length > 12) { this.showHud('error', '昵称最多12个字'); return this.hideHud(1200); }
+      this.showHud('loading', '保存中...');
+      try {
+        const res = await request('user.php', { action: 'updateNickname', newNickname: newName });
+        if (res.code === 0) {
+          this.userInfo.name = newName;
+          const localUser = uni.getStorageSync('userInfo') || {};
+          localUser.name = newName;
+          uni.setStorageSync('userInfo', localUser);
+          this.showNameModal = false;
+          this.showHud('success', '修改成功'); this.hideHud(1200);
+        } else { this.showHud('error', res.msg || '修改失败'); this.hideHud(1400); }
+      } catch (e) { this.showHud('error', '网络异常'); this.hideHud(1400); }
+    },
+    async togglePrivate(e) {
+      const val = e.detail.value ? 1 : 0; const old = this.isPrivate; this.isPrivate = e.detail.value;
+      try {
+        const res = await request('user.php', { action: 'update_privacy_setting', key: 'is_private', value: val });
+        if (res.code !== 0) { this.isPrivate = old; this.showHud('error', res.msg || '设置失败'); this.hideHud(1200); }
+      } catch (e2) { this.isPrivate = old; this.showHud('error', '网络异常'); this.hideHud(1200); }
+    },
+    async toggleComment(e) {
+      const val = e.detail.value ? 1 : 0; const old = this.closeComment; this.closeComment = e.detail.value;
+      try {
+        const res = await request('user.php', { action: 'update_privacy_setting', key: 'close_comment', value: val });
+        if (res.code !== 0) { this.closeComment = old; this.showHud('error', res.msg || '设置失败'); this.hideHud(1200); }
+      } catch (e2) { this.closeComment = old; this.showHud('error', '网络异常'); this.hideHud(1200); }
+    },
+    async toggleNotify(key, newVal, prop) {
+      const val = newVal ? 1 : 0; const old = this[prop]; this[prop] = newVal;
+      try {
+        const res = await request('user.php', { action: 'update_privacy_setting', key, value: val });
+        if (res.code !== 0) { this[prop] = old; this.showHud('error', res.msg || '设置失败'); this.hideHud(1200); }
+      } catch (e2) { this[prop] = old; this.showHud('error', '网络异常'); this.hideHud(1200); }
+    },
+    askLogout() { this.showLogoutModal = true; },
+    loadAccounts() { this.accounts = getAccounts(); },
+    openSwitchModal() { this.loadAccounts(); this.showSwitchModal = true; },
+    closeSwitchModal() { this.showSwitchModal = false; },
+    async doSwitch(a) {
+      if (!a || !a.token) return;
+      if (String(a.uid) === this.currentUid) { this.showSwitchModal = false; return; }
+      switchAccount(a.uid);
+      this.closeSwitchModal();
+      this.showHud('loading', '切换中...');
+      try {
+        const res = await request('user.php', { action: 'getUserInfo' });
+        if (res.code === 0) { this.userInfo = res.data || this.userInfo; }
+      } catch (e) {}
+      this.hideHud();
+      this.showHud('success', '已切换'); this.hideHud(500);
+      uni.setStorageSync('_forceRefreshHome', '1');
+      setTimeout(() => { uni.reLaunch({ url: '/pages/index/index' }); }, 300);
+    },
+    delAccount(uid) {
+      const cur = this.currentUid;
+      removeAccount(uid);
+      this.accounts = getAccounts();
+      if (cur === String(uid)) {
+        uni.removeStorageSync('userInfo'); uni.removeStorageSync('token');
+        this.showSwitchModal = false;
+        this.showHud('success', '已删除当前账号');
+        setTimeout(() => { uni.reLaunch({ url: '/pages/login/login' }); }, 600);
+      }
+    },
+    addAccount() { this.closeSwitchModal(); try { uni.setStorageSync('login_add_mode', '1'); } catch (e) {} uni.reLaunch({ url: '/pages/login/login?add=1' }); },
+    async confirmLogout() {
+      this.showLogoutModal = false;
+      try { await request('user.php', { action: 'logout' }); } catch (e) {}
+      uni.removeStorageSync('userInfo'); uni.removeStorageSync('token');
+      this.showHud('success', '已退出'); this.hideHud(800);
+      setTimeout(() => { uni.reLaunch({ url: '/pages/login/login' }); }, 600);
+    }
+  }
+};
+</script>
+
+<style scoped>
+.setting-page { min-height: 100vh; background: #f6f8fa; }
+.nav-bar { position: fixed; top: 0; left: 0; width: 100%; height: 44px; background: #fff; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; box-sizing: border-box; border-bottom: 1rpx solid #f5f5f5; }
+.nav-left { width: 60rpx; height: 100%; display: flex; align-items: center; }
+.back-arrow { width: 24px; height: 24px; }
+.nav-title { font-size: 17px; font-weight: 600; color: #333; }
+.nav-right { width: 60rpx; }
+.content { padding: 12px; }
+.group-title { font-size: 12px; color: #999; margin: 20px 0 8px 12px; }
+.cell-group { background: #fff; border-radius: 12px; overflow: hidden; }
+.cell-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1rpx solid #f9f9f9; }
+.cell-item:last-child { border-bottom: none; }
+.cell-label { font-size: 15px; color: #333; }
+.cell-right { display: flex; align-items: center; color: #999; font-size: 13px; }
+.cell-val { margin-right: 4px; color: #999; max-width: 360rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arrow { font-size: 12px; color: #ccc; margin-left: 2px; }
+.label-box { display: flex; flex-direction: column; max-width: 80%; }
+.cell-desc { font-size: 11px; color: #ff6b81; margin-top: 6px; line-height: 1.3; }
+.logout-btn { margin-top: 40px; background: #fff; text-align: center; color: #333; font-size: 15px; padding: 16px; border-radius: 12px; }
+
+.switch-btn { margin-bottom: 16px; background: #fff; text-align: center; color: #333; font-size: 15px; padding: 16px; border-radius: 12px; }
+.switch-list { max-height: 50vh; }
+.switch-item { display: flex; align-items: center; padding: 22rpx 8rpx; border-bottom: 1rpx solid #f5f5f5; }
+.switch-avatar { width: 84rpx; height: 84rpx; border-radius: 50%; margin-right: 20rpx; background: #f0f0f0; }
+.switch-info { flex: 1; display: flex; flex-direction: column; }
+.switch-name { font-size: 30rpx; color: #333; font-weight: 500; }
+.switch-uid { font-size: 22rpx; color: #999; margin-top: 6rpx; }
+.switch-current { font-size: 24rpx; color: #ff2442; font-weight: 600; }
+.switch-del { font-size: 24rpx; color: #ff2442; border: 1rpx solid #ff2442; padding: 8rpx 24rpx; border-radius: 26rpx; }
+.btn-hover { opacity: 0.8; background-color: #f9f9f9; }
+.safe-bottom { height: calc(24px + env(safe-area-inset-bottom)); }
+.status-bind { color: #ff2442 !important; font-weight: 500; }
+.modal-mask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24rpx; box-sizing: border-box; visibility: hidden; opacity: 0; transition: all 0.2s; }
+.modal-mask.show { visibility: visible; opacity: 1; }
+.modal-box { width: 560rpx; max-width: 92vw; background: #fff; border-radius: 24rpx; overflow: hidden; transform: scale(0.96); transition: transform 0.2s; max-height: 80vh; display: flex; flex-direction: column; }
+.modal-mask.show .modal-box { transform: scale(1); }
+.modal-title { text-align: center; font-size: 34rpx; font-weight: 600; color: #333; padding: 40rpx 0 10rpx; }
+.modal-content { text-align: center; font-size: 26rpx; color: #666; padding: 0 40rpx 20rpx; line-height: 1.6; overflow: auto; }
+.modal-input-area { padding: 0 40rpx 40rpx; }
+.modal-input { background: #f5f5f5; height: 88rpx; border-radius: 12rpx; padding: 0 24rpx; font-size: 30rpx; color: #333; }
+.modal-btns { display: flex; height: 104rpx; border-top: 1rpx solid #eee; flex-shrink: 0; }
+.m-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 32rpx; }
+.m-btn.cancel { color: #666; border-right: 1rpx solid #eee; font-weight: 400; }
+.m-btn.confirm { color: #ff2442; font-weight: 600; }
+.m-btn-hover { background-color: #f9f9f9; }
+/* 关于我们弹窗 */
+.modal-box-about { width: 620rpx; }
+.about-scroll { max-height: 60vh; padding: 10rpx 40rpx 24rpx; box-sizing: border-box; }
+.about-content { font-size: 28rpx; color: #444; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+.about-empty { text-align: center; color: #aaa; }
+.about-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60rpx 0; }
+.about-loading .ios-spinner { width: 48rpx; height: 48rpx; border: 5rpx solid rgba(255,36,66,0.2); border-top-color: #ff2442; }
+.about-loading-text { font-size: 26rpx; color: #999; margin-top: 16rpx; }
+.ios-hud-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: flex; align-items: center; justify-content: center; background: transparent; }
+.ios-hud-box { min-width: 220rpx; min-height: 220rpx; background: rgba(30, 30, 30, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30rpx; }
+.ios-hud-text { font-size: 28rpx; color: #fff; margin-top: 24rpx; text-align: center; max-width: 360rpx; line-height: 1.4; }
+.ios-spinner { width: 60rpx; height: 60rpx; border: 6rpx solid rgba(255,255,255,0.3); border-top: 6rpx solid #fff; border-radius: 50%; animation: iosRotate 0.8s linear infinite; }
+@keyframes iosRotate { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+.ios-success-icon { width: 64rpx; height: 64rpx; position: relative; }
+.ios-checkmark { width: 100%; height: 100%; border-radius: 50%; border: 3rpx solid #fff; position: relative; }
+.ios-checkmark::after { content: ''; position: absolute; top: 50%; left: 50%; width: 20rpx; height: 36rpx; border-bottom: 5rpx solid #fff; border-right: 5rpx solid #fff; transform: translate(-50%, -60%) rotate(45deg); }
+.ios-error-icon { width: 64rpx; height: 64rpx; position: relative; }
+.ios-error-mark { width: 100%; height: 100%; border-radius: 50%; border: 3rpx solid #fff; position: relative; }
+.ios-error-mark::before, .ios-error-mark::after { content: ''; position: absolute; top: 50%; left: 50%; width: 36rpx; height: 5rpx; background: #fff; transform-origin: center; }
+.ios-error-mark::before { transform: translate(-50%, -50%) rotate(45deg); }
+.ios-error-mark::after { transform: translate(-50%, -50%) rotate(-45deg); }
+</style>

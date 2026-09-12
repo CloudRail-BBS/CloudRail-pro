@@ -1,0 +1,139 @@
+/* 气泡样式 */
+.bubble-content {
+    display: inline-block;
+    padding: 16rpx 24rpx;
+    border-radius: 16rpx;
+    max-width: 100%;
+    position: relative;
+    font-size: 28rpx;
+    line-height: 1.5;
+    word-break: break-all;
+    transition: all 0.2s;
+    z-index: 1;
+}
+
+.bubble-preview-box {
+    width: 100%;
+    height: 90rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f7fa;
+    border-radius: 8rpx;
+    margin-bottom: 12rpx;
+    overflow: hidden;
+}
+
+.bubble-mini {
+    padding: 8rpx 16rpx;
+    font-size: 22rpx;
+    border-radius: 10rpx;
+    max-width: 90%;
+}
+
+/* 默认气泡 */
+.bubble-default {
+    background: transparent;
+    padding: 0;
+    color: #333;
+}
+.bubble-mini.bubble-default {
+    background: #fff;
+    border: 1px solid #eee;
+}
+
+/*初恋粉*/
+.bubble-pink {
+    background-color: #fff0f5;
+    border: 2rpx solid #ffc0cb;
+    color: #ff69b4;
+    border-radius: 24rpx 24rpx 24rpx 4rpx;
+}
+
+/* 赛博霓虹 */
+.bubble-neon {
+    background-color: #222;
+    border: 2rpx solid #00ffff;
+    color: #00ffff;
+    border-radius: 12rpx;
+    box-shadow: 0 0 8rpx rgba(0, 255, 255, 0.4);
+}
+
+/* 深海幽灵*/
+.bubble-sea {
+    background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+    color: #1a365d;
+    border: none;
+    border-radius: 20rpx 20rpx 20rpx 0;
+    font-weight: 500;
+}
+
+/* 黑金至尊 */
+.bubble-gold {
+    background: linear-gradient(to bottom, #fffdf0, #fcf5c8);
+    border: 2rpx solid #daa520;
+    color: #8b4500;
+    border-radius: 16rpx;
+    box-shadow: 0 2rpx 4rpx rgba(218, 165, 32, 0.2);
+}
+
+/* 像素风格*/
+.bubble-pixel {
+    background: #fff;
+    border: 4rpx dashed #333;
+    color: #333;
+    font-family: monospace;
+    border-radius: 4rpx;
+}
+
+/*  彩虹流光 */
+@keyframes rainbow-bg {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+.bubble-rainbow {
+    background: linear-gradient(270deg, #ff9a9e, #fad0c4, #fad0c4, #a18cd1, #fbc2eb);
+    background-size: 400% 400%;
+    animation: rainbow-bg 6s ease infinite;
+    color: #fff;
+    border-radius: 16rpx;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/*  机械之心 */
+@keyframes border-dance {
+    0% { border-color: #ff0000; }
+    33% { border-color: #00ff00; }
+    66% { border-color: #0000ff; }
+    100% { border-color: #ff0000; }
+}
+.bubble-mech {
+    background: #000;
+    color: #0f0;
+    border: 2rpx solid #ff0000;
+    border-radius: 8rpx;
+    animation: border-dance 2s linear infinite;
+    font-family: monospace;
+}
+
+/* 云朵棉花 */
+.bubble-cloud {
+    background: #f0f8ff;
+    color: #4682b4;
+    border-radius: 30rpx;
+    border: 2rpx solid #b0e0e6;
+    box-shadow: 4rpx 4rpx 0 #b0e0e6;
+}
+
+/* 文字颜色辅助类 */
+.text-bubble-default { color: #333; }
+.text-bubble-pink { color: #ff69b4; }
+.text-bubble-neon { color: #008b8b; }
+.text-bubble-sea { color: #2c5282; }
+.text-bubble-gold { color: #8b4500; }
+.text-bubble-pixel { color: #333; font-weight: bold; }
+.text-bubble-rainbow { color: #ff69b4; font-weight: bold; }
+.text-bubble-mech { color: #006400; font-family: monospace; }
+.text-bubble-cloud { color: #4682b4; }

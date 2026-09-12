@@ -1,0 +1,2188 @@
+﻿<template>
+  <view class="page-container" :class="themeClass" :style="themeVars">
+    <view v-if="initialLoading" class="init-loading-mask">
+      <view class="spinner"></view>
+    </view>
+
+    <view class="nav-bar" :style="navBarStyle">
+      <view class="nav-content">
+        <view class="nav-side nav-side-left">
+          <view class="nav-btn" @click="goBack">
+            <image class="nav-icon" src="/static/icon/fanhui.png" mode="aspectFit"></image>
+          </view>
+        </view>
+
+        <view class="nav-title" :style="{ opacity: navOpacity }">
+          {{ userInfo.name || userInfo.username }}
+          <image v-if="isVip" src="/static/icon/rz.png" class="nav-vip-icon" mode="aspectFit"></image>
+        </view>
+
+        <view class="nav-side nav-side-right">
+          <view v-if="isMe" class="nav-btn" @click="openScan">
+            <image class="nav-icon" src="/static/icon/sss.png" mode="aspectFit"></image>
+          </view>
+          <view v-else class="nav-btn" @click="openActionMenu">
+            <image class="nav-icon" src="/static/icon/gengduo.png" mode="aspectFit"></image>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <scroll-view
+      class="main-scroll"
+      scroll-y
+      enable-back-to-top
+      @scroll="onScroll"
+      @scrolltolower="onReachBottom"
+    >
+      <view class="header-bg-box">
+        <image
+          class="header-image"
+          :src="userInfo.background_image || defaultBg"
+          mode="aspectFill"
+        ></image>
+        <view class="header-gradient"></view>
+      </view>
+
+      <view class="profile-card">
+        <view class="profile-top">
+          <view class="avatar-wrapper">
+            <image class="avatar-img" :src="userInfo.avatar || defaultAvatar" mode="aspectFill"></image>
+            <image
+              v-if="userInfo.current_frame_img"
+              :src="userInfo.current_frame_img"
+              class="avatar-frame"
+              mode="aspectFit"
+            ></image>
+            <!-- VIP: 右上角王冠小动图 -->
+            <image v-if="isVip" src="/static/vip/vip.gif" class="avatar-vip-badge" mode="aspectFit"></image>
+            <!-- 认证: 右下角 V 标 SVG (来自 phpmailer691/红v.svg 个人认证 / 蓝v.svg 企业认证) -->
+            <image
+              v-if="userInfo.auth_badge_label"
+              :src="userInfo.auth_badge_type === 'enterprise' ? '/static/v/blue-v.svg' : '/static/v/red-v.svg'"
+              class="avatar-auth-badge"
+              mode="aspectFit"
+            ></image>
+          </view>
+
+          <view class="action-buttons">
+            <block v-if="!isMe">
+              <view v-if="userInfo.status == 0" class="btn disabled">已封禁</view>
+              <view v-else-if="userInfo.is_private == 1 || privateBlocked" class="btn disabled">私密账号</view>
+              <view
+                v-else
+                class="btn"
+                :class="[isFollowing ? 'secondary' : 'primary', { 'btn-loading': actionLock }]"
+                @click="handleFollow"
+              >
+                {{ isFollowing ? (userInfo.is_follower ? '互相关注' : '已关注') : '关注' }}
+              </view>
+
+              <view class="btn secondary" :class="{ 'icon-btn': isVip }" @click="handleChat">
+                <image
+                  v-if="isVip"
+                  src="/static/icon/siliao.png"
+                  class="btn-icon"
+                  mode="aspectFit"
+                ></image>
+                <text v-else>私信</text>
+              </view>
+            </block>
+
+            <view v-else class="btn secondary" @click="goEditProfile">编辑资料</view>
+          </view>
+        </view>
+
+        <view class="profile-info">
+          <view class="name-line">
+            <text class="user-name" :class="{ 'fancy-text': userInfo.is_fancy == 1, 'vip-rainbow-text': isVip }">{{ userInfo.name || userInfo.username }}</text>
+            <view v-if="isVip" class="vip-sole-icon vip-inline">
+              <view class="vip-badge-inner">
+                <image class="vip-badge-crown-img" src="/static/icon/crown-white.svg" mode="aspectFit" />
+                <text class="vip-badge-text">VIP</text>
+              </view>
+            </view>
+            <view class="level-tag" :class="'lv-tier-' + getLevelTier(levelDisplay)">
+              <image class="level-star-img" src="/static/icon/star-white.svg" mode="aspectFit" />
+              <text class="lv-text">Lv.{{ levelDisplay }}</text>
+            </view>
+          </view>
+
+          <!-- 徽章行：靓号 + 头衔 + 个人认证 + 企业认证。独立一行，不跟名字/VIP/等级挤在同一行，杜绝重叠 -->
+          <view class="badges-row">
+            <view v-if="userInfo.is_fancy == 1" class="fancy-badge-inline">
+              <image src="/static/vip/lianghao.webp" class="fbi-icon" mode="aspectFit"></image>
+              <text class="fbi-num">{{ userInfo.display_number }}</text>
+            </view>
+            <view v-if="userInfo.user_title" class="title-row">
+              <image class="title-icon-img" src="/static/icon/check-white.svg" mode="aspectFit" />
+              <text class="title-text">{{ userInfo.user_title }}</text>
+            </view>
+            <view
+              v-if="Number(userInfo.personal_verified || 0) === 1 || userInfo.auth_badge_type === 'personal'"
+              class="personal-auth-btn"
+            >
+              <text class="personal-auth-icon">实</text>
+              <text class="personal-auth-text">个人认证</text>
+            </view>
+            <view
+              v-if="(Number(userInfo.enterprise_verified || 0) === 1 && (userInfo.enterprise_name || userInfo.auth_badge_type === 'enterprise')) || (userInfo.auth_badge_type === 'enterprise' && userInfo.auth_badge_label === '企')"
+              class="enterprise-auth-btn"
+              @click.stop="showEnterpriseInfo"
+            >
+              <text class="enterprise-auth-icon">企</text>
+              <text class="enterprise-auth-text">{{ userInfo.enterprise_name || '企业认证' }}</text>
+            </view>
+          </view>
+
+          <view class="sub-info-row" v-if="!userInfo.is_fancy && userInfo.display_number">
+            <text class="ordinary-num-inline">{{ userInfo.display_number }}</text>
+          </view>
+
+          <view class="bio-line" :class="{ 'vip-rainbow-text': isVip }">
+            {{ userInfo.personal_signature || '这个人很懒，什么都没写...' }}
+          </view>
+        </view>
+
+        <view class="stats-row">
+          <view class="stat-item">
+            <text class="num">{{ formatNum(userInfo.follow_count) }}</text>
+            <text class="label">关注</text>
+          </view>
+          <view class="stat-item">
+            <text class="num">{{ formatNum(userInfo.fans_count) }}</text>
+            <text class="label">粉丝</text>
+          </view>
+          <view class="stat-item">
+            <text class="num">{{ formatNum(userInfo.total_like) }}</text>
+            <text class="label">获赞</text>
+          </view>
+          <view class="stat-item">
+            <text class="num">{{ formatNum(userInfo.post_count) }}</text>
+            <text class="label">帖子</text>
+          </view>
+          <view class="stat-item">
+            <text class="num">{{ formatNum(userInfo.total_view_count) }}</text>
+            <text class="label">曝光</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="content-area">
+        <view class="sticky-tabs" :style="{ top: stickyTabsTop + 'px' }">
+          <view class="tab-item" :class="{ active: curTab === 0 }" @click="switchTab(0)">
+            帖子
+            <view v-if="curTab === 0" class="active-bar"></view>
+          </view>
+          <view class="tab-item" :class="{ active: curTab === 1 }" @click="switchTab(1)">
+            动态
+            <view v-if="curTab === 1" class="active-bar"></view>
+          </view>
+          <view class="tab-item" :class="{ active: curTab === 2 }" @click="switchTab(2)">
+            商品橱窗
+            <view v-if="curTab === 2" class="active-bar"></view>
+          </view>
+        </view>
+
+        <view class="list-container">
+          <block v-if="curTab === 0">
+            <view v-if="!isMe && (userInfo.is_private == 1 || privateBlocked || userInfo.status == 0)" class="lock-view">
+              <image class="lock-icon" src="/static/icon/nullu.png" mode="widthFix"></image>
+              <text class="lock-text">{{ userInfo.status == 0 ? '该账号已封禁' : '该账号已开启私密模式' }}</text>
+            </view>
+
+            <block v-else>
+              <view v-if="list.length === 0 && !loading" class="empty-box">
+                <text class="empty-text">暂时没有发布内容</text>
+              </view>
+
+              <view v-else class="waterfall-box">
+                <view class="card-item" v-for="item in list" :key="item.id" @click="goPostDetail(item.id)">
+                  <block v-if="item.douyin_url && item.douyin_cover">
+                    <view class="card-douyin-wrap">
+                      <image :src="item.douyin_cover" class="card-douyin-cover" mode="aspectFill"></image>
+                      <view class="card-douyin-play-btn">
+                        <view class="card-douyin-play-icon"></view>
+                      </view>
+                      <view class="card-douyin-info">
+                        <text class="card-douyin-title">{{ item.douyin_title || '抖音视频' }}</text>
+                      </view>
+                    </view>
+                    <view class="card-info">
+                      <view class="card-title" :class="{ 'fancy-text': parseInt(item.is_fancy || 0) === 1 }">{{ item.title }}</view>
+                      <view class="card-meta">
+                        <view class="meta-user">
+                          <image :src="item.user_avatar || userInfo.avatar || defaultAvatar" class="meta-avatar"></image>
+                          <text class="meta-name">{{ item.name || userInfo.name || userInfo.username }}</text>
+                        </view>
+                        <view class="meta-stats">
+                          <view class="meta-like">
+                            <image src="/static/icon/eye-gray.svg" class="like-icon" mode="aspectFit"></image>
+                            {{ formatNum(item.view_count) }}
+                          </view>
+                          <view class="meta-like">
+                            <image src="/static/post/xih1.png" class="like-icon" mode="aspectFit"></image>
+                            {{ item.like_count }}
+                          </view>
+                        </view>
+                      </view>
+                    </view>
+                  </block>
+
+                  <block v-else-if="item.cover_img || item.isVideo">
+                    <view class="card-image-box">
+                      <image class="card-cover" :src="item.cover_img" mode="aspectFill" lazy-load></image>
+                      <image v-if="item.isVideo" src="/static/icon/video.png" class="video-badge-img"></image>
+                    </view>
+                    <view class="card-info">
+                      <view class="card-title" :class="{ 'fancy-text': parseInt(item.is_fancy || 0) === 1 }">{{ item.title }}</view>
+                      <view class="card-meta">
+                        <view class="meta-user">
+                          <image :src="item.user_avatar || userInfo.avatar || defaultAvatar" class="meta-avatar"></image>
+                          <text class="meta-name">{{ item.name || userInfo.name || userInfo.username }}</text>
+                        </view>
+                        <view class="meta-stats">
+                          <view class="meta-like">
+                            <image src="/static/icon/eye-gray.svg" class="like-icon" mode="aspectFit"></image>
+                            {{ formatNum(item.view_count) }}
+                          </view>
+                          <view class="meta-like">
+                            <image src="/static/post/xih1.png" class="like-icon" mode="aspectFit"></image>
+                            {{ item.like_count }}
+                          </view>
+                        </view>
+                      </view>
+                    </view>
+                  </block>
+
+                  <block v-else>
+                    <view class="text-cover-card" :style="{ background: (item.textCoverData && item.textCoverData.gradient) || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }">
+                      <view class="text-cover-inner">
+                        <text class="text-cover-title" v-if="item.textCoverData">{{ item.textCoverData.title }}</text>
+                        <text class="text-cover-subtitle" v-if="item.textCoverData && item.textCoverData.subtitle">{{ isLockedPost(item) ? getLockedPlaceholderText(item) : item.textCoverData.subtitle }}</text>
+                      </view>
+                      <view v-if="isLockedPost(item)" class="text-cover-lock">
+                        <image src="/static/icon/lock-white.svg" class="lock-text-icon" mode="aspectFit"></image>
+                      </view>
+                    </view>
+                    <view class="card-info">
+                      <view class="card-title" :class="{ 'fancy-text': parseInt(item.is_fancy || 0) === 1 }">{{ item.title }}</view>
+                      <view class="card-meta">
+                        <view class="meta-user">
+                          <image :src="item.user_avatar || userInfo.avatar || defaultAvatar" class="meta-avatar"></image>
+                          <text class="meta-name">{{ item.name || userInfo.name || userInfo.username }}</text>
+                        </view>
+                        <view class="meta-stats">
+                          <view class="meta-like">
+                            <image src="/static/icon/eye-gray.svg" class="like-icon" mode="aspectFit"></image>
+                            {{ formatNum(item.view_count) }}
+                          </view>
+                          <view class="meta-like">
+                            <image src="/static/post/xih1.png" class="like-icon" mode="aspectFit"></image>
+                            {{ item.like_count }}
+                          </view>
+                        </view>
+                      </view>
+                    </view>
+                  </block>
+                </view>
+              </view>
+
+              <view class="loading-more">
+                <view v-if="loading" class="spinner small"></view>
+                <text v-if="!hasMore && list.length > 0" class="no-more">没有更多了</text>
+              </view>
+            </block>
+          </block>
+
+          <!-- 动态 -->
+          <block v-if="curTab === 1">
+            <view v-if="dynList.length === 0 && !dynLoading" class="empty-box">
+              <text class="empty-text">暂时没有发布动态</text>
+            </view>
+            <view v-else class="dyn-list">
+              <view class="dyn-item" v-for="item in dynList" :key="item.id" @click="goDynDetail(item.id)">
+                <view class="dyn-content" v-if="item.content">{{ item.content }}</view>
+                <view class="dyn-images" v-if="item.images && item.images.length > 0">
+                  <image
+                    v-for="(img, idx) in (item.images.length > 3 ? item.images.slice(0, 3) : item.images)"
+                    :key="idx"
+                    :src="img"
+                    class="dyn-img"
+                    mode="aspectFill"
+                  ></image>
+                </view>
+                <view class="dyn-meta">
+                  <text class="dyn-time">{{ formatDynTime(item.created_at) }}</text>
+                  <view class="dyn-stats">
+                    <view class="dyn-stat"><image src="/static/post/pl.png" class="dyn-stat-icon" mode="aspectFit"></image><text>{{ item.comment_count || 0 }}</text></view>
+                    <view class="dyn-stat"><image src="/static/post/xih1.png" class="dyn-stat-icon" mode="aspectFit"></image><text>{{ item.like_count || 0 }}</text></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view class="loading-more">
+              <view v-if="dynLoading" class="spinner small"></view>
+              <text v-if="!dynHasMore && dynList.length > 0" class="no-more">没有更多了</text>
+            </view>
+          </block>
+
+          <block v-if="curTab === 2">
+            <view v-if="shopList.length === 0 && !shopLoading" class="empty-box">
+              <text class="empty-text">暂无在售商品</text>
+            </view>
+            <view v-else class="shop-grid">
+              <view class="shop-card" v-for="item in shopList" :key="item.id" @click="goShopDetail(item.id)">
+                <image :src="item.image" class="shop-img" mode="aspectFill"></image>
+                <view class="shop-info">
+                  <text class="shop-title">{{ item.title }}</text>
+                  <view class="shop-bottom">
+                    <text class="shop-price">￥{{ item.price }}</text>
+                    <view class="shop-type-tag" :class="item.product_type == 1 ? 'physical' : 'virtual'">
+                      {{ item.product_type == 1 ? '实体' : '虚拟' }}
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view class="loading-more">
+              <view v-if="shopLoading" class="spinner small"></view>
+              <text v-if="!shopHasMore && shopList.length > 0" class="no-more">没有更多了</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="sheet-mask" :class="{ show: showMenu }" @click="closeActionMenu">
+      <view class="sheet-panel" @click.stop>
+        <view v-if="!isMe" class="sheet-opt" @click="toggleBlock">{{ blockedByMe ? '取消拉黑' : '拉黑用户' }}</view>
+        <view class="sheet-opt warning" @click="handleAction('report')">举报该用户</view>
+        <view class="sheet-opt" @click="handleAction('copy')">复制主页链接</view>
+        <view class="sheet-gap"></view>
+        <view class="sheet-opt cancel" @click="closeActionMenu">取消</view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import { request, webBaseUrl } from '../../common/request.js'
+import { getLevelDisplay as calcLevelDisplay } from '../../common/level.js'
+
+export default {
+  data() {
+    return {
+      statusBarHeight: 20,
+      navBarHeight: 44,
+      navOpacity: 0,
+      targetUserId: 0,
+      initialLoading: true,
+
+      userInfo: {
+        id: 0,
+        username: '',
+        name: '',
+        avatar: '',
+        background_image: '',
+        personal_signature: '',
+        lv: 0,
+        vip: 0,
+        is_private: 0,
+        status: 1,
+        fans_count: 0,
+        follow_count: 0,
+        total_like: 0,
+        total_view_count: 0,
+        post_count: 0,
+        current_frame_img: '',
+        user_title: '',
+        enterprise_verified: 0,
+        enterprise_name: '',
+        personal_verified: 0,
+        auth_status: 0,
+        auth_type: '',
+        auth_badge_type: '',
+        auth_badge_label: '',
+        can_message: 1
+      },
+
+      privateBlocked: false,
+      blockedByMe: false,
+      blockedMe: false,
+      canMessage: false,
+      messageReason: '',
+      isFollowing: false,
+      actionLock: false,
+
+      defaultAvatar: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg',
+      defaultBg: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg',
+
+      list: [],
+      page: 1,
+      hasMore: true,
+      loading: false,
+
+      curTab: 0,
+      shopList: [],
+      shopPage: 1,
+      shopHasMore: true,
+      shopLoading: false,
+
+      dynList: [],
+      dynPage: 1,
+      dynHasMore: true,
+      dynLoading: false,
+
+      showMenu: false,
+      textCoverGradients: [
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+        'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+        'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+        'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
+        'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)',
+        'linear-gradient(135deg, #fddb92 0%, #d1fdff 100%)',
+        'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
+        'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+        'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)'
+      ]
+    }
+  },
+
+  computed: {
+    isMe() {
+      const my = uni.getStorageSync('userInfo')
+      return my && String(my.id ?? my.user_id ?? '') !== '' && String(my.id ?? my.user_id ?? '') === String(this.targetUserId ?? '')
+    },
+
+    isVip() {
+      // 以服务端 userPublic 返回的 vip / is_vip 真源为准；
+      // 服务端已处理：vip_expire_time 有值且过期 -> 掉, 手开无到期时间 -> 仍为 VIP
+      if (!this.userInfo) return false
+      if (parseInt(this.userInfo.vip) === 1) return true
+      if (parseInt(this.userInfo.is_vip) === 1) return true
+      const vipExpire = this.userInfo.vip_expire_time || this.userInfo.expire_time || null
+      if (!vipExpire) return false
+      const ts = new Date(String(vipExpire).replace(/-/g, '/')).getTime()
+      return !Number.isNaN(ts) && ts > Date.now()
+    },
+
+    levelDisplay() {
+      return calcLevelDisplay(this.userInfo.lv)
+    },
+
+    navBarTotalHeight() {
+      return this.statusBarHeight + this.navBarHeight
+    },
+
+    stickyTabsTop() {
+      return this.navBarTotalHeight - 1
+    },
+
+    navBarStyle() {
+      return {
+        paddingTop: this.statusBarHeight + 'px',
+        height: this.navBarTotalHeight + 'px',
+        background: this.navBgStyle,
+        boxSizing: 'border-box'
+      }
+    },
+
+    navBgStyle() {
+      return `rgba(var(--nav-rgb), ${this.navOpacity})`
+    },
+
+    themeClass() {
+      // 资料页统一使用白色主题，不做VIP黑色主题区分
+      return 'theme-light'
+    },
+
+    themeVars() {
+      // 资料页强制使用白色主题，保留顶部背景图原样显示
+      // VIP身份标识（vip图标、渐变文字、金色按钮）不受影响，由各自样式控制
+      return {
+        '--bg-color': '#FFFFFF',
+        '--container-bg': '#FFFFFF',
+        '--card-bg': '#FFFFFF',
+        '--text-main': '#333333',
+        '--text-sub': '#999999',
+        '--accent': '#FF2442',
+        '--border': '#EEEEEE',
+        '--nav-rgb': '255, 255, 255',
+        '--tag-bg': '#F5F5F5',
+        '--btn-sec-bg': '#FFFFFF',
+        '--btn-sec-text': '#333333'
+      }
+    }
+  },
+
+  onLoad(options) {
+    const sys = uni.getSystemInfoSync()
+    this.statusBarHeight = sys.statusBarHeight || 20
+
+    if (options.userId) {
+      this.targetUserId = String(options.userId || "")
+      this.fetchData()
+    }
+  },
+
+  methods: {
+    // 等级分层配色（参考B站等级体系）
+    getLevelTier(lv) {
+      const n = parseInt(lv) || 0
+      if (n <= 2) return 1
+      if (n <= 4) return 2
+      if (n <= 6) return 3
+      if (n <= 8) return 4
+      if (n <= 10) return 5
+      return 6
+    },
+    normalizePostItem(item) {
+      const DEFAULT_VIDEO_COVER = '/static/logo.png'
+      const post = item || {}
+      const isPaid = parseInt(post.is_paid || 0)
+      const isCommentUnlock = parseInt(post.is_comment_unlock || 0)
+      
+      const isUsableMedia = (url) => {
+        const value = String(url || '').trim()
+        if (!value) return false
+        const lowered = value.toLowerCase()
+        return !['null', 'undefined', 'false', '[]', '[object object]'].includes(lowered)
+      }
+      
+      let imgs = []
+      if (post.images && post.images !== 'NULL') {
+        if (Array.isArray(post.images)) {
+          imgs = post.images
+        } else if (typeof post.images === 'string') {
+          try {
+            imgs = post.images.startsWith('[') ? JSON.parse(post.images) : post.images.split(',')
+          } catch (e) {
+            imgs = post.images.split(',')
+          }
+        }
+      }
+      
+      imgs = imgs
+        .map(img => String(img || '').trim())
+        .filter(img => isUsableMedia(img))
+      
+      let coverImage = imgs[0] || post.cover_img || post.coverImage || post.douyin_cover || ''
+      if (!isUsableMedia(coverImage)) coverImage = ''
+
+      const isVideo = !!(post.video && isUsableMedia(post.video)) || !!(post.douyin_cover && isUsableMedia(post.douyin_cover))
+      if (isVideo && !coverImage) coverImage = DEFAULT_VIDEO_COVER
+
+      // 纯文字卡片随机渐变背景
+      const isTextOnly = !coverImage && !isVideo && !post.douyin_cover
+      let plainContent = (post.plain_content || post.content || '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+      if (plainContent.length > 70) plainContent = plainContent.substring(0, 70) + '...'
+      const textCoverData = isTextOnly ? {
+        gradient: this.textCoverGradients[(post.id || 0) % 12],
+        title: ((post.title || '').trim() || plainContent || '文字内容').substring(0, 20),
+        subtitle: (plainContent || '点击查看详情').substring(0, 40)
+      } : null
+
+      return {
+        ...post,
+        cover_img: coverImage,
+        coverImage: coverImage,
+        images: imgs,
+        video: post.video || '',
+        isVideo: isVideo,
+        douyin_cover: post.douyin_cover || '',
+        is_paid: isPaid,
+        is_comment_unlock: isCommentUnlock,
+        price: Number(post.price || 0),
+        is_unlocked: !!(post.is_unlocked || (!isPaid && !isCommentUnlock)),
+        isTextOnly,
+        textCoverData,
+        plainContent
+      }
+    },
+
+    isLockedPost(item) {
+      if (!item) return false
+      return (parseInt(item.is_paid || 0) === 1 || parseInt(item.is_comment_unlock || 0) === 1) && !item.is_unlocked
+    },
+
+    getLockedPlaceholderText(item) {
+      return parseInt(item && item.is_paid ? item.is_paid : 0) === 1 ? '付费可见' : '评论可见'
+    },
+
+    goBack() {
+      uni.navigateBack()
+    },
+
+    openScan() {
+      // #ifdef H5
+      uni.showToast({
+        title: '请使用APP扫一扫',
+        icon: 'none'
+      })
+      // #endif
+
+      // #ifndef H5
+      uni.scanCode({
+        success: (res) => {},
+        fail: () => {}
+      })
+      // #endif
+    },
+
+    goPostDetail(id) {
+      if (this.userInfo.status == 0) {
+        uni.showToast({ title: '该账号已封禁', icon: 'none' })
+        return
+      }
+
+      if (this.privateBlocked || parseInt(this.userInfo.is_private) === 1) {
+        uni.showToast({ title: '该账号已开启私密模式', icon: 'none' })
+        return
+      }
+
+      uni.navigateTo({ url: `/pages/post-detail/post-detail?postId=${id}` })
+    },
+
+    goEditProfile() {
+      uni.navigateTo({ url: '/pages/user/setting' })
+    },
+    showEnterpriseInfo() {
+      if (!this.userInfo.enterprise_name) return
+      uni.showModal({
+        title: '企业认证',
+        content: this.userInfo.enterprise_name,
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+    },
+
+    openActionMenu() {
+      this.showMenu = true
+    },
+
+    closeActionMenu() {
+      this.showMenu = false
+    },
+
+    handleAction(type) {
+      this.closeActionMenu()
+
+      if (type === 'report') {
+        uni.navigateTo({ url: `/pages/user/report?userId=${this.targetUserId}` })
+        return
+      }
+
+      if (type === 'copy') {
+        uni.setClipboardData({
+          data: `${webBaseUrl}#/pages/user/profile?userId=${this.targetUserId}`,
+          success: () => {
+            uni.showToast({ title: '链接已复制', icon: 'none' })
+          }
+        })
+      }
+    },
+
+    async refreshBlockState() {
+      const my = uni.getStorageSync('userInfo')
+      if (!my || this.isMe || !this.targetUserId) {
+        this.blockedByMe = false
+        this.blockedMe = false
+        return
+      }
+
+      try {
+        const res = await request(
+          'message.php',
+          {
+            action: 'getChatProfile',
+            targetId: this.targetUserId
+          },
+          'GET'
+        )
+
+        if (res.code === 0) {
+          this.blockedByMe = !!res.data.blocked_by_me
+          this.blockedMe = !!res.data.blocked_me
+        }
+      } catch (e) {}
+    },
+
+    async toggleBlock() {
+      this.closeActionMenu()
+      const my = uni.getStorageSync('userInfo')
+      if (!my) {
+        uni.navigateTo({ url: '/pages/login/login' })
+        return
+      }
+
+      if (this.isMe) return
+
+      const willBlock = !this.blockedByMe
+
+      try {
+        const res = await request(
+          'message.php',
+          {
+            action: 'setBlock',
+            targetId: this.targetUserId,
+            block: willBlock ? 1 : 0
+          },
+          'POST'
+        )
+
+        if (res.code === 0) {
+          this.blockedByMe = willBlock
+
+          if (willBlock) {
+            this.canMessage = false
+            this.messageReason = '你已拉黑该用户'
+          } else {
+            await this.fetchData()
+          }
+
+          await this.refreshBlockState()
+          uni.showToast({ title: res.msg || '操作成功', icon: 'none' })
+          return
+        }
+
+        uni.showToast({ title: res.msg || '操作失败', icon: 'none' })
+      } catch (e) {
+        uni.showToast({ title: e?.msg || '操作失败', icon: 'none' })
+      }
+    },
+
+    handleChat() {
+      const my = uni.getStorageSync('userInfo')
+      if (!my) {
+        uni.navigateTo({ url: '/pages/login/login' })
+        return
+      }
+
+      const targetId = this.targetUserId
+      const name = this.userInfo.name || this.userInfo.username || '用户'
+      const avatar = this.userInfo.avatar || this.defaultAvatar
+
+      uni.navigateTo({
+        url: `/pages/message/chat?targetId=${targetId}&name=${encodeURIComponent(name)}&avatar=${encodeURIComponent(avatar)}`,
+        fail: () => {
+          uni.showToast({ title: '打开聊天页失败', icon: 'none' })
+        }
+      })
+    },
+
+    async fetchData() {
+      this.initialLoading = true
+      this.list = []
+      this.page = 1
+      this.hasMore = true
+      this.privateBlocked = false
+      this.blockedByMe = false
+      this.blockedMe = false
+      this.canMessage = false
+      this.messageReason = ''
+
+      try {
+        const res = await request('user.php', {
+          action: 'profileHomeBundle',
+          targetId: this.targetUserId
+        })
+
+        if (res.code === 0) {
+          this.userInfo = res.data.userInfo || this.userInfo
+
+          // 靓号兜底：后端 userPublic 若因 functions.php 版本旧未返回 is_fancy/display_number，
+          // 则单独查该用户的靓号合并进来，保证别人查看主页也能看到靓号
+          if (!this.userInfo.is_fancy && this.targetUserId) {
+            try {
+              const fr = await request('fancy.php', { action: 'user_number', targetId: this.targetUserId })
+              if (fr.code === 0 && fr.data) {
+                this.userInfo = Object.assign({}, this.userInfo, { is_fancy: parseInt(fr.data.is_fancy || 0), display_number: fr.data.display_number || '' })
+              }
+            } catch (e) {}
+          }
+
+          const followStatus = res.data.isFollowing
+          this.isFollowing = followStatus === true || followStatus === 'true' || followStatus === 1 || followStatus === '1'
+
+          this.privateBlocked = !!res.data.private_blocked
+          this.canMessage = parseInt(res.data.canMessage) === 1
+          this.messageReason = res.data.messageReason || ''
+
+          this.list = (res.data.postList || []).map(item => this.normalizePostItem(item))
+          this.hasMore = !!res.data.postHasMore
+          this.page = parseInt(res.data.nextPage || (this.list.length > 0 ? 2 : 1))
+
+          await this.refreshBlockState()
+        } else {
+          uni.showToast({ title: res.msg || '用户加载失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: e?.msg || '用户加载失败', icon: 'none' })
+      } finally {
+        this.initialLoading = false
+      }
+    },
+
+    async loadList() {
+      if (this.loading || !this.hasMore) return
+      if (parseInt(this.userInfo.is_private) === 1 || this.privateBlocked || this.userInfo.status == 0) return
+
+      this.loading = true
+      try {
+        const res = await request('user.php', {
+          action: 'getOtherUserPosts',
+          targetId: this.targetUserId,
+          page: this.page
+        })
+
+        if (res.code === 0) {
+          const arr = (res.data || []).map(item => this.normalizePostItem(item))
+
+          if (res.extra && res.extra.private_blocked) {
+            this.privateBlocked = true
+            this.list = []
+            this.hasMore = false
+            return
+          }
+
+          this.list = [...this.list, ...arr]
+          this.hasMore = !!(res.extra ? res.extra.hasMore : arr.length >= 10)
+          if (arr.length > 0) this.page++
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async handleFollow() {
+      if (this.userInfo.status == 0) {
+        uni.showToast({ title: '用户已封禁', icon: 'none' })
+        return
+      }
+
+      if (this.actionLock) return
+
+      if (parseInt(this.userInfo.is_private) === 1 || this.privateBlocked) {
+        uni.showToast({ title: '该账号已开启私密模式', icon: 'none' })
+        return
+      }
+
+      this.actionLock = true
+
+      try {
+        const res = await request('user.php', {
+          action: 'toggleFollow',
+          targetId: this.targetUserId
+        })
+
+        if (res.code === 0) {
+          const data = res.data || {}
+          let newStatus = data.status
+          if (typeof newStatus === 'undefined') {
+            newStatus = data.following ? 'followed' : 'unfollowed'
+          }
+
+          if (newStatus === 'followed') {
+            this.isFollowing = true
+            this.userInfo.fans_count = parseInt(this.userInfo.fans_count || 0) + 1
+            uni.showToast({ title: '关注成功', icon: 'none' })
+          } else if (newStatus === 'unfollowed') {
+            this.isFollowing = false
+            this.userInfo.fans_count = Math.max(0, parseInt(this.userInfo.fans_count || 0) - 1)
+            uni.showToast({ title: '已取消关注', icon: 'none' })
+          }
+        } else {
+          uni.showToast({ title: res.msg || '操作失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: e?.msg || '网络请求失败', icon: 'none' })
+      } finally {
+        setTimeout(() => {
+          this.actionLock = false
+        }, 500)
+      }
+    },
+
+    onScroll(e) {
+      const top = e.detail.scrollTop
+      const opacity = Math.min(top / 60, 1)
+      // 立即响应：直接更新透明度，确保上滑时导航栏能即时淡出
+      this.navOpacity = opacity
+    },
+
+    onReachBottom() {
+      if (this.curTab === 0) {
+        this.loadList()
+      } else if (this.curTab === 1) {
+        this.loadDyn()
+      } else if (this.curTab === 2) {
+        this.loadShop()
+      }
+    },
+
+    switchTab(i) {
+      if (this.curTab === i) return
+      this.curTab = i
+      if (i === 1 && this.dynList.length === 0) {
+        this.loadDyn(true)
+      } else if (i === 2 && this.shopList.length === 0) {
+        this.loadShop(true)
+      }
+    },
+
+    goShopDetail(id) {
+      uni.navigateTo({ url: `/pages/market/detail?id=${id}` })
+    },
+
+    goDynDetail(id) {
+      uni.navigateTo({ url: `/pages/dynamic/detail?id=${id}` })
+    },
+
+    formatDynTime(t) {
+      if (!t) return ''
+      // 后端返回 'YYYY-MM-DD HH:mm:ss'，去掉秒
+      return t.length >= 16 ? t.substring(0, 16) : t
+    },
+
+    async loadDyn(reset = false) {
+      if (this.dynLoading || (!this.dynHasMore && !reset)) return
+
+      if (reset) {
+        this.dynPage = 1
+        this.dynList = []
+        this.dynHasMore = true
+      }
+
+      this.dynLoading = true
+      try {
+        const res = await request('dynamic.php', {
+          action: 'myList',
+          target_user_id: this.targetUserId,
+          page: this.dynPage,
+          pageSize: 20
+        }, 'GET')
+
+        if (res.code === 0) {
+          const arr = (res.data && res.data.list) || []
+          this.dynList = [...this.dynList, ...arr]
+          this.dynHasMore = arr.length >= 20
+          if (arr.length > 0) this.dynPage++
+        }
+      } catch (e) {
+        console.log('[profile] loadDyn error', e)
+      } finally {
+        this.dynLoading = false
+      }
+    },
+
+    async loadShop(reset = false) {
+      if (this.shopLoading || (!this.shopHasMore && !reset)) return
+
+      if (reset) {
+        this.shopPage = 1
+        this.shopList = []
+        this.shopHasMore = true
+      }
+
+      this.shopLoading = true
+      try {
+        const res = await request('market.php', {
+          action: 'get_user_products',
+          user_id: this.targetUserId,
+          page: this.shopPage
+        })
+
+        if (res.code === 0) {
+          const arr = (res.data && res.data.list) || []
+          this.shopList = reset ? arr : [...this.shopList, ...arr]
+          if (arr.length < 10) this.shopHasMore = false
+          if (arr.length > 0) this.shopPage++
+        }
+      } catch (e) {
+      } finally {
+        this.shopLoading = false
+      }
+    },
+
+    formatNum(n) {
+      n = parseInt(n) || 0
+      return n >= 10000 ? (n / 10000).toFixed(1) + 'w' : n
+    },
+
+    formatTime(time) {
+      if (!time) return ''
+
+      const date = new Date(String(time).replace(/-/g, '/'))
+      const now = new Date()
+      const diff = (now.getTime() - date.getTime()) / 1000
+
+      if (diff < 60) return '刚刚'
+      if (diff < 3600) return Math.floor(diff / 60) + '分钟前'
+      if (diff < 86400) return Math.floor(diff / 3600) + '小时前'
+      if (diff < 2592000) return Math.floor(diff / 86400) + '天前'
+
+      const m = (date.getMonth() + 1).toString().padStart(2, '0')
+      const d = date.getDate().toString().padStart(2, '0')
+      return `${date.getFullYear()}-${m}-${d}`
+    }
+  }
+}
+</script>
+
+<style scoped>
+.page-container {
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  transition: background-color 0.3s;
+}
+
+.init-loading-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid rgba(128, 128, 128, 0.3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner.small {
+  width: 32rpx;
+  height: 32rpx;
+  border-width: 3rpx;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  transition: background 0.1s;
+  box-sizing: border-box;
+}
+
+.nav-content {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20rpx;
+  box-sizing: border-box;
+}
+
+.nav-side {
+  min-width: 88rpx;
+  display: flex;
+  align-items: center;
+}
+
+.nav-side-left {
+  justify-content: flex-start;
+}
+
+.nav-side-right {
+  justify-content: flex-end;
+}
+
+.nav-title {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  opacity: 0;
+  color: var(--text-main);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nav-vip-icon {
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
+}
+
+.nav-vip-tag {
+  font-size: 20rpx;
+  background: var(--accent);
+  color: #000;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icon {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.main-scroll {
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.header-bg-box {
+  width: 100%;
+  height: 500rpx;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.header-image {
+  width: 100%;
+  height: 100%;
+}
+
+.header-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 200rpx;
+  background: linear-gradient(to bottom, transparent, var(--container-bg));
+  pointer-events: none;
+}
+
+.profile-card {
+  margin-top: 360rpx;
+  position: relative;
+  padding: 0 32rpx;
+  z-index: 10;
+  margin-bottom: 20rpx;
+}
+
+.profile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24rpx;
+}
+
+.avatar-wrapper {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: var(--card-bg);
+  padding: 6rpx;
+  position: relative;
+  overflow: visible;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #eee;
+  display: block;
+}
+
+.avatar-frame {
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.avatar-vip-badge {
+  position: absolute;
+  /* VIP 王冠放在右上角；认证徽标放右下角，两者永不重叠 */
+  top: -2rpx;
+  right: -2rpx;
+  bottom: auto;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--card-bg);
+  background: var(--card-bg);
+  z-index: 5;
+}
+
+/* 认证图标：头像右下角圆形小徽标 企/实 */
+/* 认证 V 标：头像右下角，跟 VIP 王冠(右上)位置错开 */
+.avatar-auth-badge {
+  position: absolute;
+  bottom: -4rpx;
+  right: -4rpx;
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--card-bg);
+  z-index: 5;
+  box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.22);
+  background: #fff;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 16rpx;
+  padding-bottom: 10rpx;
+}
+
+.btn {
+  height: 64rpx;
+  padding: 0 32rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.btn:active {
+  opacity: 0.8;
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+
+.theme-dark .btn.primary {
+  color: #000;
+  background: linear-gradient(90deg, #D4AF37, #FDB931);
+}
+
+.btn.secondary {
+  background: var(--btn-sec-bg);
+  color: var(--btn-sec-text);
+  border: 1px solid var(--border);
+}
+
+.btn.disabled {
+  background: #eee;
+  color: #999;
+  border: none;
+}
+
+.btn-loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.icon-btn {
+  padding: 0;
+  width: 64rpx;
+}
+
+.btn-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.profile-info {
+  margin-bottom: 40rpx;
+}
+
+.name-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-bottom: 8rpx;
+}
+
+.sub-info-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.user-name {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.fancy-text {
+  color: #ff2442 !important;
+  font-weight: 900 !important;
+}
+
+.vip-rainbow-text {
+  background: linear-gradient(90deg, #ff2442, #ff7a00, #ffd400, #00c853, #00b0ff, #aa00ff, #ff2442);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: vipRainbowMove 4s linear infinite;
+  font-weight: 900 !important;
+}
+
+@keyframes vipRainbowMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* 等级标签：渐变胶囊 + 星星 + Lv数字（参考B站等级体系） */
+.level-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  font-size: 24rpx;
+  padding: 4rpx 14rpx 4rpx 10rpx;
+  min-height: 40rpx;
+  box-sizing: border-box;
+  border-radius: 22rpx;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.15);
+}
+.level-tag .level-star-img {
+  width: 24rpx;
+  height: 24rpx;
+  flex-shrink: 0;
+}
+/* 6 档等级配色 */
+.lv-tier-1 { background: linear-gradient(135deg, #90a4ae 0%, #607d8b 100%); }
+.lv-tier-2 { background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%); }
+.lv-tier-3 { background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%); }
+.lv-tier-4 { background: linear-gradient(135deg, #ab47bc 0%, #8e24aa 100%); }
+.lv-tier-5 { background: linear-gradient(135deg, #ffb74d 0%, #fb8c00 100%); }
+.lv-tier-6 {
+  background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 50%, #ee0979 100%);
+  box-shadow: 0 2rpx 8rpx rgba(238, 9, 121, 0.35);
+}
+
+.lv-text {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5rpx;
+}
+
+/* 徽章行：独立一行，防止与姓名/VIP/等级挤在一起出现重叠 */
+.badges-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 8rpx;
+  margin-bottom: 6rpx;
+}
+
+/* VIP 徽章：金红渐变胶囊 + 王冠 + VIP字样 + 流光动画（参考QQ会员风格） */
+.vip-sole-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 22rpx;
+}
+/* 跟在名字后面的 VIP 缩小版，防止和等级/头衔挤成一团 */
+.vip-sole-icon.vip-inline .vip-badge-inner {
+  min-height: 32rpx;
+  padding: 2rpx 12rpx 2rpx 8rpx;
+  border-radius: 18rpx;
+}
+.vip-sole-icon.vip-inline .vip-badge-crown-img {
+  width: 22rpx;
+  height: 22rpx;
+}
+.vip-sole-icon.vip-inline .vip-badge-text {
+  font-size: 20rpx;
+}
+.vip-sole-icon .vip-badge-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  min-height: 40rpx;
+  padding: 4rpx 16rpx 4rpx 10rpx;
+  box-sizing: border-box;
+  border-radius: 22rpx;
+  background: linear-gradient(135deg, #ff5e3a 0%, #ff2a68 30%, #ffb300 65%, #ffd54f 100%);
+  box-shadow: 0 2rpx 10rpx rgba(255, 46, 104, 0.5), inset 0 1rpx 0 rgba(255,255,255,0.4);
+  border: 1rpx solid rgba(255, 220, 100, 0.7);
+  position: relative;
+  overflow: hidden;
+}
+.vip-sole-icon .vip-badge-inner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -150%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
+  transform: skewX(-25deg);
+  animation: vipShine 3s ease-in-out infinite;
+}
+@keyframes vipShine {
+  0% { left: -150%; }
+  60% { left: 200%; }
+  100% { left: 200%; }
+}
+.vip-sole-icon .vip-badge-crown-img {
+  width: 26rpx;
+  height: 26rpx;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1rpx 2rpx rgba(0,0,0,0.3));
+}
+.vip-sole-icon .vip-badge-text {
+  font-size: 22rpx;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1rpx;
+  line-height: 1;
+  text-shadow: 0 1rpx 2rpx rgba(140, 30, 0, 0.6);
+  position: relative;
+  z-index: 1;
+}
+
+.uid-line {
+  font-size: 22rpx;
+  color: var(--text-sub);
+  margin-bottom: 12rpx;
+  font-family: monospace;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+/* 靓号徽章：暗金底色 + 金色边框 + 王冠 + 靓字（参考QQ靓号图标风格） */
+.fancy-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  background: linear-gradient(135deg, #1a1300 0%, #2e2200 40%, #1a1300 100%);
+  border: 1rpx solid rgba(255, 200, 80, 0.55);
+  padding: 5rpx 14rpx 5rpx 8rpx;
+  border-radius: 22rpx;
+  box-shadow: 0 2rpx 10rpx rgba(212, 175, 55, 0.28), inset 0 1rpx 0 rgba(255, 220, 80, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+.fancy-badge-inline::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 215, 100, 0.25) 50%, transparent 100%);
+  transform: skewX(-25deg);
+  animation: fancyShine 4s ease-in-out infinite 1s;
+}
+@keyframes fancyShine {
+  0% { left: -100%; }
+  50% { left: 200%; }
+  100% { left: 200%; }
+}
+.fbi-icon {
+  width: 24rpx;
+  height: 24rpx;
+  opacity: 1;
+  position: relative;
+  z-index: 1;
+}
+.fbi-num {
+  font-size: 22rpx;
+  font-weight: 800;
+  color: #ffd76b;
+  letter-spacing: 1.5rpx;
+  font-family: monospace;
+  text-shadow: 0 1rpx 2rpx rgba(0,0,0,0.5);
+  position: relative;
+  z-index: 1;
+}
+
+/* 靓号ID（普通号码显示）：暗金背景 + 金色文字（参考QQ靓号ID） */
+.ordinary-num-inline {
+  font-size: 22rpx;
+  color: #b89035;
+  font-weight: 600;
+}
+
+.auth-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+/* 认证图标：青蓝渐变胶囊 + 勾 */
+.title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  padding: 4rpx 14rpx 4rpx 10rpx;
+  min-height: 40rpx;
+  box-sizing: border-box;
+  border-radius: 22rpx;
+  color: #fff;
+  box-shadow: 0 2rpx 6rpx rgba(79, 172, 254, 0.3);
+}
+
+.title-icon-img {
+  width: 28rpx;
+  height: 28rpx;
+  flex-shrink: 0;
+}
+
+.title-text {
+  font-size: 22rpx;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* 企业认证：青蓝渐变胶囊 + 企字图标 + 企业名（可见才显示）*/
+.enterprise-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 5rpx 14rpx 5rpx 10rpx;
+  border-radius: 22rpx;
+  background: linear-gradient(135deg, #00b8d9 0%, #1976d2 100%);
+  border: 1rpx solid rgba(255,255,255,0.4);
+  box-shadow: 0 2rpx 8rpx rgba(25, 118, 210, 0.3);
+  color: #fff;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.enterprise-auth-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  color: #1976d2;
+  font-size: 18rpx;
+  font-weight: 900;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.enterprise-auth-text {
+  font-size: 22rpx;
+  font-weight: 700;
+  max-width: 260rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff;
+}
+
+/* 个人认证：绿渐变胶囊 + 实字图标 */
+.personal-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 5rpx 14rpx 5rpx 10rpx;
+  border-radius: 22rpx;
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  border: 1rpx solid rgba(255,255,255,0.4);
+  box-shadow: 0 2rpx 8rpx rgba(39, 174, 96, 0.3);
+  color: #fff;
+  flex-shrink: 0;
+}
+.personal-auth-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  color: #27ae60;
+  font-size: 18rpx;
+  font-weight: 900;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.personal-auth-text {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.bio-line {
+  font-size: 28rpx;
+  color: var(--text-main);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.stats-row {
+  display: flex;
+  gap: 40rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-item .num {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+.stat-item .label {
+  font-size: 22rpx;
+  color: var(--text-sub);
+  margin-top: 2rpx;
+}
+
+.content-area {
+  border-radius: 32rpx 32rpx 0 0;
+  background-color: var(--container-bg);
+  min-height: 500rpx;
+  position: relative;
+  z-index: 20;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sticky-tabs {
+  position: sticky;
+  z-index: 100;
+  display: flex;
+  height: 88rpx;
+  background-color: var(--container-bg);
+  border-bottom: 1rpx solid var(--border);
+}
+
+.tab-item {
+  padding: 0 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: var(--text-sub);
+  position: relative;
+  font-weight: 500;
+}
+
+.tab-item.active {
+  color: var(--text-main);
+  font-weight: bold;
+  font-size: 30rpx;
+}
+
+.active-bar {
+  position: absolute;
+  bottom: 0;
+  width: 32rpx;
+  height: 4rpx;
+  background: var(--accent);
+  border-radius: 4rpx;
+}
+
+.list-container {
+  padding: 24rpx;
+  min-height: 400rpx;
+  background-color: var(--container-bg);
+}
+
+.lock-view {
+  padding: 100rpx 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.lock-icon {
+  width: 80rpx;
+  height: 80rpx;
+  opacity: 0.6;
+}
+
+.lock-text {
+  color: var(--text-sub);
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.waterfall-box {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.card-item {
+  width: 48.5%;
+  background: var(--card-bg);
+  border-radius: 16rpx;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.02);
+  position: relative;
+}
+
+.card-image-box {
+  width: 100%;
+  height: 340rpx;
+  background: var(--border);
+  position: relative;
+}
+
+.video-badge-img {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  width: 40rpx;
+  height: 40rpx;
+  opacity: 0.9;
+}
+
+.card-douyin-wrap {
+  position: relative;
+  width: 100%;
+  height: 340rpx;
+}
+
+.card-douyin-cover {
+  width: 100%;
+  height: 100%;
+}
+
+.card-douyin-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-douyin-play-icon {
+  width: 0;
+  height: 0;
+  border-top: 16rpx solid transparent;
+  border-bottom: 16rpx solid transparent;
+  border-left: 24rpx solid #fff;
+  margin-left: 4rpx;
+}
+
+.card-douyin-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+}
+
+.card-douyin-title {
+  display: block;
+  color: #fff;
+  font-size: 22rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-cover {
+  width: 100%;
+  height: 100%;
+}
+.card-cover-lock {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+}
+.card-cover-lock-text {
+  font-size: 28rpx;
+  color: #6b7280;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.card-info {
+  padding: 20rpx 16rpx;
+}
+
+.card-title {
+  font-size: 28rpx;
+  color: var(--text-main);
+  line-height: 1.4;
+  margin-bottom: 16rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 500;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 20rpx;
+  color: var(--text-sub);
+}
+
+.meta-user {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  max-width: 65%;
+}
+.meta-avatar {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+.meta-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.meta-like {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.meta-stats {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.like-icon {
+  width: 28rpx;
+  height: 28rpx;
+  margin-right: 6rpx;
+}
+
+.text-cover-card {
+  position: relative;
+  width: 100%;
+  height: 340rpx;
+  overflow: hidden;
+}
+.text-cover-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 28rpx;
+  box-sizing: border-box;
+  text-align: center;
+}
+.text-cover-title {
+  font-size: 36rpx;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.4;
+  text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.text-cover-subtitle {
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.text-cover-lock {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  background: rgba(0,0,0,0.5);
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lock-text-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.empty-box {
+  padding-top: 100rpx;
+  text-align: center;
+}
+
+.empty-text {
+  color: var(--text-sub);
+  font-size: 26rpx;
+}
+
+.loading-more {
+  padding: 30rpx 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+
+.no-more {
+  color: var(--text-sub);
+  font-size: 22rpx;
+}
+
+.sheet-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+}
+
+.sheet-mask.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sheet-panel {
+  width: 100%;
+  background: #f8f8f8;
+  border-radius: 24rpx 24rpx 0 0;
+  overflow: hidden;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+}
+
+.sheet-mask.show .sheet-panel {
+  transform: translateY(0);
+}
+
+.sheet-opt {
+  background: #fff;
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  color: #333;
+  border-bottom: 1rpx solid #eee;
+}
+
+.sheet-opt:active {
+  background: #f0f0f0;
+}
+
+.sheet-opt.warning {
+  color: #ff2442;
+}
+
+.sheet-gap {
+  height: 12rpx;
+  background: #f8f8f8;
+}
+
+.sheet-opt.cancel {
+  border-bottom: none;
+  font-weight: 600;
+}
+
+.shop-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  background: var(--container-bg);
+}
+
+/* 动态列表 */
+.dyn-list {
+  padding: 20rpx 24rpx;
+  background: var(--container-bg);
+}
+.dyn-item {
+  background: var(--card-bg);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  border: 1rpx solid var(--border);
+}
+.dyn-item:active { opacity: 0.85; }
+.dyn-content {
+  font-size: 28rpx;
+  color: var(--text-main);
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dyn-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-bottom: 16rpx;
+}
+.dyn-img {
+  width: calc(33.33% - 6rpx);
+  height: 200rpx;
+  border-radius: 8rpx;
+  background: #f5f5f5;
+}
+.dyn-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dyn-time {
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+.dyn-stats {
+  display: flex;
+  gap: 24rpx;
+}
+.dyn-stat {
+  font-size: 24rpx;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+.dyn-stat-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.shop-card {
+  width: calc(50% - 8rpx);
+  background: var(--card-bg);
+  border-radius: 14rpx;
+  overflow: hidden;
+  border: 1rpx solid var(--border);
+}
+
+.shop-card:active {
+  opacity: 0.85;
+}
+
+.shop-img {
+  width: 100%;
+  height: 220rpx;
+  display: block;
+  background: #eee;
+}
+
+.shop-info {
+  padding: 14rpx 16rpx 16rpx;
+}
+
+.shop-title {
+  font-size: 24rpx;
+  color: var(--text-main);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.shop-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shop-price {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #ff2f00;
+}
+
+.shop-type-tag {
+  font-size: 18rpx;
+  padding: 3rpx 10rpx;
+  border-radius: 4rpx;
+  font-weight: 500;
+}
+
+.shop-type-tag.physical {
+  background: #eaf3ff;
+  color: #1677ff;
+}
+
+.shop-type-tag.virtual {
+  background: #fff4e5;
+  color: #ff6900;
+}
+</style>

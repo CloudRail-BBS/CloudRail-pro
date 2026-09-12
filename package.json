@@ -1,0 +1,32 @@
+{
+  "id": "easy-scancode",
+  "name": "H5扫码组件，支持微信环境H5使用，更新全端可用，自动判断环境",
+  "displayName": "H5扫码组件，支持微信环境H5使用，更新全端可用，自动判断环境",
+  "version": "1.0.1",
+  "description": "基于 html5-qrcode 封装的扫码组件，支持H5及微信H5环境，在其他环境调用uni方法，全端使用即可",
+  "keywords": [
+    "扫一扫",
+    "扫码",
+    "H5扫码",
+    "微信H5扫码"
+  ],
+  "dcloudext": {
+    "type": "component-vue",
+    "sale": {
+      "regular": {
+        "price": "0.00"
+      },
+      "sourcecode": {
+        "price": "0.00"
+      }
+    }
+  },
+  "uni_modules": {
+    "dependencies": [],
+    "encrypt": []
+  },
+  "dependencies": {
+    "hls.js": "^1.6.16",
+    "html5-qrcode": "^2.3.8"
+  }
+}

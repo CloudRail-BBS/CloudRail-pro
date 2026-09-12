@@ -1,0 +1,29 @@
+{
+    "id": "czy712-liquidglass",
+    "name": "液态玻璃卡片导航回弹按钮",
+    "displayName": "液态玻璃卡片导航回弹按钮",
+    "version": "1.0.0",
+    "description": "Vue 3 液态玻璃容器，支持自定义圆角、背景模糊、高光和按压回弹。H5 提供背景位移折射，微信小程序使用基础玻璃材质。附可直接运行的参数调节示例，无额外 UI 库依赖",
+    "keywords": [
+        "液态玻璃",
+        "毛玻璃",
+        "导航",
+        "卡片",
+        "回弹"
+    ],
+    "dcloudext": {
+        "type": "component-vue",
+        "sale": {
+            "regular": {
+                "price": "0.00"
+            },
+            "sourcecode": {
+                "price": "0.00"
+            }
+        }
+    },
+    "uni_modules": {
+        "dependencies": [],
+        "encrypt": []
+    }
+}

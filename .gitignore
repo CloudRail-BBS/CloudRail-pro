@@ -1,0 +1,33 @@
+﻿# HBuilderX
+.hbuilderx/
+
+# uni-app 编译产物
+unpackage/dist/
+
+# 依赖
+node_modules/
+
+# 日志
+*.log
+logs/
+
+# 编辑器
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 敏感配置（部署时各自修改）
+# common/config.js
+
+# 临时文件
+*.tmp
+*.temp

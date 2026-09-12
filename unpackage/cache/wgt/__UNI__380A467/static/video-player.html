@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HLS Video Player</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      overflow: hidden;
+    }
+    
+    .player-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 10;
+    }
+    
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      margin-top: 16px;
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    .error-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 10;
+    }
+    
+    .error-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+    
+    .error-text {
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 15px;
+      text-align: center;
+      padding: 0 20px;
+    }
+    
+    .retry-btn {
+      padding: 8px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .play-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.3);
+      z-index: 5;
+      cursor: pointer;
+    }
+    
+    .play-btn-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .play-icon {
+      font-size: 20px;
+      color: #000;
+      margin-left: 3px;
+    }
+    
+    .controls-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+      z-index: 5;
+    }
+    
+    .progress-container {
+      position: relative;
+      height: 20px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .progress-track {
+      width: 100%;
+      height: 3px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    
+    .progress-buffered {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 2px;
+    }
+    
+    .progress-filled {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background-color: #fff;
+      border-radius: 2px;
+      z-index: 1;
+    }
+    
+    .progress-thumb {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #fff;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+    }
+    
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+    
+    .control-left, .control-right {
+      flex: 1;
+    }
+    
+    .time-text {
+      color: #fff;
+      font-size: 12px;
+    }
+    
+    .control-center {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .control-btn {
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="player-container">
+    <video id="videoPlayer" controls playsinline></video>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">加载中...</div>
+    </div>
+    
+    <div class="error-overlay" id="errorOverlay" style="display: none;">
+      <div class="error-icon">❌</div>
+      <div class="error-text" id="errorText">视频加载失败</div>
+      <button class="retry-btn" onclick="retryPlay()">重试播放</button>
+    </div>
+    
+    <div class="play-overlay" id="playOverlay" style="display: none;" onclick="togglePlay()">
+      <div class="play-btn-circle">
+        <span class="play-icon" id="playIcon">▶</span>
+      </div>
+    </div>
+    
+    <div class="controls-bar" id="controlsBar">
+      <div class="progress-container" onclick="seekTo(event)">
+        <div class="progress-track">
+          <div class="progress-buffered" id="progressBuffered"></div>
+          <div class="progress-filled" id="progressFilled"></div>
+        </div>
+        <div class="progress-thumb" id="progressThumb"></div>
+      </div>
+      <div class="controls-row">
+        <div class="control-left">
+          <span class="time-text" id="currentTime">00:00</span>
+        </div>
+        <div class="control-center">
+          <div class="control-btn" onclick="togglePlay()">▶</div>
+          <div class="control-btn" onclick="toggleMute()">🔊</div>
+          <div class="control-btn" onclick="toggleFullscreen()">⛶</div>
+        </div>
+        <div class="control-right">
+          <span class="time-text" id="duration">00:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
+  <script>
+    var video = document.getElementById('videoPlayer');
+    var hls = null;
+    var isPlaying = false;
+    var isMuted = false;
+    var currentTime = 0;
+    var duration = 0;
+    
+    // 获取URL参数
+    function getUrlParam(name) {
+      var url = window.location.href;
+      name = name.replace(/[\[\]]/g, '\\$&');
+      var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+      var results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+    
+    // 加载视频
+    function loadVideo(url) {
+      if (!url) return;
+      
+      console.log('Loading video:', url);
+      
+      // 显示加载状态
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      document.getElementById('errorOverlay').style.display = 'none';
+      document.getElementById('playOverlay').style.display = 'none';
+      
+      // 清理之前的HLS实例
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+      
+      // 检查是否是m3u8
+      var isM3u8 = url.includes('.m3u8') || url.includes('m3u8') || url.includes('.m3u8?');
+      
+      if (isM3u8 && Hls.isSupported()) {
+        loadHlsVideo(url);
+      } else {
+        loadNativeVideo(url);
+      }
+    }
+    
+    // 加载HLS视频
+    function loadHlsVideo(url) {
+      try {
+        hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          manifestLoadingMaxRetry: 3,
+          levelLoadingMaxRetry: 3,
+          fragLoadingMaxRetry: 3,
+          manifestLoadingTimeOut: 15000,
+          levelLoadingTimeOut: 15000,
+          fragLoadingTimeOut: 15000,
+        });
+        
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+          console.log('HLS manifest parsed');
+          document.getElementById('loadingOverlay').style.display = 'none';
+          document.getElementById('playOverlay').style.display = 'flex';
+        });
+        
+        hls.on(Hls.Events.ERROR, function(event, data) {
+          console.error('HLS error:', data);
+          
+          if (data.fatal) {
+            switch(data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                hls.recoverMediaError();
+                break;
+              default:
+                switchToNative(url);
+                break;
+            }
+          }
+        });
+        
+      } catch (error) {
+        console.error('Failed to load HLS:', error);
+        switchToNative(url);
+      }
+    }
+    
+    // 切换到原生播放
+    function switchToNative(url) {
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+      loadNativeVideo(url);
+    }
+    
+    // 加载原生视频
+    function loadNativeVideo(url) {
+      try {
+        video.pause();
+        video.src = '';
+        
+        var source = document.createElement('source');
+        source.src = url;
+        
+        if (url.includes('.mp4')) {
+          source.type = 'video/mp4';
+        } else if (url.includes('.m3u8')) {
+          source.type = 'application/x-mpegURL';
+        }
+        
+        while (video.firstChild) {
+          video.removeChild(video.firstChild);
+        }
+        
+        video.appendChild(source);
+        video.load();
+        
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('playOverlay').style.display = 'flex';
+        
+      } catch (error) {
+        console.error('Failed to load native video:', error);
+        showError('视频加载失败，请检查网络');
+      }
+    }
+    
+    // 显示错误
+    function showError(message) {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      document.getElementById('errorText').textContent = message;
+      document.getElementById('errorOverlay').style.display = 'flex';
+    }
+    
+    // 重试播放
+    function retryPlay() {
+      var url = getUrlParam('url');
+      if (url) {
+        loadVideo(url);
+      }
+    }
+    
+    // 切换播放/暂停
+    function togglePlay() {
+      if (isPlaying) {
+        video.pause();
+      } else {
+        video.play().catch(function(e) {
+          console.log('Play failed:', e);
+        });
+      }
+    }
+    
+    // 切换静音
+    function toggleMute() {
+      isMuted = !isMuted;
+      video.muted = isMuted;
+    }
+    
+    // 切换全屏
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        video.requestFullscreen().catch(function(e) {
+          console.log('Fullscreen failed:', e);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    
+    // 进度条点击
+    function seekTo(e) {
+      var track = e.currentTarget.querySelector('.progress-track');
+      if (!track || duration === 0) return;
+      
+      var rect = track.getBoundingClientRect();
+      var percent = (e.clientX - rect.left) / rect.width;
+      var time = percent * duration;
+      
+      video.currentTime = Math.max(0, Math.min(time, duration));
+    }
+    
+    // 格式化时间
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '00:00';
+      
+      var h = Math.floor(seconds / 3600);
+      var m = Math.floor((seconds % 3600) / 60);
+      var s = Math.floor(seconds % 60);
+      
+      if (h > 0) {
+        return h.toString().padStart(2, '0') + ':' + 
+               m.toString().padStart(2, '0') + ':' + 
+               s.toString().padStart(2, '0');
+      }
+      return m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+    }
+    
+    // 更新进度条
+    function updateProgress() {
+      currentTime = video.currentTime;
+      duration = video.duration;
+      
+      document.getElementById('currentTime').textContent = formatTime(currentTime);
+      document.getElementById('duration').textContent = formatTime(duration);
+      
+      if (duration > 0) {
+        var percent = (currentTime / duration) * 100;
+        document.getElementById('progressFilled').style.width = percent + '%';
+        document.getElementById('progressThumb').style.left = percent + '%';
+        
+        // 更新缓冲进度
+        var buffered = video.buffered;
+        if (buffered.length > 0) {
+          var bufferedPercent = (buffered.end(buffered.length - 1) / duration) * 100;
+          document.getElementById('progressBuffered').style.width = bufferedPercent + '%';
+        }
+      }
+    }
+    
+    // 事件监听
+    video.addEventListener('loadedmetadata', function() {
+      duration = video.duration;
+      document.getElementById('duration').textContent = formatTime(duration);
+    });
+    
+    video.addEventListener('canplay', function() {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      document.getElementById('playOverlay').style.display = 'flex';
+    });
+    
+    video.addEventListener('timeupdate', updateProgress);
+    
+    video.addEventListener('play', function() {
+      isPlaying = true;
+      document.getElementById('playOverlay').style.display = 'none';
+    });
+    
+    video.addEventListener('pause', function() {
+      isPlaying = false;
+      if (video.currentTime < video.duration) {
+        document.getElementById('playOverlay').style.display = 'flex';
+      }
+    });
+    
+    video.addEventListener('ended', function() {
+      isPlaying = false;
+      document.getElementById('playOverlay').style.display = 'flex';
+    });
+    
+    video.addEventListener('error', function(e) {
+      console.error('Video error:', e);
+      showError('视频播放失败，请重试');
+    });
+    
+    // 页面加载完成后加载视频
+    window.addEventListener('load', function() {
+      var url = getUrlParam('url');
+      if (url) {
+        loadVideo(url);
+      }
+    });
+  </script>
+</body>
+</html>
