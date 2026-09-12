@@ -312,7 +312,6 @@
                   <view v-else class="grid-circle-fallback">{{ (item.name || '圈').slice(0, 1) }}</view>
                   <text class="grid-text">{{ item.name }}</text>
                   <text class="grid-desc">{{ item.description || '欢迎加入，一起交流分享' }}</text>
-                  <image src="/static/icon/check-red.svg" class="grid-icon" v-if="circleList[tempCircleIndex] && circleList[tempCircleIndex].id === item.id" mode="aspectFit"></image>
                 </view>
               </block>
             </view>
