@@ -2450,12 +2450,14 @@ export default {
 
 .picker-scroll {
   flex: 1;
+  height: 48vh;
+  max-height: 52vh;
   overflow-y: auto;
 }
 
 .grid-options {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 20rpx;
   padding: 30rpx;
 }
