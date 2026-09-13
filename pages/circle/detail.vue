@@ -142,7 +142,7 @@
             <text class="feed-title" :class="{ 'fancy-text': parseInt(post.is_fancy || 0) === 1 }">{{ post.title || '无标题' }}</text>
             <text class="feed-text" v-if="isLockedPost(post) || post.plainContent">{{ isLockedPost(post) ? getLockedPlaceholderText(post) : post.plainContent }}</text>
             <!-- 抖音视频预览 -->
-            <view v-if="post.douyin_url && post.douyin_cover" class="feed-douyin-wrap">
+            <view v-if="post.douyin_url && post.douyin_cover" class="feed-douyin-wrap" @click.stop="openPostVideo(post)">
               <image :src="post.douyin_cover" class="feed-douyin-cover" mode="aspectFill"></image>
               <view class="feed-douyin-play-btn">
                 <view class="feed-douyin-play-icon"></view>
@@ -200,6 +200,13 @@
       @select="onPublishSelect"
     />
 
+    <DouyinPlayer
+      :show="showDouyinPlayer"
+      :videoList="douyinVideoList"
+      :userInfo="userInfo"
+      @update:show="showDouyinPlayer = $event"
+    />
+
 
 
 
@@ -214,10 +221,13 @@
 import { request } from '../../common/request.js';
 import PublishModal from '../../components/PublishModal.vue';
 import { getLevelDisplay as calcLevelDisplay } from '../../common/level.js';
+import DouyinPlayer from '../../components/DouyinPlayer.vue';
+import { buildDouyinVideoList } from '../../common/douyinPlayer.js';
 
 export default {
   components: {
-    PublishModal
+    PublishModal,
+    DouyinPlayer
   },
   data() {
     return {
@@ -246,6 +256,8 @@ export default {
       loadingMessage: '',
       firstLoading: true,
       showPublishModal: false,
+      showDouyinPlayer: false,
+      douyinVideoList: [],
       isRefresherTriggered: false,
       accessDenied: false,
       denyReason: ''
@@ -648,6 +660,21 @@ export default {
 
     loadMorePosts() { this.loadPosts(); },
     goPost(id) { uni.navigateTo({ url: `/pages/post-detail/post-detail?postId=${id}` }); },
+
+    async openPostVideo(post) {
+      if (!post || !post.douyin_url) return
+      uni.showLoading({ title: '解析中...', mask: true })
+      try {
+        const videoList = await buildDouyinVideoList(post)
+        if (!videoList || videoList.length === 0) return
+        this.douyinVideoList = videoList
+        this.showDouyinPlayer = true
+      } catch (e) {
+        uni.showToast({ title: (e && e.msg) || '播放失败', icon: 'none' })
+      } finally {
+        uni.hideLoading()
+      }
+    },
     goUserProfile(uid) { uni.navigateTo({ url: `/pages/user/profile?userId=${uid}` }); },
 
     async moderatePost(post, status) {

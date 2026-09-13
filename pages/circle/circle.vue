@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="circle-page">
     <view class="top-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="header-row">
@@ -89,8 +89,9 @@
                 </view>
               </view>
             </view>
+          </view>
 
-            <!-- 各分类区块：标题即分类名，圈子按分类归集 -->
+          <!-- 各分类区块：标题即分类名，圈子按分类归集 -->
             <view class="discover-section cat-section" v-for="group in categoryGroups" :key="'cat-' + group.id">
               <view class="discover-head">
                 <text class="section-title">{{ group.name }}</text>
@@ -135,7 +136,6 @@
               <text class="empty-title">没有找到相关圈子</text>
               <text class="empty-sub">换个关键词试试</text>
             </view>
-          </view>
 
         </template>
         </template>

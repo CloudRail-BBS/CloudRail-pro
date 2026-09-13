@@ -92,7 +92,7 @@
             <text class="status-text">审核中</text>
           </view>
 
-          <view v-if="post.douyin_url && post.douyin_cover" class="card-douyin-wrap">
+          <view v-if="post.douyin_url && post.douyin_cover" class="card-douyin-wrap" @click.stop="goPostDetail(post)">
             <image :src="post.douyin_cover" class="card-douyin-cover" mode="aspectFill"></image>
             <view class="card-douyin-play-btn">
               <view class="card-douyin-play-icon"></view>
@@ -1032,7 +1032,7 @@ export default {
 
 .card-douyin-cover {
   width: 100%;
-  height: 400rpx;
+  height: 560rpx;
 }
 
 .card-douyin-play-btn {

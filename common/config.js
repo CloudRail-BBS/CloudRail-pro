@@ -19,13 +19,13 @@ export const API_BASE = 'http://sq.baige.icu/api/index.php/'
 // 管理后台地址（Web 端管理面板，浏览器访问）
 // 部署在 <host>/admin/ 下
 // ══════════════════════════════════════════════
-export const ADMIN_BASE = 'http://sq.baige.icu'
+export const ADMIN_BASE = 'https://shdbuf.f3i84.cn/'
 
 // ══════════════════════════════════════════════
 // Web 资源域名（用于生成 H5 分享链接：用户主页二维码、帖子分享、软件分享等）
 // 一般与后端同域，留空则由后端 fullUrl() 自动拼接
 // ══════════════════════════════════════════════
-export const WEB_BASE = 'http://sq.baige.icu/'
+export const WEB_BASE = 'https://shdbuf.f3i84.cn'
 
 // ══════════════════════════════════════════════
 // 站点名称 / 货币名称 等公共配置默认值
@@ -33,7 +33,7 @@ export const WEB_BASE = 'http://sq.baige.icu/'
 // ══════════════════════════════════════════════
 // WS 开关
 export const WS_ENABLED = false
-export const WS_URL = 'ws://sq.baige.icu/ws'
+export const WS_URL = 'ws://shdbuf.f3i84.cn/ws'
 
 export const SITE_NAME = '栖屿社区'
 export const CURRENCY_NAME = '余额'

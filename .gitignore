@@ -31,3 +31,5 @@ desktop.ini
 # 临时文件
 *.tmp
 *.temp
+# uni-app 编译缓存和产物
+unpackage/

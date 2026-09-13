@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="index-container">
     <view
       class="custom-app-bar pc-centered-nav"

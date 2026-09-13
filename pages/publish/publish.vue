@@ -429,18 +429,18 @@
       <view class="picker-panel douyin-panel">
         <view class="picker-header">
           <text class="ph-cancel" @click="closeDouyinPanel">取消</text>
-          <text class="ph-title">插入抖音视频</text>
+          <text class="ph-title">插入视频</text>
           <text class="ph-confirm" @click="confirmDouyinInsert">确定</text>
         </view>
         <view class="douyin-input-wrap">
           <view class="douyin-tip">
-            <text>粘贴抖音分享链接</text>
-            <text class="tip-hint">如：https://v.douyin.com/xxxx/</text>
+            <text>粘贴抖音/快手分享链接</text>
+            <text class="tip-hint">如：https://v.douyin.com/xxxx/ 或 https://v.kuaishou.com/xxxx/</text>
           </view>
           <input 
             v-model="douyinDraftUrl" 
             class="douyin-input" 
-            placeholder="请输入抖音视频链接" 
+            placeholder="请输入抖音或快手视频链接" 
             maxlength="500" 
             :disabled="isDouyinParsing"
           />
@@ -499,6 +499,7 @@
 
 <script>
 import { request, uploadFile } from '../../common/request.js';
+import { API_BASE } from '../../common/config.js';
 
 export default {
   name: 'Publish',
@@ -1199,11 +1200,11 @@ export default {
 
     extractDouyinUrl(text) {
       const patterns = [
-        /https?:\/\/(?:v\.)?douyin\.com\/[a-zA-Z0-9]+\/?/gi,
-        /https?:\/\/(?:www\.)?douyin\.com\/video\/\d+/gi,
-        /https?:\/\/iesdouyin\.com\/share\/video\/\d+/gi,
-        /https?:\/\/(?:www\.)?douyin\.com\/share\/video\/\d+/gi,
-        /https?:\/\/douyin\.com\/.*video_id=[a-zA-Z0-9]+/gi
+        /https?:\/\/(?:v\.|www\.|m\.)?douyin\.com\/[a-zA-Z0-9_\-]+\/?/gi,
+        /https?:\/\/(?:www\.)?douyin\.com\/video\/[a-zA-Z0-9_\-]+/gi,
+        /https?:\/\/iesdouyin\.com\/share\/video\/[a-zA-Z0-9_\-]+/gi,
+        /https?:\/\/(?:www\.)?douyin\.com\/share\/video\/[a-zA-Z0-9_\-]+/gi,
+        /https?:\/\/douyin\.com\/.*video_id=[a-zA-Z0-9_\-]+/gi
       ];
 
       for (const pattern of patterns) {
@@ -1212,20 +1213,92 @@ export default {
           return matches[0];
         }
       }
+      // 兜底: 从文本中提取第一个 http 链接并判断是否抖音
+      const anyUrl = this.extractFirstHttpUrl(text);
+      if (anyUrl && /(douyin\.com|iesdouyin\.com)/i.test(anyUrl)) return anyUrl;
       return null;
+    },
+
+    extractKuaishouUrl(text) {
+      const patterns = [
+        /https?:\/\/(?:v\.|www\.|m\.|live\.)?kuaishou\.com\/[a-zA-Z0-9_\-]+\/?/gi,
+        /https?:\/\/(?:www\.)?kuaishou\.com\/short-video\/[a-zA-Z0-9_\-]+/gi,
+        /https?:\/\/(?:www\.)?kuaishou\.com\/f\/[a-zA-Z0-9_\-]+/gi,
+        /https?:\/\/(?:www\.|m\.)?kuaishou\.com\/profile\/[a-zA-Z0-9_\-]+/gi,
+        /https?:\/\/c\.kuaishou\.com\/[a-zA-Z0-9_\-]+\/?/gi
+      ];
+      for (const pattern of patterns) {
+        const matches = text.match(pattern);
+        if (matches && matches.length > 0) return matches[0];
+      }
+      // 兜底: 从文本中提取第一个 http 链接并判断是否快手
+      const anyUrl = this.extractFirstHttpUrl(text);
+      if (anyUrl && /kuaishou\.com/i.test(anyUrl)) return anyUrl;
+      return null;
+    },
+
+    extractFirstHttpUrl(text) {
+      const m = String(text || '').match(/https?:\/\/[^\s<>"']+/);
+      return m ? m[0].replace(/[),。，、;；!！?？]+$/g, '') : null;
+    },
+
+    async parseKuaishouLink(rawUrl) {
+      this.isDouyinParsing = true;
+      this.showHUD('loading', '解析中...');
+      try {
+        const apiUrl = `https://ai.baige.icu/short_videos/api/kuaishou/ksjx.php?url=${encodeURIComponent(rawUrl)}`;
+        const res = await uni.request({
+          url: apiUrl,
+          method: 'GET',
+          timeout: 30000
+        });
+        if (res.statusCode !== 200) {
+          throw { msg: '网络请求失败，状态码: ' + res.statusCode };
+        }
+        const data = res.data;
+        if (!data) throw { msg: '解析失败，返回数据为空' };
+        if (data.code !== 200 || !data.data) throw { msg: data.msg || '解析失败' };
+        const d = data.data;
+        let playUrl = d.url || d.video_url || d.video || '';
+        let cover = d.cover || d.cover_url || d.img || '';
+        let title = d.title || '';
+        let author = d.author || d.nickname || '';
+        if (!playUrl) throw { msg: '解析失败，未能获取视频链接' };
+        const urlPattern = /^(https?:\/\/)[^\s$.?#].[^\s]*$/;
+        if (!urlPattern.test(playUrl)) throw { msg: '解析失败，视频链接格式无效' };
+        this.douyinDraftData = {
+          url: playUrl,
+          playUrl: API_BASE + 'video/proxy?url=' + encodeURIComponent(playUrl),
+          cover: cover,
+          title: title,
+          author: author,
+          originalUrl: rawUrl
+        };
+        this.hideHUD();
+      } catch (e) {
+        this.showHUD('error', e.msg || '解析失败，请重试');
+      } finally {
+        this.isDouyinParsing = false;
+      }
     },
 
     async parseDouyinLink() {
       let url = (this.douyinDraftUrl || '').trim();
       
       if (!url) {
-        this.showHUD('error', '请输入抖音链接');
+        this.showHUD('error', '请输入视频链接');
         return;
+      }
+
+      // 快手链接 → 走快手解析接口
+      const ksUrl = this.extractKuaishouUrl(url);
+      if (ksUrl) {
+        return this.parseKuaishouLink(ksUrl);
       }
 
       const extractedUrl = this.extractDouyinUrl(url);
       if (!extractedUrl) {
-        this.showHUD('error', '未能检测到有效的抖音链接');
+        this.showHUD('error', '未能检测到有效的视频链接（支持抖音/快手）');
         return;
       }
 
@@ -1293,6 +1366,7 @@ export default {
         
         this.douyinDraftData = {
           url: playUrl,
+          playUrl: API_BASE + 'video/proxy?url=' + encodeURIComponent(playUrl),
           cover: cover,
           title: title,
           author: author,
@@ -1388,11 +1462,11 @@ export default {
           share_product_id: this.shareProduct ? this.shareProduct.id : 0,
           share_link_title: this.shareLinkTitle || '',
           share_link_url: this.shareLinkUrl || '',
-          douyin_url: this.douyinVideo ? (this.douyinVideo.originalUrl || this.douyinVideo.url || '') : '',
+          douyin_url: this.douyinVideo ? (this.douyinVideo.url || this.douyinVideo.originalUrl || '') : '',
           douyin_cover: this.douyinVideo ? (this.douyinVideo.cover || '') : '',
           douyin_title: this.douyinVideo ? (this.douyinVideo.title || '') : '',
           douyin_author: this.douyinVideo ? (this.douyinVideo.author || '') : '',
-          douyin_original_url: ''
+          douyin_original_url: this.douyinVideo ? (this.douyinVideo.originalUrl || '') : ''
         });
 
         if (res.code !== 0) throw res;
@@ -1664,8 +1738,16 @@ export default {
       this.linkDraftUrl = this.shareLinkUrl;
 
       if (postData.douyin_url) {
+        /* 后端返回的可能是代理地址, 编辑时还原为直链 */
+        let rawUrl = postData.douyin_url || '';
+        if (rawUrl.indexOf('video/proxy') > -1 && rawUrl.indexOf('url=') > -1) {
+          try {
+            const m = rawUrl.split('url=');
+            if (m.length > 1) rawUrl = decodeURIComponent(m[1]);
+          } catch (e) {}
+        }
         this.douyinVideo = {
-          url: postData.douyin_url || '',
+          url: rawUrl,
           cover: postData.douyin_cover || '',
           title: postData.douyin_title || '',
           author: postData.douyin_author || '',

@@ -696,6 +696,7 @@ export default {
 </script>
 
 <style>
+/* #ifndef APP-PLUS-NVUE */
 @import "./common/bubble.css";
 
 /* 思源黑体 - 常规字重 */
@@ -727,5 +728,5 @@ scroll-view {
 page {
   background-color: #f6f7f9;
 }
-
+/* #endif */
 </style>

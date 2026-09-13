@@ -1,0 +1,782 @@
+﻿<template>
+  <div class="overlay">
+    <!-- 顶部渐变 -->
+    <div class="top-gradient"></div>
+    <!-- 底部渐变 -->
+    <div class="bottom-gradient"></div>
+
+    <!-- 顶部按钮栏 -->
+    <div class="top-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
+      <div class="top-btn" @click="goBack">
+        <text class="back-text">‹</text>
+      </div>
+      <div class="top-btn" @click="openActionSheet">
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中央播放按钮 -->
+    <div v-if="!isPlaying" class="center-play" @click="togglePlay">
+      <div class="play-btn">
+        <text class="play-icon">▶</text>
+      </div>
+    </div>
+
+    <!-- 右侧操作栏 -->
+    <div class="side-actions">
+      <div class="avatar-outer" @click="toUserHome">
+        <div class="avatar-wrap">
+          <image class="avatar" :src="postInfo.avatar || '/static/logo.png'" mode="aspectFill"></image>
+        </div>
+      </div>
+      <div v-if="showFollowBtn" class="follow-plus" @click="handleFollow">
+        <text class="plus-text">+</text>
+      </div>
+      <div class="action-item" @click="handleLike">
+        <image class="action-icon" :src="isLiked ? '/static/post/xih1.png' : '/static/post/xih0.png'" mode="aspectFit"></image>
+        <text class="action-text">{{ formatCount(postInfo.like_count) }}</text>
+      </div>
+      <div class="action-item" @click="openCommentDrawer">
+        <image class="action-icon" src="/static/post/pl.png" mode="aspectFit"></image>
+        <text class="action-text">{{ formatCount(commentCount) }}</text>
+      </div>
+      <div class="action-item" @click="openRewardModal">
+        <image class="action-icon gift" src="/static/icon/gift-white.svg" mode="aspectFit"></image>
+        <text class="action-text">{{ formatCount(postInfo.reward_count) }}</text>
+      </div>
+      <div class="action-item" @click="openActionSheet">
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <text class="action-text">更多</text>
+      </div>
+    </div>
+
+    <!-- 底部信息面板 -->
+    <div class="info-panel">
+      <div class="author-line">
+        <text class="author-name">@{{ postInfo.name || postInfo.nickname || '匿名' }}</text>
+      </div>
+      <div class="content-info">
+        <text v-if="postInfo.title" class="title">{{ postInfo.title }}</text>
+        <text v-if="postInfo.plain_content || postInfo.content" class="desc">{{ postInfo.plain_content || postInfo.content }}</text>
+      </div>
+    </div>
+
+    <!-- 评论输入条 -->
+    <div class="comment-entry" @click="openCommentDrawer">
+      <div class="comment-pill">
+        <text class="comment-placeholder">说点什么...</text>
+      </div>
+    </div>
+
+    <!-- 评论抽屉 -->
+    <div v-if="showCommentDrawer" class="drawer-mask" @click="closeCommentDrawer">
+      <div class="drawer-content" @click="noop">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+          <text class="drawer-title">评论 {{ commentCount }}</text>
+          <text class="drawer-close" @click="closeCommentDrawer">关闭</text>
+        </div>
+        <scroller class="comment-list" :scroll-y="true">
+          <div v-for="(item, idx) in comments" :key="idx" class="comment-item">
+            <image class="comment-avatar" :src="item.avatar || '/static/logo.png'" mode="aspectFill"></image>
+            <div class="comment-body">
+              <text class="comment-name">{{ item.name || item.nickname || '匿名' }}</text>
+              <text class="comment-text">{{ item.content }}</text>
+              <div class="comment-footer">
+                <text class="comment-time">{{ formatTime(item.create_time) }}</text>
+                <text class="comment-reply">回复</text>
+              </div>
+            </div>
+          </div>
+          <div v-if="comments.length === 0" class="empty-comment">
+            <text class="empty-text">暂无评论，快来抢沙发</text>
+          </div>
+        </scroller>
+        <div class="comment-input-bar">
+          <input
+            class="comment-input"
+            placeholder="说点什么..."
+            placeholder-color="#999999"
+            :value="commentText"
+            @input="onCommentInput"
+            @confirm="sendComment"
+          />
+          <div class="comment-send" @click="sendComment">
+            <text class="send-text">发送</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 打赏弹窗 -->
+    <div v-if="showReward" class="reward-mask" @click="closeReward">
+      <div class="reward-content" @click="noop">
+        <text class="reward-title">打赏作者</text>
+        <div class="reward-amounts">
+          <div v-for="(amount, idx) in rewardAmounts" :key="idx"
+               class="reward-amount-item"
+               :class="{ active: selectedReward === amount }"
+               @click="selectedReward = amount">
+            <text class="reward-amount-text">{{ amount }}</text>
+          </div>
+        </div>
+        <div class="reward-buttons">
+          <div class="reward-cancel" @click="closeReward"><text class="cancel-text">取消</text></div>
+          <div class="reward-confirm" @click="confirmReward"><text class="confirm-text">打赏</text></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作菜单 -->
+    <div v-if="showAction" class="action-mask" @click="closeAction">
+      <div class="action-content" @click="noop">
+        <div class="action-item-sheet" @click="sharePost"><text class="action-text-sheet">分享</text></div>
+        <div class="action-item-sheet" @click="copyLink"><text class="action-text-sheet">复制链接</text></div>
+        <div class="action-item-sheet cancel" @click="closeAction"><text class="action-text-sheet">取消</text></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+const API_BASE = 'http://sq.baige.icu/api/index.php/'
+
+export default {
+  data() {
+    return {
+      postId: '',
+      postInfo: {},
+      isPlaying: false,
+      isLiked: false,
+      commentCount: 0,
+      comments: [],
+      commentText: '',
+      showCommentDrawer: false,
+      showReward: false,
+      showAction: false,
+      rewardAmounts: [10, 50, 100, 500, 1000],
+      selectedReward: 10,
+      statusBarHeight: 20,
+      showFollowBtn: true
+    }
+  },
+  created() {
+    const sys = uni.getSystemInfoSync()
+    this.statusBarHeight = sys.statusBarHeight || 20
+    // 先从storage读真实数据兜底
+    const cached = uni.getStorageSync('currentVideoPost')
+    if (cached) {
+      this.applyPostInfo(cached)
+    }
+    uni.$on('postInfo', this.onPostInfo)
+    uni.$on('playState', this.onPlayState)
+    uni.$on('videoClick', this.onVideoClick)
+  },
+  beforeDestroy() {
+    uni.$off('postInfo', this.onPostInfo)
+    uni.$off('playState', this.onPlayState)
+    uni.$off('videoClick', this.onVideoClick)
+  },
+  methods: {
+    noop() {},
+    applyPostInfo(info) {
+      this.postInfo = info || {}
+      this.postId = info.id || info.post_id || ''
+      this.isLiked = !!(info.is_liked || info.isLiked)
+      this.commentCount = Number(info.comment_count) || 0
+      this.showFollowBtn = !info.is_follow && !info.isFollowing
+    },
+    onPostInfo(info) {
+      this.applyPostInfo(info)
+    },
+    onPlayState(playing) {
+      this.isPlaying = playing
+    },
+    onVideoClick() {
+      this.togglePlay()
+    },
+    togglePlay() {
+      uni.$emit('togglePlay')
+    },
+    goBack() {
+      uni.$emit('goBack')
+    },
+    toUserHome() {
+      const uid = this.postInfo.user_id || this.postInfo.userId
+      if (uid) {
+        uni.navigateTo({ url: '/pages/user/profile?id=' + uid })
+      }
+    },
+    async handleFollow() {
+      this.showFollowBtn = false
+      uni.showToast({ title: '关注成功', icon: 'success' })
+    },
+    async handleLike() {
+      if (this.isLiked) {
+        this.postInfo.like_count = (Number(this.postInfo.like_count) || 0) - 1
+        this.isLiked = false
+      } else {
+        this.postInfo.like_count = (Number(this.postInfo.like_count) || 0) + 1
+        this.isLiked = true
+      }
+      try {
+        await uni.request({
+          url: API_BASE + 'post/like',
+          method: 'POST',
+          data: { post_id: this.postId, id: this.postId }
+        })
+      } catch (e) {}
+    },
+    openCommentDrawer() {
+      this.showCommentDrawer = true
+      this.loadComments()
+    },
+    closeCommentDrawer() {
+      this.showCommentDrawer = false
+    },
+    async loadComments() {
+      try {
+        const res = await uni.request({
+          url: API_BASE + 'comment/list?post_id=' + this.postId + '&id=' + this.postId,
+          method: 'GET'
+        })
+        const data = res[0] && res[0].data ? res[0].data : {}
+        if (data.code === 0) {
+          this.comments = data.data || data.list || data.comments || []
+        }
+      } catch (e) {}
+    },
+    onCommentInput(e) {
+      this.commentText = e.detail.value
+    },
+    async sendComment() {
+      if (!this.commentText.trim()) {
+        uni.showToast({ title: '请输入评论内容', icon: 'none' })
+        return
+      }
+      try {
+        const res = await uni.request({
+          url: API_BASE + 'comment/send',
+          method: 'POST',
+          data: { post_id: this.postId, id: this.postId, content: this.commentText }
+        })
+        const data = res[0] && res[0].data ? res[0].data : {}
+        if (data.code === 0) {
+          uni.showToast({ title: '评论成功', icon: 'success' })
+          this.commentText = ''
+          this.commentCount++
+          this.loadComments()
+        } else {
+          uni.showToast({ title: data.msg || '评论失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '评论失败', icon: 'none' })
+      }
+    },
+    openRewardModal() {
+      this.showReward = true
+    },
+    closeReward() {
+      this.showReward = false
+    },
+    async confirmReward() {
+      try {
+        const res = await uni.request({
+          url: API_BASE + 'post/reward',
+          method: 'POST',
+          data: { post_id: this.postId, id: this.postId, amount: this.selectedReward }
+        })
+        const data = res[0] && res[0].data ? res[0].data : {}
+        if (data.code === 0) {
+          uni.showToast({ title: '打赏成功', icon: 'success' })
+          this.postInfo.reward_count = (Number(this.postInfo.reward_count) || 0) + 1
+          this.closeReward()
+        } else {
+          uni.showToast({ title: data.msg || '打赏失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '打赏失败', icon: 'none' })
+      }
+    },
+    openActionSheet() {
+      this.showAction = true
+    },
+    closeAction() {
+      this.showAction = false
+    },
+    sharePost() {
+      this.closeAction()
+      uni.showToast({ title: '分享功能开发中', icon: 'none' })
+    },
+    copyLink() {
+      this.closeAction()
+      uni.setClipboardData({
+        data: 'http://sq.baige.icu/post/' + this.postId,
+        success: () => {
+          uni.showToast({ title: '链接已复制', icon: 'success' })
+        }
+      })
+    },
+    formatCount(n) {
+      const num = Number(n) || 0
+      if (num >= 10000) return (num / 10000).toFixed(1) + 'w'
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'k'
+      return String(num)
+    },
+    formatTime(t) {
+      if (!t) return ''
+      const d = new Date(String(t).replace(/-/g, '/'))
+      const now = new Date()
+      const diff = (now - d) / 1000
+      if (diff < 60) return '刚刚'
+      if (diff < 3600) return Math.floor(diff / 60) + '分钟前'
+      if (diff < 86400) return Math.floor(diff / 3600) + '小时前'
+      if (diff < 2592000) return Math.floor(diff / 86400) + '天前'
+      return String(t).substring(0, 10)
+    }
+  }
+}
+</script>
+
+<style>
+.overlay {
+  flex: 1;
+  background-color: transparent;
+  position: relative;
+}
+.top-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 160px;
+  background-color: rgba(0,0,0,0.35);
+}
+.bottom-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 320px;
+  background-color: rgba(0,0,0,0.45);
+}
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.top-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  background-color: rgba(0,0,0,0.35);
+  justify-content: center;
+  align-items: center;
+}
+.back-text {
+  color: #ffffff;
+  font-size: 42px;
+}
+.dots {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 4px;
+  background-color: #ffffff;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+.center-play {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  justify-content: center;
+  align-items: center;
+}
+.play-btn {
+  width: 110px;
+  height: 110px;
+  border-radius: 55px;
+  background-color: rgba(0,0,0,0.45);
+  justify-content: center;
+  align-items: center;
+}
+.play-icon {
+  color: #ffffff;
+  font-size: 48px;
+  margin-left: 6px;
+}
+.side-actions {
+  position: absolute;
+  right: 14px;
+  bottom: 200px;
+  width: 90px;
+  align-items: center;
+}
+.avatar-outer {
+  width: 68px;
+  height: 68px;
+  margin-bottom: 6px;
+}
+.avatar-wrap {
+  width: 68px;
+  height: 68px;
+  border-radius: 34px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: rgba(255,255,255,0.85);
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+}
+.avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 34px;
+}
+.follow-plus {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #ff2442;
+  justify-content: center;
+  align-items: center;
+  margin-top: -12px;
+  margin-bottom: 10px;
+}
+.plus-text {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+}
+.action-item {
+  width: 80px;
+  margin-top: 20px;
+  align-items: center;
+}
+.action-icon {
+  width: 42px;
+  height: 42px;
+}
+.gift {
+  width: 40px;
+  height: 40px;
+}
+.action-text {
+  color: #ffffff;
+  font-size: 20px;
+  margin-top: 6px;
+  text-align: center;
+}
+.info-panel {
+  position: absolute;
+  left: 20px;
+  right: 120px;
+  bottom: 130px;
+}
+.author-line {
+  margin-bottom: 10px;
+}
+.author-name {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+}
+.content-info {
+  margin-top: 4px;
+}
+.title {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 700;
+}
+.desc {
+  color: rgba(255,255,255,0.92);
+  font-size: 24px;
+  margin-top: 8px;
+}
+.comment-entry {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 24px;
+}
+.comment-pill {
+  height: 62px;
+  border-radius: 31px;
+  background-color: rgba(255,255,255,0.14);
+  justify-content: center;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.comment-placeholder {
+  color: rgba(255,255,255,0.82);
+  font-size: 24px;
+}
+.drawer-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: flex-end;
+}
+.drawer-content {
+  width: 750px;
+  height: 800px;
+  background-color: #ffffff;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+.drawer-handle {
+  width: 56px;
+  height: 5px;
+  border-radius: 3px;
+  background-color: #dddddd;
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.drawer-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  border-bottom-width: 1px;
+  border-bottom-color: #eeeeee;
+  border-bottom-style: solid;
+}
+.drawer-title {
+  color: #333333;
+  font-size: 30px;
+  font-weight: 700;
+}
+.drawer-close {
+  color: #999999;
+  font-size: 26px;
+}
+.comment-list {
+  flex: 1;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.comment-item {
+  flex-direction: row;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-bottom-width: 1px;
+  border-bottom-color: #f5f5f5;
+  border-bottom-style: solid;
+}
+.comment-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+}
+.comment-body {
+  flex: 1;
+  margin-left: 14px;
+}
+.comment-name {
+  color: #ff2442;
+  font-size: 26px;
+  font-weight: 700;
+}
+.comment-text {
+  color: #333333;
+  font-size: 26px;
+  margin-top: 6px;
+}
+.comment-footer {
+  flex-direction: row;
+  align-items: center;
+  margin-top: 8px;
+}
+.comment-time {
+  color: #999999;
+  font-size: 20px;
+}
+.comment-reply {
+  color: #666666;
+  font-size: 20px;
+  margin-left: 20px;
+}
+.empty-comment {
+  padding-top: 80px;
+  align-items: center;
+}
+.empty-text {
+  color: #999999;
+  font-size: 26px;
+}
+.comment-input-bar {
+  flex-direction: row;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  border-top-width: 1px;
+  border-top-color: #eeeeee;
+  border-top-style: solid;
+}
+.comment-input {
+  flex: 1;
+  height: 64px;
+  border-radius: 32px;
+  background-color: #f5f5f5;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 24px;
+  color: #333333;
+}
+.comment-send {
+  width: 90px;
+  height: 64px;
+  border-radius: 32px;
+  background-color: #2563eb;
+  justify-content: center;
+  align-items: center;
+  margin-left: 14px;
+}
+.send-text {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+}
+.reward-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+.reward-content {
+  width: 560px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+}
+.reward-title {
+  color: #333333;
+  font-size: 30px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 28px;
+}
+.reward-amounts {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.reward-amount-item {
+  width: 150px;
+  height: 72px;
+  border-radius: 10px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #dddddd;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.reward-amount-item.active {
+  border-color: #2563eb;
+  background-color: rgba(37,99,235,0.08);
+}
+.reward-amount-text {
+  color: #333333;
+  font-size: 26px;
+  font-weight: 700;
+}
+.reward-buttons {
+  flex-direction: row;
+  margin-top: 14px;
+}
+.reward-cancel {
+  flex: 1;
+  height: 72px;
+  border-radius: 36px;
+  background-color: #f5f5f5;
+  justify-content: center;
+  align-items: center;
+  margin-right: 14px;
+}
+.cancel-text {
+  color: #666666;
+  font-size: 26px;
+}
+.reward-confirm {
+  flex: 1;
+  height: 72px;
+  border-radius: 36px;
+  background-color: #2563eb;
+  justify-content: center;
+  align-items: center;
+}
+.confirm-text {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+}
+.action-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: flex-end;
+}
+.action-content {
+  width: 750px;
+  background-color: #ffffff;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.action-item-sheet {
+  height: 90px;
+  justify-content: center;
+  align-items: center;
+  border-bottom-width: 1px;
+  border-bottom-color: #f5f5f5;
+  border-bottom-style: solid;
+}
+.action-item-sheet.cancel {
+  border-bottom-width: 0;
+  margin-top: 14px;
+  background-color: #f5f5f5;
+}
+.action-text-sheet {
+  color: #333333;
+  font-size: 28px;
+}
+</style>

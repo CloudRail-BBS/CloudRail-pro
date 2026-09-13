@@ -199,7 +199,7 @@
               <view v-else class="waterfall-box">
                 <view class="card-item" v-for="item in list" :key="item.id" @click="goPostDetail(item.id)">
                   <block v-if="item.douyin_url && item.douyin_cover">
-                    <view class="card-douyin-wrap">
+                    <view class="card-douyin-wrap" @click.stop="openPostVideo(item)">
                       <image :src="item.douyin_cover" class="card-douyin-cover" mode="aspectFill"></image>
                       <view class="card-douyin-play-btn">
                         <view class="card-douyin-play-icon"></view>
@@ -363,12 +363,21 @@
         <view class="sheet-opt cancel" @click="closeActionMenu">取消</view>
       </view>
     </view>
+
+    <DouyinPlayer
+      :show="showDouyinPlayer"
+      :videoList="douyinVideoList"
+      :userInfo="userInfo"
+      @update:show="showDouyinPlayer = $event"
+    />
   </view>
 </template>
 
 <script>
 import { request, webBaseUrl } from '../../common/request.js'
 import { getLevelDisplay as calcLevelDisplay } from '../../common/level.js'
+import DouyinPlayer from '../../components/DouyinPlayer.vue'
+import { buildDouyinVideoList } from '../../common/douyinPlayer.js'
 
 export default {
   data() {
@@ -378,6 +387,8 @@ export default {
       navOpacity: 0,
       targetUserId: 0,
       initialLoading: true,
+      showDouyinPlayer: false,
+      douyinVideoList: [],
 
       userInfo: {
         id: 0,
@@ -648,6 +659,21 @@ export default {
       }
 
       uni.navigateTo({ url: `/pages/post-detail/post-detail?postId=${id}` })
+    },
+
+    async openPostVideo(item) {
+      if (!item || !item.douyin_url) return
+      uni.showLoading({ title: '解析中...', mask: true })
+      try {
+        const videoList = await buildDouyinVideoList(item)
+        if (!videoList || videoList.length === 0) return
+        this.douyinVideoList = videoList
+        this.showDouyinPlayer = true
+      } catch (e) {
+        uni.showToast({ title: (e && e.msg) || '播放失败', icon: 'none' })
+      } finally {
+        uni.hideLoading()
+      }
     },
 
     goEditProfile() {

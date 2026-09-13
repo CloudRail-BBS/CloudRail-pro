@@ -2,20 +2,22 @@
   <view
     class="detail-page-root"
     :class="{
-      'is-video-page': isImmersiveVideoPage,
+      'is-video-page': isImmersiveVideoPage || videoFullscreen,
       'drawer-open': showCommentDrawer
     }"
   >
-    <!-- #ifndef APP-PLUS -->
-    <view v-if="isImmersiveVideoPage && postInfo" class="video-detail-page">
+    <!-- 沉浸式全屏视频播放器(H5+App 均编译, 手机端不再黑屏) -->
+    <view v-show="(isImmersiveVideoPage || videoFullscreen) && postInfo" class="video-detail-page">
       <video
         id="xhsVideoPlayer"
+        :key="'vf' + videoKey"
+        v-show="!isAppOverlayOpen"
         class="xhs-video-player"
         :src="isHls ? '' : postInfo.video"
         :poster="posterImage"
         :autoplay="true"
         :loop="true"
-        :muted="isMuted"
+        :muted="isMuted && !isAppPlus"
         :controls="false"
         :show-center-play-btn="false"
         :show-play-btn="false"
@@ -28,6 +30,7 @@
         @tap="toggleVideoPlay"
         @play="onVideoPlay"
         @pause="onVideoPause"
+        @error="onVideoFullscreenError"
       ></video>
 
       <view class="video-top-gradient"></view>
@@ -36,6 +39,7 @@
       <!-- 锁定遮罩：视频本身也不能直接看 -->
       <view v-if="isContentLocked && !isOwner && !isAdmin" class="video-lock-overlay"></view>
 
+      <!-- #ifndef APP-PLUS -->
       <view class="video-top-safe" :style="{ paddingTop: statusBarHeight + 'px' }">
         <view class="video-top-bar" :style="{ height: navBarHeight + 'px' }">
           <view class="video-top-btn video-back-btn" @tap="goBack">
@@ -112,8 +116,7 @@
           <text class="video-action-text">{{ postInfo.reward_count || 0 }}</text>
         </view>
 
-        <view class="video-action-item" @tap="toggleMute">
-       
+        <view v-if="!isAppPlus" class="video-action-item" @tap="toggleMute">
           <text class="video-action-text">{{ isMuted ? '静音' : '有声' }}</text>
         </view>
 
@@ -193,13 +196,89 @@
         </view>
       </view>
 
-      <view class="video-comment-entry" @tap="focusComment">
-        <view class="video-comment-pill">
-          <text class="video-comment-placeholder">{{ computedPlaceholder }}</text>
-        </view>
-      </view>
+
+      <!-- #endif -->
+      <!-- #ifdef APP-PLUS -->
+      <!-- App端: video 是系统原生组件, 会盖住普通 view; 操作栏必须用 cover-view 覆盖在视频上。
+           vue3 兼容: cover-view 内禁用 v-if(用 v-show), 禁用空元素(必须有子节点), 文本必须用 cover-view 包裹 -->
+      <cover-view class="cv-top-safe" :style="{ paddingTop: statusBarHeight + 'px' }">
+        <cover-view class="cv-top-bar" :style="{ height: navBarHeight + 'px' }">
+          <cover-view class="cv-top-btn cv-back-btn" @tap="goBack">
+            <cover-view class="cv-back-text">‹</cover-view>
+          </cover-view>
+          <cover-view class="cv-top-btn cv-more-btn" @tap="openActionSheet">
+            <cover-view class="cv-dots">
+              <cover-view class="cv-dot">&#xFEFF;</cover-view>
+              <cover-view class="cv-dot">&#xFEFF;</cover-view>
+              <cover-view class="cv-dot">&#xFEFF;</cover-view>
+            </cover-view>
+          </cover-view>
+        </cover-view>
+      </cover-view>
+
+      <cover-view v-show="!isPlaying" class="cv-center-play-layer" @tap="toggleVideoPlay">
+        <cover-view class="cv-center-play-btn">
+          <cover-view class="cv-play-icon">▶</cover-view>
+        </cover-view>
+      </cover-view>
+
+      <cover-view class="cv-side-actions">
+        <cover-view class="cv-avatar-outer" @tap="toUserHome">
+          <cover-view class="cv-avatar-wrap">
+            <cover-image class="cv-avatar" :src="postInfo?.avatar || '/static/logo.png'" mode="scaleToFill"></cover-image>
+          </cover-view>
+        </cover-view>
+        <cover-view v-show="showVideoFollowBtn" class="cv-follow-plus" @tap="handleFollowAuthor">
+          <cover-view class="cv-plus-text">+</cover-view>
+        </cover-view>
+        <cover-view class="cv-action-item" @tap="handleLike">
+          <cover-image class="cv-action-icon" :src="isLiked ? '/static/post/xih1.png' : '/static/post/xih0.png'" mode="aspectFit"></cover-image>
+          <cover-view class="cv-action-text">{{ postInfo.like_count || 0 }}</cover-view>
+        </cover-view>
+        <cover-view class="cv-action-item" @tap="openCommentDrawer">
+          <cover-image class="cv-action-icon" src="/static/post/pl.png" mode="aspectFit"></cover-image>
+          <cover-view class="cv-action-text">{{ commentCount }}</cover-view>
+        </cover-view>
+        <cover-view class="cv-action-item" @tap="openRewardModal">
+          <cover-image src="/static/icon/gift-white.svg" class="cv-reward-icon" mode="aspectFit"></cover-image>
+          <cover-view class="cv-action-text">{{ postInfo.reward_count || 0 }}</cover-view>
+        </cover-view>
+        <cover-view class="cv-action-item" @tap="openActionSheet">
+          <cover-view class="cv-dots">
+            <cover-view class="cv-dot">&#xFEFF;</cover-view>
+            <cover-view class="cv-dot">&#xFEFF;</cover-view>
+            <cover-view class="cv-dot">&#xFEFF;</cover-view>
+          </cover-view>
+          <cover-view class="cv-action-text">更多</cover-view>
+        </cover-view>
+      </cover-view>
+
+      <cover-view class="cv-info-panel">
+        <cover-view class="cv-author-line">
+          <cover-view class="cv-author-avatar-box" @tap="toUserHome">
+            <cover-image class="cv-author-avatar" :src="postInfo?.avatar || '/static/logo.png'" mode="aspectFill"></cover-image>
+          </cover-view>
+          <cover-view class="cv-author-meta">
+            <cover-view class="cv-author-name">{{ postInfo.name || '匿名' }}</cover-view>
+            <cover-view class="cv-author-time">{{ formatTime(postInfo.create_time) }}</cover-view>
+          </cover-view>
+        </cover-view>
+        <cover-view class="cv-content-info">
+          <cover-view class="cv-title">{{ postInfo?.title || '' }}</cover-view>
+          <cover-view v-show="postInfo.plain_content || postInfo.content" class="cv-desc">{{ postInfo.plain_content || postInfo.content }}</cover-view>
+          <cover-view v-show="postInfo.topic_names && postInfo.topic_names.length > 0" class="cv-topic-row">
+            <cover-view v-for="(topic, idx) in postInfo.topic_names" :key="'cv-topic-' + idx" class="cv-topic" @tap="goTopicSearch(topic)">#{{ topic }}</cover-view>
+          </cover-view>
+        </cover-view>
+      </cover-view>
+
+      <cover-view class="cv-comment-entry" @tap="focusComment">
+        <cover-view class="cv-comment-pill">
+          <cover-view class="cv-comment-placeholder">{{ computedPlaceholder }}</cover-view>
+        </cover-view>
+      </cover-view>
+      <!-- #endif -->
     </view>
-    <!-- #endif -->
     <view
       v-if="!isImmersiveVideoPage && postInfo"
       class="normal-detail-page"
@@ -420,22 +499,6 @@
                 <text class="shared-product-arrow">›</text>
               </view>
 
-              <view v-if="postInfo.douyin_url && !isContentLocked" class="douyin-video-card" @click="openDouyinPlayer">
-                <image
-                  :src="postInfo.douyin_cover || '/static/logo.png'"
-                  class="douyin-video-poster"
-                  mode="aspectFill"
-                ></image>
-                <view class="douyin-play-overlay">
-                  <view class="play-btn">
-                    <view class="play-icon">▶</view>
-                  </view>
-                  <text class="play-tip">点击播放</text>
-                </view>
-                <view class="douyin-card-info">
-                  <text class="douyin-card-title">{{ postInfo.douyin_title || '抖音视频' }}</text>
-                </view>
-              </view>
             <view v-if="isPaidLocked" class="unlock-card-bottom paid-card">
               <text class="unlock-title">付费内容</text>
               <text class="unlock-desc">花费 <text class="unlock-price">¥{{ postInfo.price }}</text> 解锁隐藏链接</text>
@@ -741,7 +804,7 @@
     </view>
 
 
-    <!-- #ifndef APP-PLUS -->
+    <!-- 沉浸式评论抽屉(H5+App 均编译) -->
     <view
       v-if="isImmersiveVideoPage && showCommentDrawer"
       class="drawer-mask"
@@ -930,7 +993,6 @@
         </view>
       </view>
     </view>
-    <!-- #endif -->
 
     <!-- @ 用户弹层 -->
     <view
@@ -1220,7 +1282,8 @@ export default {
       showCommentDrawer: false,
 
       isPlaying: false,
-      isMuted: false,
+      /* 静音自动播放: H5 浏览器拦截带声音的自动播放, 静音才能自动播; 用户点"有声"恢复(和抖音一致) */
+      isMuted: true,
       videoCtx: null,
       hlsPlayers: {},
 
@@ -1276,7 +1339,26 @@ export default {
 
       showDouyinPlayer: false,
       douyinVideoList: [],
-      currentDouyinIndex: 0
+      currentDouyinIndex: 0,
+
+      /* 视频全屏播放(抖音式) */
+      videoFullscreen: false,
+      videoKey: 0
+    }
+  },
+
+  watch: {
+    isAppOverlayOpen(val) {
+      /* App端: 弹层关闭后恢复视频播放 */
+      if (!val && this.isAppPlus && this.postInfo) {
+        setTimeout(() => {
+          try {
+            if (!this.videoCtx) this.initVideoContext()
+            if (this.videoCtx) this.videoCtx.play()
+            this.isPlaying = true
+          } catch (e) {}
+        }, 300)
+      }
     }
   },
 
@@ -1297,7 +1379,8 @@ export default {
 
 // 判断
     isImmersiveVideoPage() {
-      return this.isVideoPost && !this.isAppPlus
+      /* 视频帖和普通帖一样走普通详情页, 页面内带播放器, 不跳转全屏 */
+      return false
     },
 
     posterImage() {
@@ -1438,6 +1521,10 @@ export default {
       return this.showActionMenu || this.modal.show || this.mentionSheet.show
     },
 
+    isAppOverlayOpen() {
+      /* App端: 原生 video 层级最高会盖住弹层; 弹层(评论/打赏/菜单/弹窗)打开时先隐藏视频 */
+      return !!(this.showCommentDrawer || this.showRewardModal || this.showRewardersModal || this.showActionMenu || this.modal.show || this.mentionSheet.show)
+    },
     computedPlaceholder() {
       if (!this.postInfo) return '说点什么...'
       if (this.postInfo.system_close_comment) return '系统已关闭评论区'
@@ -1452,7 +1539,7 @@ export default {
 
     // 确保 statusBarHeight 有一个合理的默认值，避免为0导致导航栏与状态栏重叠
     this.statusBarHeight = metrics.statusBarHeight || 20
-    this.navBarHeight = metrics.navBarHeight
+    this.navBarHeight = metrics.navBarHeight || 44
     this.navTotalHeight = this.statusBarHeight + this.navBarHeight
 
     // 动态设置 CSS 变量，确保布局正确
@@ -1632,7 +1719,9 @@ export default {
         this.postInfo = {
           ...preview,
           images: imgs,
-          video: preview.video ? this.buildMediaUrl(preview.video) : '',
+          video: preview.video
+            ? this.buildMediaUrl(preview.video)
+            : (preview.douyin_url && preview.douyin_url !== '0' ? preview.douyin_url : ''),
           topic_names: preview.topic_names || [],
           like_count: Number(preview.like_count) || 0,
           comments: [],
@@ -1720,7 +1809,10 @@ export default {
           this.postInfo = {
             ...d,
             images: imgs,
-            video: d.video ? this.buildMediaUrl(d.video) : '',
+            /* 视频帖: 接口返回的 douyin_url(直链/代理)直接作为 video, 触发沉浸式全屏播放 */
+            video: d.video
+              ? this.buildMediaUrl(d.video)
+              : (d.douyin_url && d.douyin_url !== '0' ? d.douyin_url : ''),
             share_product: d.share_product ? {
               ...d.share_product,
               image: this.buildMediaUrl(d.share_product.image || (Array.isArray(d.share_product.images) ? d.share_product.images[0] : '')),
@@ -2253,7 +2345,87 @@ export default {
 
     openDouyinPlayer() {
       if (!this.postInfo || !this.postInfo.douyin_url) return
-      this.loadDouyinVideoList()
+      // 点击视频卡片 → 抖音式全屏播放
+      const extractedUrl = this.extractUrlFromText(this.postInfo.douyin_url)
+      let targetUrl = extractedUrl || this.postInfo.douyin_url
+      if (!this.isValidUrl(targetUrl)) {
+        uni.showToast({ title: '视频链接无效', icon: 'none' })
+        return
+      }
+      // 抖音/西瓜分享链接 → 解析出直链后再全屏
+      if (targetUrl.includes('douyin.com') || targetUrl.includes('v.douyin.com') || targetUrl.includes('ixigua.com')) {
+        this.postInfo.douyin_url = targetUrl
+        this.parseDouyinUrlAndPlay()
+        return
+      }
+      // 直链/代理地址 → 直接进入抖音式全屏播放
+      this.playVideoFullscreen(targetUrl)
+    },
+
+    /* 进入抖音式全屏播放(竖屏整屏视频+右侧操作列) */
+    playVideoFullscreen(url) {
+      if (!url) return
+      this.postInfo.video = url
+      /* 自动播放策略: App端(video是原生组件)支持带声自动播放, 直接有声;
+         H5浏览器拦截带声音的自动播放, 只能静音自动播, 用户点"有声"恢复(和抖音一致) */
+      this.isMuted = this.isAppPlus ? false : true
+      this.videoFullscreen = true
+      this.videoKey++
+      /* 先显示中央播放按钮兜底: 自动播放成功后 onVideoPlay 会隐藏 */
+      this.isPlaying = false
+      this.$nextTick(() => {
+        try {
+          this.videoCtx = uni.createVideoContext('xhsVideoPlayer', this)
+          this.videoCtx.play()
+        } catch (e) {}
+      })
+    },
+
+    /* 全屏播放失败(直链过期/被拦) → 自动切分享链接代理兜底 */
+    onVideoFullscreenError() {
+      if (!this.postInfo) return
+      try {
+        /* 通用链接提取(兼容快手/抖音/西瓜分享链接, 不依赖只认抖音的 extractUrlFromText) */
+        const pickLink = (text) => {
+          if (!text) return ''
+          const m = String(text).match(/https?:\/\/[^\s"'<>]+/)
+          return m ? m[0].replace(/[.,;:!?，。、；：]+$/, '').trim() : ''
+        }
+        const ori = pickLink(this.postInfo.douyin_original_url)
+        let fallbackUrl = ori && this.isValidUrl(ori) ? this.buildProxyUrl(ori) : ''
+        /* 也尝试 douyin_url 本身是分享链接的情况 */
+        if (!fallbackUrl) {
+          const du = pickLink(this.postInfo.douyin_url)
+          if (du && this.isValidUrl(du) && (du.includes('kuaishou.com') || du.includes('douyin.com') || du.includes('iesdouyin.com'))) {
+            fallbackUrl = this.buildProxyUrl(du)
+          }
+        }
+        if (fallbackUrl && fallbackUrl !== this.postInfo.video) {
+          this.postInfo.video = fallbackUrl
+          this.videoKey++
+          this.isPlaying = false
+          this.$nextTick(() => {
+            try {
+              this.videoCtx = uni.createVideoContext('xhsVideoPlayer', this)
+              this.videoCtx.play()
+            } catch (e) {}
+          })
+          return
+        }
+      } catch (e) {}
+      uni.showToast({ title: '视频加载失败', icon: 'none' })
+      this.isPlaying = false
+    },
+
+    /* 拼代理地址(分享链接 → 后端重新解析出最新直链) */
+    buildProxyUrl(url) {
+      try {
+        const base = (typeof baseUrl !== 'undefined' && baseUrl) ? String(baseUrl) : ''
+        const cleanBase = base.replace(/\/+$/, '')
+        return cleanBase + '/video/proxy?url=' + encodeURIComponent(url)
+      } catch (e) {
+        return ''
+      }
     },
 
     loadDouyinVideoList() {
@@ -2377,7 +2549,8 @@ export default {
           isFollowed: this.isFollowingAuthor,
           comments: this.nestedComments
         }]
-        this.showDouyinPlayer = true
+        // 解析成功 → 抖音式全屏播放
+        this.playVideoFullscreen(playUrl)
         
       } catch (e) {
         uni.hideLoading()
@@ -3465,6 +3638,13 @@ export default {
         if (this.videoCtx) this.videoCtx.pause()
       } catch (e) {}
 
+      /* 全屏播放中 → 先退出全屏回详情页 */
+      if (this.videoFullscreen) {
+        this.videoFullscreen = false
+        this.isPlaying = false
+        return
+      }
+
       const pages = getCurrentPages()
 
       if (pages.length > 1) {
@@ -3558,7 +3738,8 @@ export default {
   height: 100vh;
   background: #000;
   overflow: hidden;
-  z-index: 1;
+  /* 必须盖住详情页导航栏(100)/底部输入栏(120), 否则全屏被压成黑屏 */
+  z-index: 2000;
 }
 
 .xhs-video-player {
@@ -3570,6 +3751,15 @@ export default {
   height: 100vh;
   background: #000;
 }
+/* #ifdef APP-PLUS */
+/* App端: 视频全屏; 操作栏已用 cover-view 覆盖在视频上(cover-view 可盖住原生 video) */
+.xhs-video-player {
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+/* #endif */
 
 .video-top-gradient {
   position: absolute;
@@ -5732,3 +5922,42 @@ export default {
 }
 </style>
 
+<style lang="scss">
+/* ================= App端 cover-view 覆盖层样式(必须非 scoped: cover-view 元素不带 data-v 属性) ================= */
+.cv-top-safe { position: absolute; left: 0; top: 0; width: 100%; z-index: 30; }
+.cv-top-bar { position: relative; width: 100%; }
+.cv-top-btn { position: absolute; top: 10rpx; width: 60rpx; height: 60rpx; border-radius: 50%; background: rgba(0,0,0,0.38); display: flex; align-items: center; justify-content: center; }
+.cv-back-btn { left: 24rpx; }
+.cv-more-btn { right: 24rpx; }
+.cv-dots { display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.cv-dot { width: 9rpx; height: 9rpx; border-radius: 50%; background: #fff; margin: 0 3rpx; flex-shrink: 0; }
+.cv-center-play-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 12; }
+.cv-center-play-btn { width: 132rpx; height: 132rpx; border-radius: 50%; background: rgba(0,0,0,0.48); display: flex; align-items: center; justify-content: center; }
+.cv-play-icon { color: #fff; font-size: 56rpx; line-height: 56rpx; margin-left: 8rpx; }
+.cv-back-text { color: #fff; font-size: 52rpx; line-height: 48rpx; margin-top: -4rpx; }
+.cv-plus-text { color: #fff; font-size: 32rpx; line-height: 30rpx; font-weight: 700; }
+.cv-side-actions { position: absolute; right: 18rpx; bottom: 176rpx; width: 112rpx; display: flex; flex-direction: column; align-items: center; z-index: 25; }
+.cv-avatar-outer { position: relative; width: 84rpx; height: 84rpx; margin-bottom: 4rpx; }
+.cv-avatar-wrap { width: 84rpx; height: 84rpx; border-radius: 999rpx; overflow: hidden; background: rgba(255,255,255,0.2); border: 3rpx solid rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; }
+.cv-avatar { width: 84rpx; height: 84rpx; border-radius: 999rpx; }
+.cv-follow-plus { margin-top: -16rpx; margin-bottom: 12rpx; width: 34rpx; height: 34rpx; border-radius: 50%; background: #ff2442; display: flex; align-items: center; justify-content: center; }
+.cv-action-item { width: 100rpx; margin-top: 24rpx; display: flex; flex-direction: column; align-items: center; }
+.cv-action-icon { width: 52rpx; height: 52rpx; }
+.cv-reward-icon { width: 48rpx; height: 48rpx; }
+.cv-action-text { display: block; margin-top: 8rpx; color: #fff; font-size: 22rpx; text-align: center; width: 100%; }
+.cv-info-panel { position: absolute; left: 24rpx; right: 148rpx; bottom: 126rpx; z-index: 20; }
+.cv-author-line { display: flex; align-items: flex-start; margin-bottom: 18rpx; }
+.cv-author-avatar-box { width: 66rpx; height: 66rpx; flex-shrink: 0; }
+.cv-author-avatar { width: 66rpx; height: 66rpx; border-radius: 999rpx; border: 2rpx solid rgba(255,255,255,0.75); }
+.cv-author-meta { margin-left: 14rpx; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.cv-author-name { display: block; color: #fff; font-size: 29rpx; font-weight: 700; max-width: 260rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-author-time { display: block; margin-top: 5rpx; color: rgba(255,255,255,0.72); font-size: 21rpx; }
+.cv-content-info { margin-top: 6rpx; }
+.cv-title { display: block; color: #fff; font-size: 34rpx; line-height: 1.45; font-weight: 700; word-break: break-word; }
+.cv-desc { display: block; margin-top: 10rpx; color: rgba(255,255,255,0.92); font-size: 26rpx; line-height: 1.6; word-break: break-word; }
+.cv-topic-row { margin-top: 14rpx; display: flex; flex-wrap: wrap; }
+.cv-topic { display: inline-block; color: #9bdcff; font-size: 24rpx; margin-right: 14rpx; margin-bottom: 8rpx; }
+.cv-comment-entry { position: absolute; left: 24rpx; right: 24rpx; bottom: 32rpx; z-index: 22; }
+.cv-comment-pill { height: 70rpx; border-radius: 999rpx; background: rgba(255,255,255,0.14); display: flex; align-items: center; padding: 0 28rpx; }
+.cv-comment-placeholder { display: block; color: rgba(255,255,255,0.82); font-size: 25rpx; }
+</style>

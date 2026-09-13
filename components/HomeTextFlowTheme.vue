@@ -166,7 +166,7 @@
 
         <text v-if="getPostDesc(post)" class="feed-desc">{{ getPostDesc(post) }}</text>
 
-        <view v-if="post.douyin_url && post.douyin_cover" class="feed-douyin-card" @click="goPostDetail(post)">
+        <view v-if="post.douyin_url && post.douyin_cover" class="feed-douyin-card" @click.stop="goPostDetail(post)">
           <image :src="post.douyin_cover" class="douyin-cover" mode="aspectFill"></image>
           <view class="douyin-play-btn">
             <view class="douyin-play-icon"></view>
@@ -1406,7 +1406,9 @@ export default {
 
 .douyin-cover {
   width: 100%;
-  height: 400rpx;
+  height: 62vh;
+  max-height: 1000rpx;
+  min-height: 480rpx;
 }
 
 .douyin-play-btn {

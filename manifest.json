@@ -16,7 +16,8 @@
             "delay" : 0
         },
         "modules" : {
-            "Push" : {}
+            "Push" : {},
+            "VideoPlayer" : {}
         },
         "distribute" : {
             "android" : {

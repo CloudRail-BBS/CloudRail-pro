@@ -67,6 +67,7 @@
     {"path":"pages/video/search","style":{"navigationStyle":"custom"}},
     {"path":"pages/video/parser-setting","style":{"navigationStyle":"custom"}},
     {"path":"pages/video/play-history","style":{"navigationStyle":"custom"}},
+    {"path":"pages/video/fullplay","style":{"navigationStyle":"custom","app-plus":{"titleNView":false,"subNVues":[{"id":"overlay","path":"pages/video/overlay","style":{"position":"absolute","top":"0","left":"0","width":"100%","height":"100%","background":"transparent"}}]}}},
     {"path":"pages/lottery/index","style":{"navigationStyle":"custom"}},
     {"path":"pages/rps-game/index","style":{"navigationStyle":"custom"}},
     {"path":"pages/duel-game/index","style":{"navigationStyle":"custom"}},
