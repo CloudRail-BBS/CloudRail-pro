@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 短视频通用播放工具（抖音 / 快手 / 西瓜）
  * 供帖子列表页（首页/瀑布流/圈子/个人主页）复用：
  * 将一个帖子对象（含 douyin_url 等字段）组装成 DouyinPlayer 所需的 videoList。
@@ -8,11 +8,11 @@
 // 第三方解析接口
 // 抖音/西瓜：原接口（如你项目里已有可保留）
 var PARSE_API_DOUYIN =
-  'https://ai.baige.icu/short_videos/api/kuaishou/ksjx.php?url='
+  'https://api.your-domain.com/short_videos/api/kuaishou/ksjx.php?url='
 
 // 快手：使用同一个 ksjx 接口（你给的返回结构就是它的）
 var PARSE_API_KUAISHOU =
-  'https://ai.baige.icu/short_videos/api/kuaishou/ksjx.php?url='
+  'https://api.your-domain.com/short_videos/api/kuaishou/ksjx.php?url='
 
 export function isValidUrl(url) {
   if (!url || typeof url !== 'string') return false

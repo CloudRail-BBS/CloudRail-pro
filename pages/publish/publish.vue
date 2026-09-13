@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="publish-container">
     <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="handleReset">
@@ -1246,7 +1246,7 @@ export default {
       this.isDouyinParsing = true;
       this.showHUD('loading', '解析中...');
       try {
-        const apiUrl = `https://ai.baige.icu/short_videos/api/kuaishou/ksjx.php?url=${encodeURIComponent(rawUrl)}`;
+        const apiUrl = `https://api.your-domain.com/short_videos/api/kuaishou/ksjx.php?url=${encodeURIComponent(rawUrl)}`;
         const res = await uni.request({
           url: apiUrl,
           method: 'GET',

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="container">
     <video
       id="playerVideo"
@@ -20,7 +20,7 @@
 </template>
 
 <script>
-const API_BASE = 'http://sq.baige.icu/api/index.php/'
+const API_BASE = 'http://your-domain.com/api/index.php/'
 
 export default {
   data() {

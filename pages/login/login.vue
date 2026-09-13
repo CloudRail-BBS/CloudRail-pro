@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="xhs-login">
     <view class="logo-box">
       <image src="/static/logo.png" mode="aspectFit" class="logo-img" />
@@ -646,7 +646,7 @@ export default {
       try { uni.setStorageSync('pinhao_oauth_state', state) } catch (e) {}
       // H5 先创建登录会话拿到 sid, 授权回调后前端凭 sid 直接换取授权码(避免服务端回连)
       uni.request({
-        url: 'https://dl.baige.icu/api.php?s=api/qr_login_create',
+        url: 'https://oauth.your-domain.com/api.php?s=api/qr_login_create',
         method: 'POST',
         data: { appid: APPID, app: '拼好社3.0' },
         timeout: 15000,
@@ -659,7 +659,7 @@ export default {
           }
           try { uni.setStorageSync('pinhao_oauth_sid', sid) } catch (e) {}
           const h5Redirect = window.location.origin + '/oauth_callback.php?sid=' + encodeURIComponent(sid)
-          const h5AuthUrl = 'https://dl.baige.icu/oauth/authorize.php' +
+          const h5AuthUrl = 'https://oauth.your-domain.com/oauth/authorize.php' +
             '?appid=' + APPID +
             '&redirect_uri=' + encodeURIComponent(h5Redirect) +
             '&state=' + state +
@@ -679,7 +679,7 @@ export default {
     // App 端: 拼好社 App 唤起登录 (创建会话 -> 唤起App -> 轮询授权 -> 换取授权码)
     _pinhaoAppLogin(APPID) {
       if (this.pinhaoPollTimer) { clearInterval(this.pinhaoPollTimer); this.pinhaoPollTimer = null }
-      const apiBase = 'https://dl.baige.icu'
+      const apiBase = 'https://oauth.your-domain.com'
       // 1. 创建登录会话
       uni.request({
         url: apiBase + '/api.php?s=api/qr_login_create',
@@ -756,7 +756,7 @@ export default {
         url: apiBase + '/api.php?s=api/oauth_code&sid=' + encodeURIComponent(sid) + '&appid=' + encodeURIComponent(APPID),
         method: 'POST',
         data: {
-          redirect_uri: 'http://sq.baige.icu/oauth_callback.php'
+          redirect_uri: 'http://your-domain.com/oauth_callback.php'
         },
         header: { 'Content-Type': 'application/json' },
         timeout: 15000,
@@ -786,8 +786,8 @@ export default {
       this.showHud('loading', '正在打开拼好社授权...')
       const state = Math.random().toString(36).substr(2) + Date.now()
       // redirect_uri 携带 sid, 授权页完成授权后会把会话置为 status=2
-      const redirectUri = 'http://sq.baige.icu/oauth_callback.php?sid=' + encodeURIComponent(sid)
-      const authUrl = 'https://dl.baige.icu/oauth/authorize.php' +
+      const redirectUri = 'http://your-domain.com/oauth_callback.php?sid=' + encodeURIComponent(sid)
+      const authUrl = 'https://oauth.your-domain.com/oauth/authorize.php' +
         '?appid=' + APPID +
         '&redirect_uri=' + encodeURIComponent(redirectUri) +
         '&state=' + state
@@ -814,7 +814,7 @@ export default {
       request('user.php', Object.assign({
         action: 'oauthLoginPinhao',
         code: code,
-        redirect_uri: 'http://sq.baige.icu/oauth_callback.php'
+        redirect_uri: 'http://your-domain.com/oauth_callback.php'
       }, extra))
         .then((res) => {
           if (res.code === 0) {
@@ -858,7 +858,7 @@ export default {
     // H5 端: 授权回调后凭 sid 直接换取授权码并登录(避免服务端回连)
     _pinhaoH5Finish(sid) {
       this.showHud('loading', '正在获取授权信息...')
-      this._pinhaoGetCode('10007', sid, 'https://dl.baige.icu')
+      this._pinhaoGetCode('10007', sid, 'https://oauth.your-domain.com')
     },
 
     closeOauthQr() {
