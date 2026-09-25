@@ -42,7 +42,7 @@
           </view>
         </view>
         <view class="todo-grid">
-          <view class="todo-item" v-for="(item, index) in todoItems" :key="index"
+          <view class="todo-item" v-for="(item, index) in filteredTodoItems" :key="index"
             @click="goTodo(item)">
             <view class="todo-content">
               <text class="todo-num">{{ item.value > 99 ? '99+' : item.value }}</text>
@@ -61,7 +61,7 @@
           <text class="manage-title">常用管理</text>
         </view>
         <view class="manage-grid">
-          <view class="manage-item" v-for="(item, index) in manageItems" :key="index"
+          <view class="manage-item" v-for="(item, index) in filteredManageItems" :key="index"
             @click="goManage(item)">
             <view class="manage-icon"><image class="manage-icon-img" :src="item.icon" mode="aspectFit" /></view>
             <text class="manage-label">{{ item.label }}</text>
@@ -290,7 +290,8 @@ export default {
         avatar: '',
         signature: '',
         role: '',
-        loginTime: ''
+        loginTime: '',
+        currentRole: 'admin'
       },
       showUserModal: false,
       // 日志展示
@@ -305,13 +306,45 @@ export default {
   },
   computed: {
     totalTodo() {
-      return this.todoItems.reduce((sum, item) => sum + parseInt(item.value) || 0, 0);
+      return this.filteredTodoItems.reduce((sum, item) => sum + parseInt(item.value) || 0, 0);
+    },
+    /* 根据角色过滤待办事项 */
+    filteredTodoItems() {
+      const role = this.currentRole;
+      if (role === 'auditor') {
+        return this.todoItems.filter(item => ['posts_pending', 'comments_pending', 'certifications'].includes(item.type));
+      }
+      if (role === 'moderator') {
+        return this.todoItems.filter(item => ['posts_pending', 'comments_pending'].includes(item.type));
+      }
+      return this.todoItems;
+    },
+    /* 根据角色过滤管理功能 */
+    filteredManageItems() {
+      const role = this.currentRole;
+      if (role === 'auditor') {
+        return this.manageItems.filter(item => ['posts', 'comments', 'certifications'].includes(item.type));
+      }
+      if (role === 'moderator') {
+        return this.manageItems.filter(item => ['posts', 'comments', 'circles'].includes(item.type));
+      }
+      return this.manageItems;
     }
   },
   onLoad() {
     const metrics = getScreenMetrics();
     this.statusBarHeight = metrics.statusBarHeight;
     this.updateCurrentTime();
+    // 从本地存储获取用户角色（不依赖异步接口，确保立即生效）
+    try {
+      const localUser = uni.getStorageSync('userInfo');
+      if (localUser && localUser.role) {
+        this.currentRole = localUser.role;
+        this.adminInfo.role = localUser.role === 'moderator' ? '版主' : (localUser.role === 'auditor' ? '审核员' : '管理员');
+        this.adminInfo.nickname = localUser.nickname || localUser.name || localUser.username || '';
+        this.adminInfo.avatar = localUser.avatar || '';
+      }
+    } catch (e) {}
     this.loadData();
     setInterval(() => this.updateCurrentTime(), 60000);
   },
@@ -395,7 +428,15 @@ export default {
           if (user.is_admin === 2) this.adminInfo.role = '超级管理员';
           else if (user.is_admin === 1) this.adminInfo.role = '管理员';
           else if (user.is_reviewer === 1) this.adminInfo.role = '审核员';
-          else this.adminInfo.role = '管理员';
+          else this.adminInfo.role = user.role || '管理员';
+          // 优先从 role 字段获取，兼容 is_admin / is_reviewer 旧字段
+          if (user.role) {
+            this.currentRole = user.role;
+          } else if (user.is_admin === 2 || user.is_admin === 1) {
+            this.currentRole = 'admin';
+          } else if (user.is_reviewer === 1) {
+            this.currentRole = 'auditor';
+          }
         }
 
         if (statsRes.status === 'success' && statsRes.data && statsRes.data.stats) {

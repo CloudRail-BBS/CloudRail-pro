@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="dynamic-feed">
     <template v-if="firstLoading">
       <view class="sk-item" v-for="i in 4" :key="i">
@@ -186,7 +186,9 @@ export default {
         if (this.topic) {
           const res = await request('dynamic.php', params, 'GET')
           if (res.code === 0) {
-            const incoming = Array.isArray(res.data) ? res.data : []
+            // 后端返回 {list: [...], total: ...}，兼容直接返回数组的情况
+            const rawList = Array.isArray(res.data) ? res.data : (res.data && Array.isArray(res.data.list) ? res.data.list : [])
+            const incoming = rawList.map(item => this.normalizeItem(item))
             if (reset || this.page === 1) {
               this.list = incoming
             } else {
@@ -202,9 +204,12 @@ export default {
               ttl: 30000,  // 30秒内用缓存
               onRefresh: (newData) => {
                 // 后台刷新成功，subscribe 也会触发，这里冗余保险
-                if (Array.isArray(newData)) {
-                  this.list = newData
-                  this.hasMore = newData.length >= this.pageSize
+                // 后端返回 {list: [...], total: ...}，兼容直接返回数组的情况
+                const rawList = Array.isArray(newData) ? newData : (newData && Array.isArray(newData.list) ? newData.list : [])
+                const list = rawList.map(item => this.normalizeItem(item))
+                if (list.length > 0) {
+                  this.list = list
+                  this.hasMore = list.length >= this.pageSize
                 }
               }
             }
@@ -212,8 +217,13 @@ export default {
 
           if (fromCache && data) {
             // 命中缓存：立即渲染，隐藏 firstLoading
-            this.list = Array.isArray(data) ? data : []
-            this.hasMore = this.list.length >= this.pageSize
+            // 后端返回 {list: [...], total: ...}，兼容直接返回数组的情况
+            const rawList = Array.isArray(data) ? data : (data && Array.isArray(data.list) ? data.list : [])
+            const list = rawList.map(item => this.normalizeItem(item))
+            if (list.length > 0) {
+              this.list = list
+              this.hasMore = list.length >= this.pageSize
+            }
             this.firstLoading = false
             // stale=true 表示后台正在刷新，刷新完会通过 subscribe 回调更新
             // 非 stale 说明缓存未过期，不需要 loading
@@ -224,14 +234,19 @@ export default {
           }
           // 非缓存命中（首次请求），走下面的常规流程
           if (data) {
-            this.list = Array.isArray(data) ? data : []
-            this.hasMore = this.list.length >= this.pageSize
+            // 后端返回 {list: [...], total: ...}，兼容直接返回数组的情况
+            const rawList = Array.isArray(data) ? data : (data && Array.isArray(data.list) ? data.list : [])
+            const list = rawList.map(item => this.normalizeItem(item))
+            this.list = list
+            this.hasMore = list.length >= this.pageSize
           }
         } else {
           // 第2页及以后：直接请求，不缓存（避免缓存膨胀）
           const res = await request('dynamic.php', params, 'GET')
           if (res.code === 0) {
-            const incoming = Array.isArray(res.data) ? res.data : []
+            // 后端返回 {list: [...], total: ...}，兼容直接返回数组的情况
+            const rawList = Array.isArray(res.data) ? res.data : (res.data && Array.isArray(res.data.list) ? res.data.list : [])
+            const incoming = rawList.map(item => this.normalizeItem(item))
             this.list = [...this.list, ...incoming]
             this.hasMore = incoming.length >= this.pageSize
           }
@@ -300,6 +315,23 @@ export default {
       } finally {
         item._liking = false
       }
+    },
+
+    normalizeItem(item) {
+      if (!item) return item
+      // 把 author 对象里的字段合并到顶层，兼容前端模板
+      if (item.author) {
+        item.avatar = item.author.avatar || item.avatar
+        item.nickname = item.author.nickname || item.nickname
+        item.name = item.author.nickname || item.author.name || item.name
+        item.username = item.author.username || item.username
+        item.personal_signature = item.author.personal_signature || item.personal_signature
+        item.frame_img = item.author.frame_img || item.frame_img
+        item.user_id = item.author.uid || item.user_id
+        item.uid = item.author.uid || item.uid
+        item.is_followed = item.author.is_followed || false
+      }
+      return item
     },
 
     goDetail(item) {

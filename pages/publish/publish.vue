@@ -1125,9 +1125,13 @@ export default {
       if (this.productList.length > 0 || this.productLoading) return;
       this.productLoading = true;
       try {
-        const res = await request('market.php?action=my_pub', { action: 'my_pub' }, 'POST');
+        const res = await request('market.php', { action: 'my_pub' });
         if (res && res.code === 0) {
-          this.productList = (res.data || []).filter(p => parseInt(p.status) === 1);
+          const list = (res.data && res.data.list) || res.data || [];
+          this.productList = list.filter(p => parseInt(p.status) === 1).map(p => ({
+            ...p,
+            image: p.image || (p.images && p.images[0]) || ''
+          }));
         } else {
           this.showHUD('error', (res && res.msg) || '商品加载失败');
         }

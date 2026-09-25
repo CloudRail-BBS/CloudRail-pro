@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="detail-container">
     <!-- 自定义导航栏 -->
     <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
@@ -273,7 +273,20 @@ export default {
         }, 'GET')
 
         if (res.code === 0 && res.data) {
-          this.detail = res.data
+          // 把 author 对象里的字段合并到顶层，兼容前端模板
+          const d = res.data
+          if (d.author) {
+            d.avatar = d.author.avatar || d.avatar
+            d.nickname = d.author.nickname || d.nickname
+            d.name = d.author.nickname || d.author.name || d.name
+            d.username = d.author.username || d.username
+            d.personal_signature = d.author.personal_signature || d.personal_signature
+            d.frame_img = d.author.frame_img || d.frame_img
+            d.uid = d.author.uid || d.uid
+            d.user_id = d.author.uid || d.user_id
+            d.is_followed = d.author.is_followed || false
+          }
+          this.detail = d
         } else {
           this.detail = null
         }

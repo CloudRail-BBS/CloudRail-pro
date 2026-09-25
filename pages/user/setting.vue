@@ -17,6 +17,13 @@
             <text class="arrow">></text>
           </view>
         </view>
+        <view class="cell-item" @click="openGenderModal">
+          <text class="cell-label">性别</text>
+          <view class="cell-right">
+            <text class="cell-val">{{ genderLabel }}</text>
+            <text class="arrow">></text>
+          </view>
+        </view>
       </view>
 
       <view class="group-title">账号安全</view>
@@ -140,6 +147,14 @@
         </view>
       </view>
 
+      <view class="group-title">账号管理</view>
+      <view class="cell-group">
+        <view class="cell-item" @click="toCancellation">
+          <text class="cell-label" style="color:#ff2442">注销账号</text>
+          <view class="cell-right"><text class="arrow">></text></view>
+        </view>
+      </view>
+
       <view class="switch-btn" hover-class="btn-hover" @click="openSwitchModal">切换账号</view>
       <view class="logout-btn" hover-class="btn-hover" @click="askLogout">退出登录</view>
       <view class="safe-bottom"></view>
@@ -166,6 +181,60 @@
         <view class="modal-btns">
           <view class="m-btn cancel" hover-class="m-btn-hover" @click="closeNameModal">取消</view>
           <view class="m-btn confirm" hover-class="m-btn-hover" @click="confirmName">保存</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="modal-mask" :class="{ show: showGenderModal }" v-if="showGenderModal" @click="closeGenderModal">
+      <view class="modal-box" @click.stop>
+        <view class="modal-title">选择性别</view>
+        <view class="modal-content">性别将用于群聊成员统计（女生/男生人数占比）</view>
+        <view class="gender-list">
+          <view class="gender-option" :class="{ active: Number(userInfo.gender) === 0 }" @click="saveGender(0)">
+            <view class="gender-option-left">
+              <image class="gender-icon-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPHJlY3QgeD0iNCIgeT0iMTAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxMSIgcng9IjIiIHN0cm9rZT0iIzk5OTk5OSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+CiAgPHBhdGggZD0iTTggMTBWN0M4IDQuNzkgOS43OSAzIDEyIDNDMTQuMjEgMyAxNiA0Ljc5IDE2IDdWMTAiIHN0cm9rZT0iIzk5OTk5OSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+" mode="aspectFit"></image>
+              <text class="gender-option-text">保密</text>
+            </view>
+            <text class="gender-check" v-if="Number(userInfo.gender) === 0">✓</text>
+          </view>
+          <view class="gender-option" :class="{ active: Number(userInfo.gender) === 1 }" @click="saveGender(1)">
+            <view class="gender-option-left">
+              <image class="gender-icon-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTAiIGN5PSIxNCIgcj0iNSIgc3Ryb2tlPSIjNEE5MEQ5IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8cGF0aCBkPSJNMTQgMTBMMjAgNE0yMCA0SDE1TTIwIDRWOSIgc3Ryb2tlPSIjNEE5MEQ5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=" mode="aspectFit"></image>
+              <text class="gender-option-text">男</text>
+            </view>
+            <text class="gender-check" v-if="Number(userInfo.gender) === 1">✓</text>
+          </view>
+          <view class="gender-option" :class="{ active: Number(userInfo.gender) === 2 }" @click="saveGender(2)">
+            <view class="gender-option-left">
+              <image class="gender-icon-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSI5IiByPSI1IiBzdHJva2U9IiNFODRBN0YiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQ9Ik0xMiAxNFYyME05IDE3SDE1IiBzdHJva2U9IiNFODRBN0YiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPg==" mode="aspectFit"></image>
+              <text class="gender-option-text">女</text>
+            </view>
+            <text class="gender-check" v-if="Number(userInfo.gender) === 2">✓</text>
+          </view>
+          <view class="gender-option" :class="{ active: Number(userInfo.gender) === 3 }" @click="saveGender(3)">
+            <view class="gender-option-left">
+              <image class="gender-icon-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTAiIGN5PSIxNCIgcj0iNSIgc3Ryb2tlPSIjOUI1OUI2IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8cGF0aCBkPSJNMTQgMTBMMjAgNE0yMCA0SDE1TTIwIDRWOSIgc3Ryb2tlPSIjOUI1OUI2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0xMCAxOVYyMk03IDIwLjVIMTMiIHN0cm9rZT0iIzlCNTlCNiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+" mode="aspectFit"></image>
+              <text class="gender-option-text">男跨女 <text class="gender-option-sub">MTF</text></text>
+            </view>
+            <text class="gender-check" v-if="Number(userInfo.gender) === 3">✓</text>
+          </view>
+          <view class="gender-option" :class="{ active: Number(userInfo.gender) === 4 }" @click="saveGender(4)">
+            <view class="gender-option-left">
+              <image class="gender-icon-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSI5IiByPSI1IiBzdHJva2U9IiNFNjdFMjIiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQ9Ik0xMiAxNFYyME05IDE3SDE1IiBzdHJva2U9IiNFNjdFMjIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTE3IDZMMjIgMU0yMiAxSDE3TTIyIDFWNiIgc3Ryb2tlPSIjRTY3RTIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=" mode="aspectFit"></image>
+              <text class="gender-option-text">女跨男 <text class="gender-option-sub">FTM</text></text>
+            </view>
+            <text class="gender-check" v-if="Number(userInfo.gender) === 4">✓</text>
+          </view>
+          <view class="gender-option" :class="{ active: Number(userInfo.gender) === 5 }" @click="saveGender(5)">
+            <view class="gender-option-left">
+              <image class="gender-icon-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIgc3Ryb2tlPSIjMUFCQzlDIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIiBmaWxsPSIjMUFCQzlDIi8+Cjwvc3ZnPg==" mode="aspectFit"></image>
+              <text class="gender-option-text">其他</text>
+            </view>
+            <text class="gender-check" v-if="Number(userInfo.gender) === 5">✓</text>
+          </view>
+        </view>
+        <view class="modal-btns">
+          <view class="m-btn cancel" hover-class="m-btn-hover" @click="closeGenderModal">关闭</view>
         </view>
       </view>
     </view>
@@ -253,6 +322,7 @@ export default {
       showLogoutModal: false,
       showNameModal: false,
       editingName: '',
+      showGenderModal: false,
       hud: { show: false, type: 'loading', text: '' },
       kefuLink: '',
       showAboutModal: false,
@@ -270,6 +340,12 @@ export default {
     currentUid() {
       const u = uni.getStorageSync('userInfo');
       return u ? String(u.id || u.uid || '') : '';
+    },
+    /* 性别展示: 0保密 1男 2女 3男跨女 4女跨男 5其他 */
+    genderLabel() {
+      const g = Number(this.userInfo.gender || 0);
+      const labels = { 0: '保密', 1: '男', 2: '女', 3: '男跨女', 4: '女跨男', 5: '其他' };
+      return labels[g] || '保密';
     }
   },
   onLoad(opt) {
@@ -553,6 +629,26 @@ export default {
       this.showAboutModal = false;
     },
     openNameModal() { this.editingName = (this.userInfo.name || this.userInfo.username || '').trim(); this.showNameModal = true; },
+    /* ===== 性别设置(男/女) ===== */
+    openGenderModal() { this.showGenderModal = true; },
+    closeGenderModal() { this.showGenderModal = false; },
+    async saveGender(g) {
+      g = Number(g);
+      if (g < 0 || g > 5) return;
+      if (g === Number(this.userInfo.gender || 0)) { this.showGenderModal = false; return; }
+      this.showHud('loading', '保存中...');
+      try {
+        const res = await request('user.php', { action: 'update', gender: g });
+        if (res.code === 0) {
+          this.userInfo.gender = g;
+          const localUser = uni.getStorageSync('userInfo') || {};
+          localUser.gender = g;
+          uni.setStorageSync('userInfo', localUser);
+          this.showGenderModal = false;
+          this.showHud('success', '修改成功'); this.hideHud(1200);
+        } else { this.showHud('error', res.msg || '修改失败'); this.hideHud(1400); }
+      } catch (e) { this.showHud('error', '网络异常'); this.hideHud(1400); }
+    },
     closeNameModal() { this.showNameModal = false; },
     async confirmName() {
       const newName = (this.editingName || '').trim();
@@ -591,6 +687,9 @@ export default {
         const res = await request('user.php', { action: 'update_privacy_setting', key, value: val });
         if (res.code !== 0) { this[prop] = old; this.showHud('error', res.msg || '设置失败'); this.hideHud(1200); }
       } catch (e2) { this[prop] = old; this.showHud('error', '网络异常'); this.hideHud(1200); }
+    },
+    toCancellation() {
+      uni.navigateTo({ url: '/pages/user/cancellation' });
     },
     askLogout() { this.showLogoutModal = true; },
     loadAccounts() { this.accounts = getAccounts(); },
@@ -673,6 +772,15 @@ export default {
 .modal-title { text-align: center; font-size: 34rpx; font-weight: 600; color: #333; padding: 40rpx 0 10rpx; }
 .modal-content { text-align: center; font-size: 26rpx; color: #666; padding: 0 40rpx 20rpx; line-height: 1.6; overflow: auto; }
 .modal-input-area { padding: 0 40rpx 40rpx; }
+/* 性别选择 */
+.gender-list { padding: 0 40rpx 40rpx; }
+.gender-option { display: flex; align-items: center; justify-content: space-between; height: 96rpx; padding: 0 32rpx; margin-bottom: 20rpx; background: #F5F6F8; border-radius: 16rpx; border: 2rpx solid transparent; }
+.gender-option.active { background: rgba(255, 36, 66, 0.08); border-color: #FF2442; }
+.gender-option-left { display: flex; align-items: center; gap: 16rpx; }
+.gender-option-text { font-size: 30rpx; color: #111827; }
+.gender-option-sub { font-size: 22rpx; color: #999; margin-left: 8rpx; }
+.gender-icon-img { width: 48rpx; height: 48rpx; }
+.gender-check { font-size: 30rpx; color: #FF2442; font-weight: 600; }
 .modal-input { background: #f5f5f5; height: 88rpx; border-radius: 12rpx; padding: 0 24rpx; font-size: 30rpx; color: #333; }
 .modal-btns { display: flex; height: 104rpx; border-top: 1rpx solid #eee; flex-shrink: 0; }
 .m-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 32rpx; }

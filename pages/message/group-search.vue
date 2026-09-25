@@ -27,13 +27,19 @@
       <text class="hint">群号由系统生成，支持精准搜索加入群聊。</text>
     </view>
 
-    <view v-if="group" class="card result-card">
+    <!-- 整张群卡片可点击: 进入群资料详情页 -->
+    <view v-if="group" class="card result-card" @click="openGroupProfile">
+      <!-- 群信息卡片 -->
       <view class="group-head">
         <image class="group-avatar" :src="fixUrl(group.avatar)" mode="aspectFill" />
         <view class="group-meta">
           <text class="group-name">{{ group.name }}</text>
           <text class="group-code">群号 {{ group.identity_code }}</text>
           <text class="group-count">{{ group.member_count }}人</text>
+        </view>
+        <view class="group-head-right">
+          <text class="group-head-tip">查看资料</text>
+          <text class="group-head-arrow">›</text>
         </view>
       </view>
 
@@ -44,7 +50,7 @@
         <text class="status-wait">入群申请已提交，等待群主或管理员审核</text>
       </view>
       <view v-else>
-        <view v-if="Number(group.join_need_approve || 0) === 1" class="verify-box">
+        <view v-if="Number(group.join_need_approve || 0) === 1" class="verify-box" @click.stop>
           <text class="verify-label">申请备注</text>
           <textarea
             v-model="verifyMsg"
@@ -53,7 +59,7 @@
             placeholder="简单介绍一下你自己，方便群主审核"
           />
         </view>
-        <view class="action-row">
+        <view class="action-row" @click.stop>
           <view v-if="myStatus === 'member'" class="primary-btn ghost" @click="enterGroup">进入群聊</view>
           <view v-else class="primary-btn" @click="applyJoin">
             <text>{{ Number(group.join_need_approve || 0) === 1 ? '申请加入' : '直接加入' }}</text>
@@ -84,9 +90,15 @@ export default {
       searched: false
     }
   },
-  onLoad() {
+  onLoad(options) {
     const sys = uni.getSystemInfoSync()
     this.statusBarHeight = sys.statusBarHeight || 20
+    /* 扫码/群二维码链接进入: /pages/message/group-search?code=123456 自动搜索 */
+    const code = String((options && (options.code || options.identity_code)) || '').trim()
+    if (code) {
+      this.keyword = code
+      this.$nextTick(() => this.searchGroup())
+    }
   },
   methods: {
     goBack() {
@@ -138,6 +150,22 @@ export default {
       if (!this.group || !this.group.id) return
       uni.navigateTo({
         url: `/pages/message/group-chat?groupId=${this.group.id}&name=${encodeURIComponent(this.group.name || '')}`
+      })
+    },
+    /* 点击群卡片: 进入群资料详情页(QQ 风格) */
+    openGroupProfile() {
+      if (!this.group) return
+      /* 兼容后端返回 id / session_id 两种字段, 避免拿不到群 ID 时静默无反应 */
+      const gid = Number(this.group.id || this.group.session_id || 0)
+      if (!gid) {
+        uni.showToast({ title: '群信息异常，请重新搜索', icon: 'none' })
+        return
+      }
+      uni.navigateTo({
+        url: `/pages/message/group-profile?groupId=${gid}`,
+        fail: () => {
+          uni.showToast({ title: '打开群资料失败，请重新编译后重试', icon: 'none' })
+        }
       })
     },
     fixUrl(url) {
@@ -238,9 +266,27 @@ export default {
   background:#f3f4f6;
 }
 .group-meta{
+  flex:1;
   display:flex;
   flex-direction:column;
   gap:10rpx;
+  min-width:0;
+}
+.group-head-right{
+  display:flex;
+  align-items:center;
+  flex-shrink:0;
+}
+.group-head-tip{
+  font-size:22rpx;
+  color:#ff2442;
+  margin-right:4rpx;
+}
+.group-head-arrow{
+  font-size:40rpx;
+  color:#d1d5db;
+  line-height:1;
+  flex-shrink:0;
 }
 .group-name{
   font-size:34rpx;

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="posts-page">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
     <scroll-view class="main-scroll" scroll-y>
@@ -42,7 +42,7 @@
               <text class="pc-name">{{ item.username || '未知用户' }}</text>
               <text class="pc-time">{{ formatTime(item.create_time) }}</text>
             </view>
-            <view class="pc-status" :class="getStatusClass(item.status)">{{ getStatusText(item.status) }}</view>
+            <view class="pc-status" :class="getStatusClass(rawPostStatus(item))">{{ getStatusText(rawPostStatus(item)) }}</view>
           </view>
 
           <!-- 标题与摘要 -->
@@ -64,11 +64,11 @@
           <view class="pc-foot">
             <text class="pc-stat">{{ item.view_count || 0 }} 浏览 · {{ item.comment_count || 0 }} 评论</text>
             <view class="pc-actions" @click.stop>
-              <view v-if="item.status === 2" class="pa-btn approve" @click="approvePost(item.id)">通过</view>
-              <view v-if="item.status === 2" class="pa-btn reject" @click="rejectPost(item.id)">拒绝</view>
-              <view v-if="item.status === 1" :class="['pa-btn', item.zhiding ? 'untop' : 'top']" @click="toggleTop(item.id, item.zhiding)">{{ item.zhiding ? '取消置顶' : '置顶' }}</view>
+              <view v-if="rawPostStatus(item) === 2" class="pa-btn approve" @click="approvePost(item.id)">通过</view>
+              <view v-if="rawPostStatus(item) === 2" class="pa-btn reject" @click="rejectPost(item.id)">拒绝</view>
+              <view v-if="rawPostStatus(item) === 1" :class="['pa-btn', item.zhiding ? 'untop' : 'top']" @click="toggleTop(item.id, item.zhiding)">{{ item.zhiding ? '取消置顶' : '置顶' }}</view>
               <view class="pa-btn edit" @click="editPost(item.id)">编辑</view>
-              <view v-if="item.status === 1" class="pa-btn del" @click="deletePost(item.id)">删除</view>
+              <view v-if="rawPostStatus(item) === 1" class="pa-btn del" @click="deletePost(item.id)">删除</view>
             </view>
           </view>
         </view>
@@ -97,7 +97,7 @@
 </template>
 
 <script>
-import { request, bmsBaseUrl } from '../../common/request.js';
+import { request, baseUrl } from '../../common/request.js';
 import { getScreenMetrics } from '../../common/screen.js';
 
 export default {
@@ -110,6 +110,7 @@ export default {
       page: 1,
       hasMore: true,
       loading: false,
+      reqSeq: 0,
       pendingCount: 0,
       hud: { show: false, type: 'loading', text: '' }
     };
@@ -124,11 +125,20 @@ export default {
   methods: {
     goBack() { uni.navigateBack(); },
     setFilter(filter) {
-      this.currentFilter = filter; this.postList = []; this.page = 1; this.hasMore = true;
-      this.loadPosts();
+      this.currentFilter = filter;
+      this.loadPosts(true);
     },
     doSearch() {
-      this.postList = []; this.page = 1; this.hasMore = true; this.loadPosts();
+      this.loadPosts(true);
+    },
+    /* 状态标签: 后端已合并为三态(1已发布/2待审核/0已删除);
+       兼容未合并的情况, 用原始 status + is_approved 兜底判断 */
+    rawPostStatus(item) {
+      const st = Number(item && item.status);
+      if (st === 0) return 0;
+      if (st === 2) return 2;
+      const ap = (item && item.is_approved !== undefined && item.is_approved !== null) ? Number(item.is_approved) : 1;
+      return ap === 0 ? 2 : 1;
     },
     getStatusClass(status) {
       if (status === 1) return 'active'; if (status === 2) return 'pending'; if (status === 0) return 'deleted'; return '';
@@ -149,29 +159,39 @@ export default {
       if (days < 7) return `${days}天前`;
       return `${date.getMonth() + 1}/${date.getDate()}`;
     },
-    async loadPosts() {
-      if (this.loading) return; this.loading = true;
+    async loadPosts(reset = false) {
+      if (reset) { this.page = 1; this.postList = []; this.hasMore = true; }
+      else if (this.loading || !this.hasMore) return;
+      this.loading = true;
+      const seq = ++this.reqSeq;
       try {
+        /* 管理端帖子列表: 走 post/list, status 支持 all/1已发布/2待审核/0已删除 */
         const params = {
-          action: 'get_posts',
+          action: 'list',
           page: this.page,
           status: this.getStatusValue(this.currentFilter)
         };
         if (this.searchKeyword) params.search = this.searchKeyword;
-        const res = await request('posts.php', params, { baseURL: bmsBaseUrl, method: 'GET' });
-        if (res.status === 'success' && res.data && res.data.list) {
-          if (this.page === 1) this.postList = res.data.list;
-          else this.postList = [...this.postList, ...res.data.list];
-          this.hasMore = res.data.list.length >= 10;
+        const res = await request('post.php', params, { baseURL: baseUrl, method: 'GET' });
+        if (seq !== this.reqSeq) return; /* 已有更新的请求: 丢弃过期响应 */
+        if (res.code === 0 && res.data) {
+          const rawList = Array.isArray(res.data) ? res.data : (res.data.list || []);
+          if (this.page === 1) this.postList = rawList;
+          else this.postList = [...this.postList, ...rawList];
+          this.hasMore = rawList.length >= 10;
+        } else {
+          uni.showToast({ title: (res && res.msg) || '加载失败', icon: 'none' });
         }
-      } catch (e) {}
-      this.loading = false;
+      } catch (e) {} finally {
+        if (seq === this.reqSeq) this.loading = false;
+      }
     },
     async loadPendingCount() {
       try {
-        const res = await request('dashboard.php', { action: 'get_stats' }, { baseURL: bmsBaseUrl, method: 'GET' });
-        if (res.status === 'success' && res.data && res.data.stats && res.data.stats.pending)
-          this.pendingCount = res.data.stats.pending.posts;
+        const res = await request('post.php', { action: 'list', status: '2', page: 1, pageSize: 1 }, { baseURL: baseUrl, method: 'GET' });
+        if (res.code === 0 && res.data) {
+          this.pendingCount = parseInt(res.data.total || 0);
+        }
       } catch (e) {}
     },
     getStatusValue(filter) {
@@ -184,8 +204,8 @@ export default {
     async approvePost(postId) {
       this.showHud('loading', '审核中');
       try {
-        const res = await request('posts.php', { action: 'update_post_status', id: postId, status: 1 }, { baseURL: bmsBaseUrl });
-        if (res.status === 'success' || res.code === 0) { uni.showToast({ title: '审核通过', icon: 'success' }); this.postList = this.postList.filter(p => p.id !== postId); }
+        const res = await request('post.php', { action: 'updatePost', id: postId, status: 1 }, { baseURL: baseUrl });
+        if (res.code === 0 || res.status === 'success') { uni.showToast({ title: '审核通过', icon: 'success' }); this.loadPosts(true); this.loadPendingCount(); }
         else uni.showToast({ title: res?.msg || '审核失败', icon: 'none' });
       } catch (e) { uni.showToast({ title: '审核失败', icon: 'none' }); }
       this.hud.show = false;
@@ -193,8 +213,8 @@ export default {
     async toggleTop(postId, currentTop) {
       this.showHud('loading', '处理中');
       try {
-        const result = await request('posts.php', { action: 'toggle_post_top', id: postId, zhiding: currentTop ? 0 : 1 }, { baseURL: bmsBaseUrl });
-        if (result.status === 'success') { uni.showToast({ title: currentTop ? '已取消置顶' : '置顶成功', icon: 'success' }); const post = this.postList.find(p => p.id === postId); if (post) post.zhiding = currentTop ? 0 : 1; }
+        const result = await request('post.php', { action: 'updatePost', id: postId, is_pinned: currentTop ? 0 : 1 }, { baseURL: baseUrl });
+        if (result.code === 0 || result.status === 'success') { uni.showToast({ title: currentTop ? '已取消置顶' : '置顶成功', icon: 'success' }); const post = this.postList.find(p => p.id === postId); if (post) post.zhiding = currentTop ? 0 : 1; }
         else uni.showToast({ title: result?.msg || '操作失败', icon: 'none' });
       } catch (e) { uni.showToast({ title: '操作失败', icon: 'none' }); }
       this.hud.show = false;
@@ -204,8 +224,9 @@ export default {
         if (res.confirm) {
           this.showHud('loading', '处理中');
           try {
-            const result = await request('posts.php', { action: 'update_post_status', id: postId, status: 0 }, { baseURL: bmsBaseUrl });
-            if (result.status === 'success' || result.code === 0) { uni.showToast({ title: '已拒绝', icon: 'success' }); this.postList = this.postList.filter(p => p.id !== postId); }
+            /* 拒绝 = 下架处理(进入"已删除"), 避免帖子重新回到"待审核"反复出现 */
+            const result = await request('post.php', { action: 'deletePost', id: postId }, { baseURL: baseUrl });
+            if (result.code === 0 || result.status === 'success') { uni.showToast({ title: '已拒绝', icon: 'success' }); this.loadPosts(true); this.loadPendingCount(); }
             else uni.showToast({ title: result?.msg || '操作失败', icon: 'none' });
           } catch (e) { uni.showToast({ title: '操作失败', icon: 'none' }); }
           this.hud.show = false;
@@ -217,8 +238,8 @@ export default {
         if (res.confirm) {
           this.showHud('loading', '删除中');
           try {
-            const result = await request('posts.php', { action: 'delete_post', id: postId }, { baseURL: bmsBaseUrl });
-            if (result.status === 'success' || result.code === 0) { uni.showToast({ title: '删除成功', icon: 'success' }); this.postList = this.postList.filter(p => p.id !== postId); }
+            const result = await request('post.php', { action: 'deletePost', id: postId }, { baseURL: baseUrl });
+            if (result.code === 0 || result.status === 'success') { uni.showToast({ title: '删除成功', icon: 'success' }); this.loadPosts(true); this.loadPendingCount(); }
             else uni.showToast({ title: result?.msg || '删除失败', icon: 'none' });
           } catch (e) { uni.showToast({ title: '删除失败', icon: 'none' }); }
           this.hud.show = false;

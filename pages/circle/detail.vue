@@ -44,9 +44,12 @@
         </view>
 
         <view class="mod-section member-section" v-if="displayMembers.length > 0">
-          <view class="section-head">
+          <view class="section-head" @click="goMemberList('moderators')">
             <text class="section-title">圈子版主</text>
-            <text class="section-more">{{ displayMembers.length }} 人</text>
+            <view class="section-more-wrap">
+              <text class="section-more">{{ displayMembers.length }} 人</text>
+              <text class="section-arrow">›</text>
+            </view>
           </view>
           <scroll-view scroll-x class="member-scroll" :show-scrollbar="false">
             <view class="member-list">
@@ -63,9 +66,12 @@
         </view>
 
         <view class="mod-section member-section" v-if="allMembers.length > 0">
-          <view class="section-head">
+          <view class="section-head" @click="goMemberList('members')">
             <text class="section-title">圈子成员</text>
-            <text class="section-more">{{ circleInfo.member_count }} 人</text>
+            <view class="section-more-wrap">
+              <text class="section-more">{{ circleInfo.member_count }} 人</text>
+              <text class="section-arrow">›</text>
+            </view>
           </view>
           <scroll-view scroll-x class="member-scroll" :show-scrollbar="false">
             <view class="member-list">
@@ -94,9 +100,10 @@
         </view>
 
         <view class="feed-tabs">
-          <view class="feed-tab" :class="{ active: filterType === 'new' }" @click="switchFilter('new')">最新发表</view>
-          <view class="feed-tab" :class="{ active: filterType === 'reply' }" @click="switchFilter('reply')">最近回复</view>
-          <view class="feed-tab" :class="{ active: filterType === 'hot' }" @click="switchFilter('hot')">热门动态</view>
+          <view class="feed-tab" :class="{ active: postViewMode === 'normal' }" @click="switchPostView('normal')">全部帖子</view>
+          <view class="feed-tab" :class="{ active: postViewMode === 'pending' }" @click="switchPostView('pending')" v-if="isModerator">待审核</view>
+          <view class="feed-tab" :class="{ active: filterType === 'new' }" @click="switchFilter('new')">最新</view>
+          <view class="feed-tab" :class="{ active: filterType === 'hot' }" @click="switchFilter('hot')">热门</view>
         </view>
       </view>
 
@@ -279,8 +286,10 @@ export default {
       const map = new Map();
       const mods = Array.isArray(this.circleInfo.moderators) ? this.circleInfo.moderators : [];
       mods.forEach(u => {
-        if (!u || !u.id) return;
-        map.set(Number(u.id), { ...u, is_moderator: true, name: u.name || u.username || '用户' });
+        if (!u) return;
+        const uid = u.uid || u.id || u.user_id;
+        if (!uid) return;
+        map.set(String(uid), { ...u, id: uid, uid: uid, is_moderator: true, name: u.name || u.nickname || u.username || '用户' });
       });
       return Array.from(map.values()).slice(0, 12);
     },
@@ -288,14 +297,18 @@ export default {
       const map = new Map();
       const mods = Array.isArray(this.circleInfo.moderators) ? this.circleInfo.moderators : [];
       mods.forEach(u => {
-        if (!u || !u.id) return;
-        map.set(Number(u.id), { ...u, is_moderator: true, name: u.name || u.username || '用户' });
+        if (!u) return;
+        const uid = u.uid || u.id || u.user_id;
+        if (!uid) return;
+        map.set(String(uid), { ...u, id: uid, uid: uid, is_moderator: true, name: u.name || u.nickname || u.username || '用户' });
       });
       const joined = Array.isArray(this.memberList) ? this.memberList : [];
       joined.forEach(u => {
-        if (!u || !u.id) return;
-        const key = Number(u.id);
-        if (!map.has(key)) map.set(key, { ...u, is_moderator: !!u.is_moderator, name: u.name || u.username || '用户' });
+        if (!u) return;
+        const uid = u.uid || u.id || u.user_id;
+        if (!uid) return;
+        const key = String(uid);
+        if (!map.has(key)) map.set(key, { ...u, id: uid, uid: uid, is_moderator: !!u.is_moderator, name: u.name || u.nickname || u.username || '用户' });
       });
       return Array.from(map.values()).slice(0, 20);
     }
@@ -442,7 +455,7 @@ export default {
         const res = await request('circle.php', {
           action: 'getMembers',
           circle_id: this.circleId,
-          limit: 10
+          limit: 50
         });
         if (res.code === 0 && res.data && res.data.length > 0) {
           this.memberList = res.data;
@@ -450,6 +463,11 @@ export default {
       } catch (e) {}
     },
 
+    switchPostView(mode) {
+      if (this.postViewMode === mode) return;
+      this.postViewMode = mode;
+      this.loadPosts(true);
+    },
     switchFilter(type) {
       if (this.filterType === type) return;
       this.filterType = type;
@@ -469,13 +487,17 @@ export default {
 
       this.loading = true;
       try {
-        const res = await request('post.php', {
+        const reqParams = {
           action: 'list',
           circle_id: this.circleId,
           page: this.page,
           pageSize: this.pageSize,
-          sort: this.filterType
-        });
+          sort: this.filterType === 'reply' ? 'latest' : this.filterType
+        };
+        if (this.postViewMode === 'pending' && this.isModerator) {
+          reqParams.status = '2';
+        }
+        const res = await request('post.php', reqParams);
 
         if (res.code === 0) {
           const rawData = res.data || {}
@@ -676,6 +698,12 @@ export default {
       }
     },
     goUserProfile(uid) { uni.navigateTo({ url: `/pages/user/profile?userId=${uid}` }); },
+    goMemberList(type) {
+      const name = encodeURIComponent(this.circleInfo.name || '');
+      uni.navigateTo({
+        url: `/pages/circle/members?id=${this.circleId}&name=${name}&type=${type}`
+      });
+    },
 
     async moderatePost(post, status) {
       if (!this.isModerator || !post || !post.id) return;
@@ -704,7 +732,7 @@ export default {
         confirmColor: '#ff2442',
         success: async (res) => {
           if (!res.confirm) return;
-          const r = await request('post.php', { action: 'deletePost', postId: post.id }, 'POST');
+          const r = await request('post.php', { action: 'moderatorDelete', postId: post.id }, 'POST');
           if (r.code === 0) {
             this.postList = this.postList.filter(p => Number(p.id) !== Number(post.id));
             this.colL = this.colL.filter(p => Number(p.id) !== Number(post.id));

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="msg-page">
     <view class="fixed-header">
       <view class="header-row">
@@ -275,24 +275,9 @@ export default {
       // #ifndef H5
       uni.scanCode({
         success: (res) => {
-          if (!res.result) return
-
-          if (res.result.includes('/pages/user/profile?userId=')) {
-            const userId = res.result.split('userId=')[1]
-            if (userId) {
-              uni.navigateTo({ url: `/pages/user/profile?userId=${userId}` })
-            }
-          } else if (res.result.includes('groupId=')) {
-            const groupId = res.result.split('groupId=')[1]
-            if (groupId) {
-              uni.navigateTo({ url: `/pages/message/group-chat?groupId=${groupId}` })
-            }
-          } else {
-            uni.showToast({
-              title: '无法识别的二维码',
-              icon: 'none'
-            })
-          }
+          const raw = String((res && res.result) || '').trim()
+          if (!raw) return
+          this.handleScanResult(raw)
         },
         fail: () => {
           uni.showToast({
@@ -302,6 +287,64 @@ export default {
         }
       })
       // #endif
+    },
+    /* 解析扫码结果: 兼容 群二维码 / 用户二维码 / 站内页面链接 */
+    handleScanResult(raw) {
+      let text = String(raw || '').trim()
+      /* 群二维码内容是 https://站点/#/pages/message/group-search?code=群号
+         先取出 hash 里的路由部分(兼容 webBaseUrl 末尾有无斜杠两种拼接) */
+      const hashIdx = text.indexOf('#/')
+      if (hashIdx > -1) text = text.slice(hashIdx + 1)
+      /* 不带 hash 的普通链接: 只取 path + query */
+      const m = text.match(/^https?:\/\/[^/]*(\/[^?\s]*)?(\?[^\s]*)?/i)
+      if (m) text = String(m[1] || '/') + String(m[2] || '')
+
+      const qIdx = text.indexOf('?')
+      const path = qIdx > -1 ? text.slice(0, qIdx) : text
+      const query = qIdx > -1 ? text.slice(qIdx + 1) : ''
+
+      const params = {}
+      query.split('&').forEach((kv) => {
+        if (!kv) return
+        const i = kv.indexOf('=')
+        if (i > -1) {
+          let v = kv.slice(i + 1)
+          try { v = decodeURIComponent(v) } catch (e) {}
+          params[kv.slice(0, i)] = v
+        }
+      })
+
+      const code = params.code || params.identity_code || ''
+      const groupId = params.groupId || params.group_id || ''
+      const userId = params.userId || params.user_id || ''
+
+      /* 1) 群二维码: 携带群号 -> 进群搜索页自动查询并展示群卡片(可申请加入/进入群聊) */
+      if (code) {
+        uni.navigateTo({ url: `/pages/message/group-search?code=${encodeURIComponent(code)}` })
+        return
+      }
+      /* 2) 群资料 / 群聊链接 */
+      if (groupId) {
+        const url = path.indexOf('group-profile') > -1
+          ? `/pages/message/group-profile?groupId=${groupId}`
+          : `/pages/message/group-chat?groupId=${groupId}`
+        uni.navigateTo({ url })
+        return
+      }
+      /* 3) 用户二维码 */
+      if (userId) {
+        uni.navigateTo({ url: `/pages/user/profile?userId=${userId}` })
+        return
+      }
+      /* 4) 纯数字当作群号 */
+      if (/^\d{4,12}$/.test(text)) {
+        uni.navigateTo({ url: `/pages/message/group-search?code=${text}` })
+        return
+      }
+      uni.showToast({
+        title: '无法识别的二维码',
+        icon: 'none'
+      })
     },
     goAddFriend() {
       uni.navigateTo({ url: '/pages/user/fried' })

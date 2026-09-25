@@ -60,6 +60,10 @@
                   <text class="sep">·</text>
                   <text>{{ item.jifen || 0 }}积分</text>
                 </view>
+                <view class="uc-meta uc-ip">
+                  <text class="uc-ip-city">IP属地：{{ item.ip_location || item.register_city || '未知' }}</text>
+                  <text v-if="item.register_ip" class="uc-ip-addr">{{ item.register_ip }}</text>
+                </view>
                 <text class="uc-time">{{ formatTime(item.created_at) }} 注册</text>
               </view>
             </view>
@@ -358,6 +362,9 @@ export default {
 .badge.super { background: linear-gradient(135deg, #fce8ec 0%, #f8d7da 100%); color: #e74c3c; }
 .uc-meta { display: flex; gap: 12rpx; font-size: 23rpx; color: #888; flex-wrap: wrap; }
 .uc-meta .sep { color: #ddd; }
+.uc-ip { margin-top: 4rpx; gap: 10rpx; }
+.uc-ip-city { color: #576b95; }
+.uc-ip-addr { color: #aaa; font-size: 21rpx; }
 .uc-time { font-size: 22rpx; color: #999; }
 
 /* 操作按钮 - 右侧 */

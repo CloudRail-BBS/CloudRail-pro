@@ -1,21 +1,22 @@
 <template>
   <view class="reports-page">
-    <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
-    <view class="tab-bar">
-      <view 
-        class="tab-item" 
-        v-for="(tab, index) in tabs" 
-        :key="index"
-        @click="activeTab = tab.value"
-        :class="{ active: activeTab === tab.value }"
-      >
-        <text class="tab-label">{{ tab.label }}</text>
-        <view class="tab-badge" v-if="tab.count > 0">{{ tab.count }}</view>
+    <view class="header-wrap" :style="{ paddingTop: statusBarHeight + 'px' }">
+      <view class="page-title">举报处理 · 处罚版</view>
+      <view class="tab-bar">
+        <view 
+          class="tab-item" 
+          v-for="(tab, index) in tabs" 
+          :key="index"
+          @click="switchTab(tab.value)"
+          :class="{ active: activeTab === tab.value }"
+        >
+          <text class="tab-label">{{ tab.label }}</text>
+          <view class="tab-badge" v-if="tab.count > 0">{{ tab.count }}</view>
+        </view>
       </view>
     </view>
 
-    <scroll-view class="main-scroll" scroll-y>
-      <view class="nav-placeholder" :style="{ height: (statusBarHeight + 44 + 88) + 'px' }"></view>
+    <scroll-view class="main-scroll" scroll-y :style="{ paddingTop: (statusBarHeight + 92) + 'px' }">
       <view class="list-container">
         <view class="report-card" v-for="report in reportList" :key="report.id" @click="showReportDetail(report)">
           <view class="report-header">
@@ -39,13 +40,25 @@
             <view v-if="report.target_id" class="meta-item"><image class="meta-icon-img" src="/static/icon/admin-file-text-corner-aaa.svg" mode="aspectFit" /><text class="meta-text">帖子: {{ report.post_title || report.target_name || 'ID:' + report.target_id }}</text></view>
           </view>
 
+          <view class="report-result" v-if="Number(report.status) !== 0 && report.result">
+            <text class="result-label">处理结果：</text>
+            <text class="result-value">{{ report.result }}</text>
+          </view>
+
+          <view class="report-result reply-box" v-if="report.reply">
+            <text class="result-label reply-label">客服回复：</text>
+            <text class="result-value reply-value">{{ report.reply }}</text>
+          </view>
+
           <view class="report-footer">
             <view class="report-status" :class="getReportStatusClass(report.status)">{{ getReportStatusName(report.status) }}</view>
             <view class="report-actions">
               <view class="action-btn edit" v-if="report.type === 'post'" @click.stop="editPost(report.target_id)">编辑帖子</view>
-              <view class="action-btn block" v-if="report.type === 'post'" @click.stop="blockPost(report.target_id)">屏蔽帖子</view>
-              <view class="action-btn" @click.stop="handleReport(report, 1)">已处理</view>
-              <view class="action-btn reject" @click.stop="handleReport(report, 2)">删除举报</view>
+              <view class="action-btn block" v-if="canTakeDown(report)" @click.stop="takeDown(report)">下架内容</view>
+              <view class="action-btn ban" v-if="canBan(report)" @click.stop="openBan(report)">封禁用户</view>
+              <view class="action-btn" @click.stop="openPunish(report)">处理</view>
+              <view class="action-btn reply" v-if="Number(report.status) !== 0" @click.stop="replyReport(report)">回复</view>
+              <view class="action-btn reject" v-if="Number(report.status) === 0" @click.stop="ignoreReport(report)">忽略</view>
             </view>
           </view>
         </view>
@@ -116,10 +129,38 @@
               </view>
             </view>
           </view>
+          <view class="detail-section" v-if="selectedReport && selectedReport.result">
+            <view class="detail-label">处理结果</view>
+            <view class="detail-value text-area"><text class="green-text">{{ selectedReport.result }}</text></view>
+          </view>
+          <view class="detail-section" v-if="selectedReport && selectedReport.reply">
+            <view class="detail-label">客服回复</view>
+            <view class="detail-value text-area"><text class="reply-text">{{ selectedReport.reply }}</text></view>
+          </view>
+
+          <!-- 处罚设置(仅待处理举报可操作) -->
+          <view class="punish-panel" v-if="selectedReport && Number(selectedReport.status) === 0">
+            <view class="punish-title">处罚设置</view>
+            <view class="punish-row" v-if="canTakeDown(selectedReport)">
+              <text class="punish-label">下架/删除被举报内容</text>
+              <switch class="punish-switch" :checked="punishForm.takeDown" color="#FF2442" @change="onTakeDownChange" />
+            </view>
+            <view class="punish-row" v-if="canBan(selectedReport)">
+              <text class="punish-label">封禁被举报用户</text>
+              <switch class="punish-switch" :checked="punishForm.banDays > 0" color="#FF2442" @change="onBanSwitch" />
+            </view>
+            <view class="ban-days" v-if="punishForm.banDays > 0">
+              <view class="day-chip" v-for="d in banDayOptions" :key="d" :class="{ active: punishForm.banDays === d }" @click="punishForm.banDays = d">{{ d }}天</view>
+            </view>
+            <input class="punish-input" v-if="punishForm.banDays > 0" v-model="punishForm.banReason" placeholder="封禁原因(选填)" maxlength="50" />
+            <textarea class="punish-textarea" v-model="punishForm.reply" placeholder="客服回复(选填，举报人在「我的举报」中可见)" maxlength="200" />
+            <input class="punish-input" v-model="punishForm.remark" placeholder="内部处理说明(选填)" maxlength="60" />
+          </view>
         </scroll-view>
         <view class="modal-footer">
           <view class="modal-btn cancel" @click="closeDetail">关闭</view>
-          <view class="modal-btn confirm" @click="handleSelectedReport">处理</view>
+          <view class="modal-btn reject-btn" v-if="selectedReport && Number(selectedReport.status) === 0" @click="ignoreReport(selectedReport)">忽略</view>
+          <view class="modal-btn confirm" v-if="selectedReport && Number(selectedReport.status) === 0" @click="submitPunish">处理并回复</view>
         </view>
       </view>
     </view>
@@ -146,7 +187,10 @@ export default {
       hud: { show: false, type: 'loading', text: '' },
       showDetail: false,
       selectedReport: null,
-      showFilterModal: false
+      showFilterModal: false,
+      /* 处罚表单: 下架内容 / 封禁天数(0=不封禁) / 封禁原因 / 客服回复 / 处理说明 */
+      punishForm: { takeDown: false, banDays: 0, banReason: '', reply: '', remark: '' },
+      banDayOptions: [1, 3, 7, 30, 365]
     };
   },
   onLoad() {
@@ -170,12 +214,12 @@ export default {
       this.showHud('loading', '加载中...');
       
       try {
-        const status = this.activeTab === 'pending' ? 0 : (this.activeTab === 'handled' ? 1 : 'all');
+        const status = this.activeTab === 'pending' ? 'pending' : (this.activeTab === 'handled' ? 'handled' : 'all');
         const res = await request('reports.php', { action: 'get_reports', page: this.page, status: status }, { baseURL: bmsBaseUrl, method: 'GET' });
         
-        if (res.status === 'success' && res.data) {
+        if (res && (res.code === 0 || res.status === 'success') && res.data) {
           const list = res.data.list || [];
-          if (list.length < 10) {
+          if (list.length < 20) {
             this.hasMore = false;
           }
           this.reportList = refresh ? list : [...this.reportList, ...list];
@@ -217,18 +261,39 @@ export default {
       return names[type] || '其他';
     },
     getReportStatusClass(status) {
-      return status === 0 ? 'pending' : 'handled';
+      return Number(status) === 0 ? 'pending' : 'handled';
     },
     getReportStatusName(status) {
-      return status === 0 ? '待处理' : '已处理';
+      const s = Number(status);
+      if (s === 0) return '待处理';
+      if (s === 2) return '已忽略';
+      return '已处理';
     },
     formatTime(time) {
       if (!time) return '';
-      const date = new Date(time);
+      const date = new Date(String(time).replace(/-/g, '/'));
+      if (isNaN(date.getTime())) return time;
       return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+    },
+    switchTab(value) {
+      if (this.activeTab === value) return;
+      this.activeTab = value;
+      this.loadReports(true);
+    },
+    /* 是否可下架内容(帖子/动态/评论) */
+    canTakeDown(report) {
+      if (!report) return false;
+      const t = String(report.type || report.target_type || '');
+      return t === 'post' || t === 'moment' || t === 'comment';
+    },
+    /* 是否可封禁被举报用户 */
+    canBan(report) {
+      if (!report) return false;
+      return !!report.target_uid && !Number(report.target_banned);
     },
     showReportDetail(report) {
       this.selectedReport = report;
+      this.punishForm = { takeDown: false, banDays: 0, banReason: '', reply: '', remark: '' };
       this.showDetail = true;
     },
     closeDetail() {
@@ -239,67 +304,183 @@ export default {
       uni.setStorageSync('editPostData', { postId: postId });
       uni.navigateTo({ url: '/pages/publish/publish' });
     },
-    async blockPost(postId) {
-      uni.showModal({
-        title: '确认屏蔽',
-        content: '确定要屏蔽此帖子吗？屏蔽后帖子将不再显示。',
-        success: async (res) => {
-          if (res.confirm) {
-            this.showHud('loading', '处理中...');
-            try {
-              const result = await request('posts.php', {
-                action: 'update_post_status',
-                id: postId,
-                status: 0
-              }, { baseURL: bmsBaseUrl });
-              
-              if (result.status === 'success') {
-                uni.showToast({ title: '屏蔽成功', icon: 'success' });
-              } else {
-                uni.showToast({ title: result?.msg || '屏蔽失败', icon: 'none' });
-              }
-            } catch (e) {
-              uni.showToast({ title: '屏蔽失败', icon: 'none' });
-            }
-            this.hud.show = false;
-          }
-        }
-      });
+    /* 打开处理面板(带处罚设置) */
+    openPunish(report) {
+      if (!report) return;
+      this.selectedReport = report;
+      this.punishForm = {
+        takeDown: this.canTakeDown(report),
+        banDays: 0,
+        banReason: '',
+        reply: '',
+        remark: ''
+      };
+      this.showDetail = true;
     },
-    async handleReport(report, action) {
-      uni.showModal({
-        title: action === 1 ? '确认处理' : '确认忽略',
-        content: action === 1 ? '确定要标记为已处理吗？' : '确定要忽略此举报吗？',
-        success: async (res) => {
-          if (res.confirm) {
-            this.showHud('loading', '处理中...');
-            try {
-              const result = await request('reports.php', {
-                action: action === 1 ? 'handle_report' : 'ignore_report',
-                id: report.id,
-                remark: '已处理'
-              }, { baseURL: bmsBaseUrl });
-              
-              if (result.status === 'success') {
-                uni.showToast({ title: '操作成功', icon: 'success' });
-                report.status = 1;
-              } else {
-                uni.showToast({ title: result?.msg || '操作失败', icon: 'none' });
-              }
-            } catch (e) {
-              uni.showToast({ title: '操作失败', icon: 'none' });
-            }
-            this.hud.show = false;
-          }
-        }
-      });
+    onTakeDownChange(e) {
+      this.punishForm.takeDown = !!(e && e.detail && e.detail.value);
     },
-    handleSelectedReport() {
+    onBanSwitch(e) {
+      const on = !!(e && e.detail && e.detail.value);
+      this.punishForm.banDays = on ? (this.punishForm.banDays > 0 ? this.punishForm.banDays : 7) : 0;
+    },
+    /* 提交处理: 可同时下架内容 + 封禁作者, 结果写入举报记录并通知举报人 */
+    async submitPunish() {
       const report = this.selectedReport;
-      this.closeDetail();
-      if (report) {
-        this.handleReport(report, 1);
+      if (!report) return;
+      const tips = [];
+      if (this.punishForm.takeDown) tips.push('下架被举报内容');
+      if (this.punishForm.banDays > 0) tips.push(`封禁该作者 ${this.punishForm.banDays} 天`);
+      if (this.punishForm.reply) tips.push('回复举报人');
+      uni.showModal({
+        title: '确认处理',
+        content: tips.length ? `将执行：${tips.join('、')}，确定吗？` : '确定将该举报标记为已处理吗？',
+        success: async (res) => {
+          if (!res.confirm) return;
+          this.showHud('loading', '处理中...');
+          try {
+            const result = await request('reports.php', {
+              action: 'handle_report',
+              id: report.id,
+              take_down: this.punishForm.takeDown ? 1 : 0,
+              ban_days: this.punishForm.banDays > 0 ? this.punishForm.banDays : 0,
+              ban_reason: this.punishForm.banReason,
+              reply: this.punishForm.reply,
+              remark: this.punishForm.remark
+            }, { baseURL: bmsBaseUrl });
+            if (result && (result.code === 0 || result.status === 'success')) {
+              uni.showToast({ title: '处理成功', icon: 'success' });
+              this.closeDetail();
+              this.loadReports(true);
+            } else {
+              uni.showToast({ title: (result && result.msg) || '处理失败', icon: 'none' });
+            }
+          } catch (e) {
+            uni.showToast({ title: (e && e.msg) || '处理失败', icon: 'none' });
+          }
+          this.hud.show = false;
+        }
+      });
+    },
+    /* 仅客服回复(不改变举报状态), 举报人在「我的举报」可见 */
+    replyReport(report) {
+      if (!report) return;
+      uni.showModal({
+        title: '客服回复',
+        editable: true,
+        placeholderText: '请输入回复内容(举报人可见)',
+        success: async (res) => {
+          if (!res.confirm) return;
+          const text = (res.content || '').trim();
+          if (!text) return uni.showToast({ title: '请填写回复内容', icon: 'none' });
+          this.showHud('loading', '发送中...');
+          try {
+            const result = await request('reports.php', {
+              action: 'reply_report',
+              id: report.id,
+              reply: text
+            }, { baseURL: bmsBaseUrl });
+            if (result && (result.code === 0 || result.status === 'success')) {
+              uni.showToast({ title: '回复已发送', icon: 'success' });
+              this.loadReports(true);
+            } else {
+              uni.showToast({ title: (result && result.msg) || '发送失败', icon: 'none' });
+            }
+          } catch (e) {
+            uni.showToast({ title: (e && e.msg) || '发送失败', icon: 'none' });
+          }
+          this.hud.show = false;
+        }
+      });
+    },
+    /* 忽略举报(不成立) */
+    ignoreReport(report) {
+      if (!report) return;
+      uni.showModal({
+        title: '确认忽略',
+        content: '确定忽略该举报吗？将通知举报人处理结果。',
+        success: async (res) => {
+          if (!res.confirm) return;
+          this.showHud('loading', '处理中...');
+          try {
+            const result = await request('reports.php', {
+              action: 'ignore_report',
+              id: report.id
+            }, { baseURL: bmsBaseUrl });
+            if (result && (result.code === 0 || result.status === 'success')) {
+              uni.showToast({ title: '已忽略该举报', icon: 'success' });
+              this.closeDetail();
+              this.loadReports(true);
+            } else {
+              uni.showToast({ title: (result && result.msg) || '操作失败', icon: 'none' });
+            }
+          } catch (e) {
+            uni.showToast({ title: (e && e.msg) || '操作失败', icon: 'none' });
+          }
+          this.hud.show = false;
+        }
+      });
+    },
+    /* 仅下架被举报内容 */
+    takeDown(report) {
+      if (!report) return;
+      uni.showModal({
+        title: '确认下架',
+        content: '确定下架该被举报内容吗？下架后用户端不再显示。',
+        success: async (res) => {
+          if (!res.confirm) return;
+          this.showHud('loading', '处理中...');
+          try {
+            const result = await request('reports.php', {
+              action: 'take_down',
+              id: report.id
+            }, { baseURL: bmsBaseUrl });
+            if (result && (result.code === 0 || result.status === 'success')) {
+              uni.showToast({ title: '已下架该内容', icon: 'success' });
+              this.loadReports(true);
+            } else {
+              uni.showToast({ title: (result && result.msg) || '下架失败', icon: 'none' });
+            }
+          } catch (e) {
+            uni.showToast({ title: (e && e.msg) || '下架失败', icon: 'none' });
+          }
+          this.hud.show = false;
+        }
+      });
+    },
+    /* 仅封禁被举报用户 */
+    openBan(report) {
+      if (!report) return;
+      const items = this.banDayOptions.map(d => `封禁 ${d} 天`);
+      items.push('解除封禁');
+      uni.showActionSheet({
+        itemList: items,
+        success: (res) => {
+          const idx = res.tapIndex;
+          const days = idx < this.banDayOptions.length ? this.banDayOptions[idx] : 0;
+          this.doBan(report, days);
+        }
+      });
+    },
+    async doBan(report, days) {
+      this.showHud('loading', '处理中...');
+      try {
+        const result = await request('reports.php', {
+          action: 'ban_user',
+          id: report.id,
+          ban_days: days,
+          ban_reason: days > 0 ? '违反社区规范' : ''
+        }, { baseURL: bmsBaseUrl });
+        if (result && (result.code === 0 || result.status === 'success')) {
+          uni.showToast({ title: days > 0 ? `已封禁 ${days} 天` : '已解除封禁', icon: 'success' });
+          this.loadReports(true);
+        } else {
+          uni.showToast({ title: (result && result.msg) || '操作失败', icon: 'none' });
+        }
+      } catch (e) {
+        uni.showToast({ title: (e && e.msg) || '操作失败', icon: 'none' });
       }
+      this.hud.show = false;
     },
     showHud(type, text) {
       this.hud = { show: true, type: type || 'loading', text };
@@ -311,16 +492,21 @@ export default {
 <style scoped>
 .reports-page { min-height: 100vh; background: #f0f1f6; }
 
-/* 导航栏 */
-/* 状态栏占位 */
-.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #f0f1f6; }
+/* 顶部固定区（标题 + Tab） */
+.header-wrap {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 998;
+  background: #fff;
+  box-shadow: 0 2rpx 16rpx rgba(102,126,234,0.08);
+}
+.page-title {
+  height: 88rpx; line-height: 88rpx; text-align: center;
+  font-size: 33rpx; font-weight: 700; color: #222;
+}
 
 /* Tab */
 .tab-bar {
-  position: fixed; top: 44px; left: 0; width: 100%;
-  background: #fff; display: flex;
-  box-shadow: 0 2rpx 16rpx rgba(102,126,234,0.08);
-  z-index: 998;
+  display: flex;
+  background: #fff;
 }
 .tab-item { flex: 1; padding: 22rpx 0; text-align: center; position: relative; }
 .tab-label { font-size: 27rpx; color: #999; font-weight: 500; }
@@ -331,10 +517,10 @@ export default {
 }
 .tab-badge { display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; font-size: 19rpx; padding: 2rpx 12rpx; border-radius: 14rpx; margin-left: 8rpx; }
 
-.main-scroll { height: 100vh; padding-top: calc(44px + 92rpx); }
+.main-scroll { height: 100vh; box-sizing: border-box; }
 
 /* 卡片 */
-.list-container { padding: 0 24rpx; }
+.list-container { padding: 0 24rpx 40rpx; }
 .report-card {
   background: #fff; border-radius: 20rpx; padding: 22rpx;
   margin-bottom: 16rpx; overflow: hidden;
@@ -366,6 +552,31 @@ export default {
 .action-btn { padding: 7rpx 16rpx; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-radius: 18rpx; font-size: 21rpx; white-space: nowrap; font-weight: 500; }
 .action-btn.reject { background: #f5f6fa; color: #888; }
 .action-btn.block { background: linear-gradient(135deg, #e67e22, #f39c12); color: #fff; }
+.action-btn.ban { background: linear-gradient(135deg, #ff4d4f, #cf1322); color: #fff; }
+.action-btn.reply { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+.reply-text { color: #2f6fed; }
+
+/* 处理结果 */
+.report-result { margin-top: 12rpx; padding: 12rpx 16rpx; background: #f4fbf6; border-radius: 12rpx; display: flex; }
+.result-label { font-size: 23rpx; color: #27ae60; flex-shrink: 0; }
+.result-value { font-size: 23rpx; color: #27ae60; flex: 1; line-height: 1.5; }
+.report-result.reply-box { background: #f2f6ff; }
+.reply-label { color: #2f6fed; }
+.reply-value { color: #2f6fed; }
+.punish-textarea { margin-top: 12rpx; width: 100%; min-height: 130rpx; background: #fff; border: 1rpx solid #e5e6eb; border-radius: 12rpx; padding: 16rpx 18rpx; font-size: 25rpx; color: #333; box-sizing: border-box; }
+.green-text { color: #27ae60; font-weight: 500; }
+
+/* 处罚设置面板 */
+.punish-panel { margin-top: 22rpx; padding: 20rpx; background: #fafbff; border: 1rpx solid #eef0f8; border-radius: 16rpx; }
+.punish-title { font-size: 26rpx; font-weight: 700; color: #333; margin-bottom: 14rpx; }
+.punish-row { display: flex; align-items: center; justify-content: space-between; padding: 8rpx 0; }
+.punish-label { font-size: 26rpx; color: #444; }
+.punish-switch { transform: scale(0.75); transform-origin: right center; }
+.ban-days { display: flex; flex-wrap: wrap; gap: 12rpx; margin: 10rpx 0 6rpx; }
+.day-chip { padding: 8rpx 20rpx; border-radius: 24rpx; background: #fff; border: 1rpx solid #e5e6eb; font-size: 23rpx; color: #666; }
+.day-chip.active { background: #fff0f2; border-color: #FF2442; color: #FF2442; font-weight: 600; }
+.punish-input { margin-top: 12rpx; height: 68rpx; background: #fff; border: 1rpx solid #e5e6eb; border-radius: 12rpx; padding: 0 18rpx; font-size: 25rpx; color: #333; }
+.modal-btn.reject-btn { color: #999; font-weight: 500; }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 100rpx 0; }
 .empty-icon-img { width: 96rpx; height: 96rpx; display: block; margin: 0 auto 20rpx; opacity: 0.6; }

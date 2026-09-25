@@ -391,7 +391,16 @@
           <view v-else class="post-body">
             <text class="post-title" :class="{ 'fancy-pink': parseInt(postInfo?.is_fancy || 0) === 1, 'vip-red-text': parseInt(postInfo?.vip || 0) === 1 }" selectable>{{ postInfo?.title || '' }}</text>
 
-            <view class="post-content-text">
+            <!-- 内容已加密: 显示提示而不是乱码 -->
+            <view v-if="isContentEncrypted && !isOwner && !isAdmin" class="content-encrypted-box">
+              <view class="content-encrypted-icon">🔒</view>
+              <text class="content-encrypted-title">内容已加密</text>
+              <text class="content-encrypted-desc">发表评论后即可查看完整内容</text>
+              <view class="content-encrypted-btn" @click="focusCommentInput">
+                <text>去评论</text>
+              </view>
+            </view>
+            <view v-else class="post-content-text" :class="{ 'content-lock-preview': isContentLocked && !isOwner && !isAdmin }">
               <template v-for="(node, idx) in postInfo.contentNodes">
                 <text
                   v-if="node.type === 'text'"
@@ -424,6 +433,7 @@
                   @tap="goTopicSearch(node.value)"
                 >{{ node.text }}</text>
               </template>
+              <view v-if="isContentLocked && !isOwner && !isAdmin" class="content-lock-fade"></view>
             </view>
 
               <view v-if="postInfo.video" class="normal-video-box">
@@ -1068,32 +1078,29 @@
       @tap="closeActionSheet"
     >
       <view class="action-sheet-panel" @tap="safeStop">
-        <block v-if="isOwner || canManagePost">
-          <view
-            v-if="isOwner || canManagePost"
-            class="sheet-item"
-            @tap="handleEditPost"
-          >
-            <text>编辑帖子</text>
-          </view>
+        <view
+          v-if="isOwner || canManagePost"
+          class="sheet-item"
+          @tap="handleEditPost"
+        >
+          <text>编辑帖子</text>
+        </view>
 
-          <view
-            v-if="isOwner || isAdmin"
-            class="sheet-item danger"
-            @tap="handleDeletePostAsk"
-          >
-            <text>删除帖子</text>
-          </view>
-        </block>
+        <view
+          v-if="isOwner || isAdmin"
+          class="sheet-item danger"
+          @tap="handleDeletePostAsk"
+        >
+          <text>删除帖子</text>
+        </view>
 
-        <block v-else>
-          <view
-            class="sheet-item danger"
-            @tap="handleReportPost"
-          >
-            <text>举报该帖子</text>
-          </view>
-        </block>
+        <!-- 举报入口常驻显示(管理员/审核员/作者本人都能看到) -->
+        <view
+          class="sheet-item danger"
+          @tap="handleReportPost"
+        >
+          <text>举报该帖子</text>
+        </view>
 
         <view class="sheet-item" @tap="handleCopyLink">
           <text>分享帖子</text>
@@ -1308,6 +1315,7 @@ export default {
       pinLoadingId: 0,
 
       isUnlocked: false,
+      isContentEncrypted: false,
       vipPrivilegeUnlocked: false,
       unlocking: false,
       showPayModal: false,
@@ -1835,6 +1843,7 @@ export default {
 
           // 付费/评论可见解锁状态
           this.isUnlocked = !!(d.is_unlocked || d.is_purchased)
+          this.isContentEncrypted = !!d.is_content_encrypted
           this.vipPrivilegeUnlocked = !!d.vip_privilege_unlocked
 
         
@@ -3584,6 +3593,11 @@ export default {
         return
       }
 
+      if (this.isOwner) {
+        this.showToast('不能举报自己的帖子')
+        return
+      }
+
       const postId = this.postId
       const userId = this.postInfo ? this.postInfo.user_id : 0
 
@@ -4636,6 +4650,42 @@ export default {
   font-size: 26rpx;
   font-weight: 900;
   color: #fff;
+}
+
+/* 内容加密提示 */
+.content-encrypted-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 40rpx;
+  margin-top: 20rpx;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  border-radius: 24rpx;
+  border: 2rpx dashed #c7d2fe;
+}
+.content-encrypted-icon {
+  font-size: 64rpx;
+  margin-bottom: 20rpx;
+}
+.content-encrypted-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 12rpx;
+}
+.content-encrypted-desc {
+  font-size: 26rpx;
+  color: #64748b;
+  margin-bottom: 30rpx;
+}
+.content-encrypted-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  padding: 18rpx 60rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
 }
 
 /* 锁定内容预览 */

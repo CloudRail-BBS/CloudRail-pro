@@ -44,6 +44,11 @@
                 <text>{{ msg.is_me ? '你' : msg.sender_name }}撤回了一条消息</text>
               </view>
 
+              <!-- 系统提示: 加入群聊/退出群聊/被移出/被禁言等 -->
+              <view v-else-if="msg.type === 'system'" class="notice-msg system-msg">
+                <text>{{ msg.content }}</text>
+              </view>
+
               <view
                 v-else
                 class="msg-row"
@@ -1792,6 +1797,11 @@ export default {
 }
 .recalled-msg{
   background: rgba(255,255,255,.8);
+}
+/* 群系统提示(加入/退出/禁言等) */
+.system-msg{
+  background: rgba(255,36,66,.08);
+  color:#c2415a;
 }
 .msg-row{
   display:flex;

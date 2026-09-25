@@ -89,6 +89,7 @@
               </view>
             </block>
 
+            <view v-else-if="userInfo.status == 0" class="btn disabled">已封禁</view>
             <view v-else class="btn secondary" @click="goEditProfile">编辑资料</view>
           </view>
         </view>
@@ -96,6 +97,8 @@
         <view class="profile-info">
           <view class="name-line">
             <text class="user-name" :class="{ 'fancy-text': userInfo.is_fancy == 1, 'vip-rainbow-text': isVip }">{{ userInfo.name || userInfo.username }}</text>
+            <!-- 性别图标 -->
+            <image v-if="userInfo.gender && userInfo.gender != 0" class="gender-icon-only" :src="genderIconUrl" mode="aspectFit"></image>
             <view v-if="isVip" class="vip-sole-icon vip-inline">
               <view class="vip-badge-inner">
                 <image class="vip-badge-crown-img" src="/static/icon/crown-white.svg" mode="aspectFit" />
@@ -142,6 +145,12 @@
           <view class="bio-line" :class="{ 'vip-rainbow-text': isVip }">
             {{ userInfo.personal_signature || '这个人很懒，什么都没写...' }}
           </view>
+
+          <!-- IP属地 -->
+          <view class="ip-location-row" v-if="userInfo.ip_location && userInfo.ip_location !== '未知'">
+            <text class="ip-location-icon">📍</text>
+            <text class="ip-location-text">IP属地：{{ userInfo.ip_location }}</text>
+          </view>
         </view>
 
         <view class="stats-row">
@@ -166,6 +175,45 @@
             <text class="label">曝光</text>
           </view>
         </view>
+
+        <!-- 被封禁提示横幅 -->
+        <view v-if="userInfo.status == 0" class="ban-notice-banner">
+          <view class="ban-notice-icon">⚠</view>
+          <view class="ban-notice-content">
+            <text class="ban-notice-title">{{ isMe ? '您的账号已被封禁' : '该账号已被封禁' }}</text>
+            <text v-if="userInfo.ban_reason" class="ban-notice-reason">原因：{{ userInfo.ban_reason }}</text>
+            <text v-if="userInfo.ban_expire_time" class="ban-notice-expire">解封时间：{{ userInfo.ban_expire_time }}</text>
+            <text v-if="isMe" class="ban-notice-tip">封禁期间可浏览内容和查看通知，但无法发帖、评论、点赞等操作</text>
+          </view>
+        </view>
+
+        <!-- 圈子版主标识 -->
+        <view class="moderator-circles-section" v-if="moderatorCircles.length > 0">
+          <view class="mod-circles-header">
+            <view class="mod-circles-title-wrap">
+              <text class="mod-circles-icon">🛡</text>
+              <text class="mod-circles-title">圈子版主</text>
+              <text class="mod-circles-count">{{ moderatorCircles.length }} 个圈子</text>
+            </view>
+          </view>
+          <scroll-view scroll-x class="mod-circles-scroll" :show-scrollbar="false">
+            <view class="mod-circles-list">
+              <view
+                class="mod-circle-card"
+                v-for="circle in moderatorCircles"
+                :key="circle.id"
+                @click="goCircleDetail(circle)"
+              >
+                <image :src="circle.image || circle.icon || '/static/default-avatar.png'" class="mod-circle-avatar" mode="aspectFill"></image>
+                <view class="mod-circle-info">
+                  <text class="mod-circle-name">{{ circle.name }}</text>
+                  <text class="mod-circle-meta">{{ circle.member_count }}成员 · {{ circle.post_count }}帖子</text>
+                </view>
+                <text class="mod-circle-badge">版主</text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
       </view>
 
       <view class="content-area">
@@ -186,9 +234,11 @@
 
         <view class="list-container">
           <block v-if="curTab === 0">
-            <view v-if="!isMe && (userInfo.is_private == 1 || privateBlocked || userInfo.status == 0)" class="lock-view">
+            <view v-if="userInfo.is_private == 1 || privateBlocked || userInfo.status == 0" class="lock-view">
               <image class="lock-icon" src="/static/icon/nullu.png" mode="widthFix"></image>
-              <text class="lock-text">{{ userInfo.status == 0 ? '该账号已封禁' : '该账号已开启私密模式' }}</text>
+              <text class="lock-text">{{ userInfo.status == 0 ? (isMe ? '您的账号已被封禁，部分功能暂不可用' : '该账号已封禁') : '该账号已开启私密模式' }}</text>
+              <text v-if="isMe && userInfo.status == 0 && userInfo.ban_reason" class="ban-reason-text">封禁原因：{{ userInfo.ban_reason }}</text>
+              <text v-if="isMe && userInfo.status == 0 && userInfo.ban_expire_time" class="ban-expire-text">解封时间：{{ userInfo.ban_expire_time }}</text>
             </view>
 
             <block v-else>
@@ -297,6 +347,13 @@
 
           <!-- 动态 -->
           <block v-if="curTab === 1">
+            <view v-if="userInfo.is_private == 1 || privateBlocked || userInfo.status == 0" class="lock-view">
+              <image class="lock-icon" src="/static/icon/nullu.png" mode="widthFix"></image>
+              <text class="lock-text">{{ userInfo.status == 0 ? (isMe ? '您的账号已被封禁，部分功能暂不可用' : '该账号已封禁') : '该账号已开启私密模式' }}</text>
+              <text v-if="isMe && userInfo.status == 0 && userInfo.ban_reason" class="ban-reason-text">封禁原因：{{ userInfo.ban_reason }}</text>
+              <text v-if="isMe && userInfo.status == 0 && userInfo.ban_expire_time" class="ban-expire-text">解封时间：{{ userInfo.ban_expire_time }}</text>
+            </view>
+            <block v-else>
             <view v-if="dynList.length === 0 && !dynLoading" class="empty-box">
               <text class="empty-text">暂时没有发布动态</text>
             </view>
@@ -325,9 +382,17 @@
               <view v-if="dynLoading" class="spinner small"></view>
               <text v-if="!dynHasMore && dynList.length > 0" class="no-more">没有更多了</text>
             </view>
+            </block>
           </block>
 
           <block v-if="curTab === 2">
+            <view v-if="userInfo.is_private == 1 || privateBlocked || userInfo.status == 0" class="lock-view">
+              <image class="lock-icon" src="/static/icon/nullu.png" mode="widthFix"></image>
+              <text class="lock-text">{{ userInfo.status == 0 ? (isMe ? '您的账号已被封禁，部分功能暂不可用' : '该账号已封禁') : '该账号已开启私密模式' }}</text>
+              <text v-if="isMe && userInfo.status == 0 && userInfo.ban_reason" class="ban-reason-text">封禁原因：{{ userInfo.ban_reason }}</text>
+              <text v-if="isMe && userInfo.status == 0 && userInfo.ban_expire_time" class="ban-expire-text">解封时间：{{ userInfo.ban_expire_time }}</text>
+            </view>
+            <block v-else>
             <view v-if="shopList.length === 0 && !shopLoading" class="empty-box">
               <text class="empty-text">暂无在售商品</text>
             </view>
@@ -349,6 +414,7 @@
               <view v-if="shopLoading" class="spinner small"></view>
               <text v-if="!shopHasMore && shopList.length > 0" class="no-more">没有更多了</text>
             </view>
+            </block>
           </block>
         </view>
       </view>
@@ -380,6 +446,9 @@ import DouyinPlayer from '../../components/DouyinPlayer.vue'
 import { buildDouyinVideoList } from '../../common/douyinPlayer.js'
 
 export default {
+  components: {
+    DouyinPlayer
+  },
   data() {
     return {
       statusBarHeight: 20,
@@ -389,6 +458,7 @@ export default {
       initialLoading: true,
       showDouyinPlayer: false,
       douyinVideoList: [],
+      moderatorCircles: [],
 
       userInfo: {
         id: 0,
@@ -464,6 +534,11 @@ export default {
   },
 
   computed: {
+    genderIconUrl() {
+      const g = Number(this.userInfo.gender || 0);
+      const map = { 1: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTAiIGN5PSIxNCIgcj0iNSIgc3Ryb2tlPSIjNEE5MEQ5IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8cGF0aCBkPSJNMTQgMTBMMjAgNE0yMCA0SDE1TTIwIDRWOSIgc3Ryb2tlPSIjNEE5MEQ5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=', 2: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSI5IiByPSI1IiBzdHJva2U9IiNFODRBN0YiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQ9Ik0xMiAxNFYyME05IDE3SDE1IiBzdHJva2U9IiNFODRBN0YiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPg==', 3: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTAiIGN5PSIxNCIgcj0iNSIgc3Ryb2tlPSIjOUI1OUI2IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8cGF0aCBkPSJNMTQgMTBMMjAgNE0yMCA0SDE1TTIwIDRWOSIgc3Ryb2tlPSIjOUI1OUI2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0xMCAxOVYyMk03IDIwLjVIMTMiIHN0cm9rZT0iIzlCNTlCNiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+', 4: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSI5IiByPSI1IiBzdHJva2U9IiNFNjdFMjIiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQ9Ik0xMiAxNFYyME05IDE3SDE1IiBzdHJva2U9IiNFNjdFMjIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTE3IDZMMjIgMU0yMiAxSDE3TTIyIDFWNiIgc3Ryb2tlPSIjRTY3RTIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=', 5: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIgc3Ryb2tlPSIjMUFCQzlDIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIiBmaWxsPSIjMUFCQzlDIi8+Cjwvc3ZnPg==' };
+      return map[g] || '';
+    },
     isMe() {
       const my = uni.getStorageSync('userInfo')
       return my && String(my.id ?? my.user_id ?? '') !== '' && String(my.id ?? my.user_id ?? '') === String(this.targetUserId ?? '')
@@ -537,6 +612,7 @@ export default {
     if (options.userId) {
       this.targetUserId = String(options.userId || "")
       this.fetchData()
+      this.loadModeratorCircles()
     }
   },
 
@@ -629,6 +705,29 @@ export default {
 
     goBack() {
       uni.navigateBack()
+    },
+
+    async loadModeratorCircles() {
+      if (!this.targetUserId) return
+      try {
+        const res = await request('circle.php', {
+          action: 'get_user_moderator_circles',
+          uid: this.targetUserId
+        })
+        if (res.code === 0 && res.data) {
+          this.moderatorCircles = res.data.list || res.data || []
+        }
+      } catch (e) {
+        console.log('加载版主圈子失败', e)
+      }
+    },
+
+    goCircleDetail(circle) {
+      if (!circle || !circle.id) return
+      const name = encodeURIComponent(circle.name || '')
+      uni.navigateTo({
+        url: `/pages/circle/detail?id=${circle.id}&name=${name}`
+      })
     },
 
     openScan() {
@@ -1371,6 +1470,31 @@ export default {
   color: var(--text-main);
 }
 
+/* 性别图标 */
+.gender-icon-only {
+  width: 40rpx;
+  height: 40rpx;
+  margin-left: 10rpx;
+  flex-shrink: 0;
+}
+
+/* IP属地 */
+.ip-location-row {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  margin-top: 8rpx;
+}
+.ip-location-icon {
+  font-size: 22rpx;
+  opacity: 0.7;
+}
+.ip-location-text {
+  font-size: 22rpx;
+  color: var(--text-sub);
+  opacity: 0.8;
+}
+
 .fancy-text {
   color: #ff2442 !important;
   font-weight: 900 !important;
@@ -1687,6 +1811,95 @@ export default {
   gap: 40rpx;
 }
 
+/* 圈子版主标识 */
+.moderator-circles-section {
+  margin: 20rpx 24rpx 0;
+  padding: 24rpx;
+  background: rgba(255,255,255,0.95);
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06);
+}
+.mod-circles-header {
+  margin-bottom: 20rpx;
+}
+.mod-circles-title-wrap {
+  display: flex;
+  align-items: center;
+}
+.mod-circles-icon {
+  font-size: 28rpx;
+  margin-right: 8rpx;
+}
+.mod-circles-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+.mod-circles-count {
+  font-size: 22rpx;
+  color: #999;
+  margin-left: 12rpx;
+}
+.mod-circles-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+.mod-circles-list {
+  display: flex;
+  gap: 16rpx;
+  padding-right: 10rpx;
+}
+.mod-circle-card {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: linear-gradient(135deg, #f8f9ff 0%, #eef1ff 100%);
+  border-radius: 16rpx;
+  border: 1rpx solid #e0e5ff;
+  flex-shrink: 0;
+  min-width: 280rpx;
+  position: relative;
+}
+.mod-circle-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #eee;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+}
+.mod-circle-info {
+  flex: 1;
+  min-width: 0;
+}
+.mod-circle-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160rpx;
+}
+.mod-circle-meta {
+  display: block;
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+.mod-circle-badge {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  font-size: 18rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
 .stat-item {
   display: flex;
   flex-direction: column;
@@ -1773,6 +1986,65 @@ export default {
   color: var(--text-sub);
   font-size: 28rpx;
   font-weight: bold;
+}
+
+.ban-reason-text {
+  color: #e03131;
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+.ban-expire-text {
+  color: #868e96;
+  font-size: 24rpx;
+  margin-top: 4rpx;
+}
+
+/* 被封禁提示横幅 */
+.ban-notice-banner {
+  margin: 20rpx 24rpx 0;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #fff5f5, #fff);
+  border: 2rpx solid #ffc9c9;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+
+.ban-notice-icon {
+  font-size: 40rpx;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ban-notice-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.ban-notice-title {
+  color: #e03131;
+  font-size: 30rpx;
+  font-weight: bold;
+}
+
+.ban-notice-reason {
+  color: #495057;
+  font-size: 26rpx;
+}
+
+.ban-notice-expire {
+  color: #868e96;
+  font-size: 24rpx;
+}
+
+.ban-notice-tip {
+  color: #adb5bd;
+  font-size: 22rpx;
+  margin-top: 4rpx;
 }
 
 .waterfall-box {

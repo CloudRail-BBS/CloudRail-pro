@@ -49,6 +49,10 @@
           <view v-else-if="item.title === '任务中心'" class="quick-icon-svg">
             <image src="/static/icon/quick-calendar-check-white.svg" class="quick-svg-img" mode="aspectFit"></image>
           </view>
+          <!-- 小黑屋：禁止 -->
+          <view v-else-if="item.title === '小黑屋'" class="quick-icon-svg">
+            <image src="/static/icon/quick-ban-white.svg" class="quick-svg-img" mode="aspectFit"></image>
+          </view>
           <image v-else :src="item.icon" class="quick-icon-img" mode="aspectFit"></image>
         </view>
         <text class="quick-title">{{ item.title }}</text>
@@ -259,7 +263,8 @@ export default {
         { title: '积分抽奖', icon: '', iconClass: 'quick-icon-lottery', url: '/pages/lottery/index' },
         { title: '靓号商城', icon: '', iconClass: 'quick-icon-shop', url: '/pages/fancy/shop' },
         { title: '权益认证', icon: '', iconClass: 'quick-icon-cert', url: '/pages/user/zhuanye' },
-        { title: '任务中心', icon: '', iconClass: 'quick-icon-task', url: '/pages/mission/mission' }
+        { title: '任务中心', icon: '', iconClass: 'quick-icon-task', url: '/pages/mission/mission' },
+        { title: '小黑屋', icon: '', iconClass: 'quick-icon-blackhole', url: '/pages/blackhole/blackhole' }
       ]
     }
   },
@@ -602,6 +607,10 @@ export default {
 .quick-icon-task {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   box-shadow: 0 6rpx 16rpx rgba(245, 87, 108, 0.32);
+}
+.quick-icon-blackhole {
+  background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
+  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.32);
 }
 
 .quick-icon-svg {

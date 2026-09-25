@@ -1,4 +1,4 @@
-import { resolveApiPath } from '@/common/api-map.js'
+﻿import { resolveApiPath } from '@/common/api-map.js'
 import { API_BASE, ADMIN_BASE, WEB_BASE } from '@/common/config.js'
 
 // ══════════════════════════════════════════════
@@ -69,6 +69,10 @@ function fetchAppConfig() {
             currency_name: String(d.currency_name || '').trim() || _DEFAULT_CURRENCY_NAME,
             share_text: String(d.share_text || '').trim() || _DEFAULT_SHARE_TEXT,
             site_name: String(d.site_name || '').trim() || _DEFAULT_SITE_NAME,
+            site_desc: String(d.site_desc || '').trim(),
+            site_logo: String(d.site_logo || '').trim(),
+            notice_content: String(d.notice_content || '').trim(),
+            allow_register: String(d.allow_register || '1'),
             buy_card_url: String(d.buy_card_url || '').trim()
           }
         } else {
@@ -133,6 +137,30 @@ export async function getShareText() {
 export async function getSiteName() {
   const cfg = await fetchAppConfig()
   return cfg.site_name || _DEFAULT_SITE_NAME
+}
+
+// 获取站点简介
+export async function getSiteDesc() {
+  const cfg = await fetchAppConfig()
+  return cfg.site_desc || ''
+}
+
+// 获取站点 Logo
+export async function getSiteLogo() {
+  const cfg = await fetchAppConfig()
+  return cfg.site_logo || ''
+}
+
+// 获取全站公告
+export async function getNoticeContent() {
+  const cfg = await fetchAppConfig()
+  return cfg.notice_content || ''
+}
+
+// 获取是否允许注册
+export async function getAllowRegister() {
+  const cfg = await fetchAppConfig()
+  return cfg.allow_register === '1' || cfg.allow_register === true
 }
 
 // 获取购买卡密链接（异步，带缓存）

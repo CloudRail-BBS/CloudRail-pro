@@ -301,8 +301,10 @@ export default {
     },
     async loadCategories() {
       try {
-        const res = await request('misc.php', { action: 'circle_category_list' }, { method: 'GET', baseURL: bmsBaseUrl });
-        if (res.status === 'success') this.categories = res.data.list || [];
+        const res = await request('circle/categories', {}, { method: 'GET' });
+        if (res.code === 0 && res.data) {
+          this.categories = Array.isArray(res.data) ? res.data : (res.data.list || []);
+        }
       } catch (e) { }
     },
     catName(id) {
@@ -381,17 +383,17 @@ export default {
       this.loading = true;
       this.page = 1;
       try {
-        const res = await request('misc.php', {
-          action: 'get_misc_list',
-          table: 'circles',
+        const res = await request('circle/list', {
           page: this.page,
-          search: this.searchText
-        }, { method: 'GET', baseURL: bmsBaseUrl });
-        if (res.status === 'success') {
-          this.list = res.data.list || [];
-          this.hasMore = this.page < (res.data.pages || 1);
+          limit: 20,
+          q: this.searchText
+        }, { method: 'GET' });
+        if (res.code === 0 && res.data) {
+          const dataList = Array.isArray(res.data) ? res.data : (res.data.list || []);
+          this.list = dataList;
+          this.hasMore = dataList.length >= 20;
         }
-      } catch (e) { }
+      } catch (e) { console.log('圈子列表加载失败', e); }
       this.loading = false;
     },
     async loadMore() {
@@ -399,15 +401,15 @@ export default {
       this.page++;
       this.loading = true;
       try {
-        const res = await request('misc.php', {
-          action: 'get_misc_list',
-          table: 'circles',
+        const res = await request('circle/list', {
           page: this.page,
-          search: this.searchText
-        }, { method: 'GET', baseURL: bmsBaseUrl });
-        if (res.status === 'success') {
-          this.list = [...this.list, ...(res.data.list || [])];
-          this.hasMore = this.page < (res.data.pages || 1);
+          limit: 20,
+          q: this.searchText
+        }, { method: 'GET' });
+        if (res.code === 0 && res.data) {
+          const dataList = Array.isArray(res.data) ? res.data : (res.data.list || []);
+          this.list = [...this.list, ...dataList];
+          this.hasMore = dataList.length >= 20;
         }
       } catch (e) { }
       this.loading = false;
@@ -528,6 +530,30 @@ export default {
       this.moderatorKeyword = '';
       this.moderatorList = [];
       this.showModeratorModal = true;
+      // 自动加载当前圈子的版主列表
+      this.loadCircleModerators();
+    },
+    async loadCircleModerators() {
+      if (!this.currentCircle) return;
+      this.searching = true;
+      try {
+        const modRes = await request('circle/get_circle_moderators', {
+          circle_id: this.currentCircle.id
+        }, { method: 'GET' });
+        if (modRes.code === 0 && modRes.data) {
+          const modList = modRes.data.list || modRes.data || [];
+          this.moderatorList = modList.map(m => ({
+            ...m,
+            id: m.uid || m.user_id || m.id,
+            uid: m.uid || m.user_id || m.id,
+            name: m.nickname || m.name || m.username || '版主',
+            username: m.username || '',
+            avatar: m.avatar || '',
+            is_moderator: true
+          }));
+        }
+      } catch (e) { console.log('加载版主列表失败', e); }
+      this.searching = false;
     },
     closeModeratorModal() {
       this.showModeratorModal = false;
@@ -536,44 +562,58 @@ export default {
       this.moderatorList = [];
     },
     async searchModeratorUsers() {
-      if (!this.moderatorKeyword.trim() && !this.currentCircle) return;
+      if (!this.currentCircle) return;
+      const keyword = this.moderatorKeyword.trim();
       this.searching = true;
       try {
-        const res = await request('misc.php', {
-          action: 'search_circle_moderator_users',
-          keyword: this.moderatorKeyword.trim()
-        }, { method: 'GET', baseURL: bmsBaseUrl });
-        if (res.status === 'success') {
-          const userIds = res.data.list.map(u => u.id);
-          const modRes = await request('misc.php', {
-            action: 'get_circle_moderators',
+        // 先获取当前圈子的版主列表
+        let modIds = [];
+        try {
+          const modRes = await request('circle/get_circle_moderators', {
             circle_id: this.currentCircle.id
-          }, { method: 'GET', baseURL: bmsBaseUrl });
-          const modIds = modRes.status === 'success' ? modRes.data.list.map(m => m.user_id) : [];
-          this.moderatorList = res.data.list.map(u => ({
-            ...u,
-            is_moderator: modIds.includes(u.id)
-          }));
+          }, { method: 'GET' });
+          if (modRes.code === 0 && modRes.data) {
+            const modList = modRes.data.list || modRes.data || [];
+            modIds = modList.map(m => m.uid || m.user_id || m.id);
+          }
+        } catch (e) {}
+
+        if (keyword) {
+          // 有关键词时搜索用户
+          const res = await request('user/search', { keyword }, { method: 'GET' });
+          if (res.code === 0 && res.data) {
+            const userList = res.data.list || res.data || [];
+            this.moderatorList = userList.map(u => ({
+              ...u,
+              id: u.uid || u.id,
+              uid: u.uid || u.id,
+              name: u.nickname || u.name || u.username,
+              avatar: u.avatar || '',
+              is_moderator: modIds.includes(u.uid || u.id)
+            }));
+          }
+        } else {
+          // 没有关键词时，直接显示当前圈子的版主
+          this.loadCircleModerators();
+          return;
         }
-      } catch (e) {
-      }
+      } catch (e) { console.log('搜索用户失败', e); }
       this.searching = false;
     },
     async addModerator(user) {
       if (!this.currentCircle) return;
       this.showHud('loading', '添加中...');
       try {
-        const res = await request('misc.php', {
-          action: 'add_circle_moderator',
+        const res = await request('circle/add_circle_moderator', {
           circle_id: this.currentCircle.id,
-          user_id: user.id
-        }, { method: 'POST', baseURL: bmsBaseUrl });
+          user_id: user.uid || user.id
+        }, { method: 'POST' });
         this.hud.show = false;
-        if (res.status === 'success') {
+        if (res.code === 0) {
           uni.showToast({ title: '添加成功', icon: 'success' });
           user.is_moderator = true;
         } else {
-          uni.showToast({ title: res.msg || '添加失败', icon: 'none' });
+          uni.showToast({ title: res.msg || res.message || '添加失败', icon: 'none' });
         }
       } catch (e) {
         this.hud.show = false;
@@ -586,11 +626,10 @@ export default {
         if (res.confirm) {
           this.showHud('loading', '移除中...');
           try {
-            const r = await request('misc.php', {
-              action: 'remove_circle_moderator',
+            const r = await request('circle/remove_circle_moderator', {
               circle_id: this.currentCircle.id,
-              user_id: user.id
-            }, { method: 'POST', baseURL: bmsBaseUrl });
+              user_id: user.uid || user.id
+            }, { method: 'POST' });
             this.hud.show = false;
             if (r.status === 'success') {
               uni.showToast({ title: '移除成功', icon: 'success' });

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
 
     <view class="init-loading-mask" v-if="initialLoading" @touchmove.stop.prevent>
@@ -148,6 +148,24 @@
           </view>
         </view>
       </view>
+
+      <!-- 每日签到卡片 -->
+      <view class="checkin-card" v-if="isLogin">
+        <view class="checkin-left">
+          <view class="checkin-streak">
+            <text class="streak-num">{{ checkinInfo.streak || 0 }}</text>
+            <text class="streak-label">连续签到</text>
+          </view>
+          <view class="checkin-info">
+            <view class="checkin-title">每日签到</view>
+            <view class="checkin-desc">今日签到 +{{ checkinInfo.today_points || 5 }} 积分</view>
+          </view>
+        </view>
+        <view class="checkin-btn" :class="{ checked: checkinInfo.is_checked }" @click="doCheckin">
+          {{ checkinInfo.is_checked ? '已签到' : '立即签到' }}
+        </view>
+      </view>
+
       <view class="stats-gap"></view>
       <view class="content-area">
         <view class="sticky-tabs" :style="{ top: (statusBarHeight + navBarHeight - 1) + 'px' }">
@@ -343,9 +361,9 @@
             <text class="sidebar-item-text">{{ item.label }}</text>
             <text class="sidebar-arrow">›</text>
           </view>
-          <view v-if="isLogin && parseInt(userInfo.is_admin || 0) === 1" class="sidebar-item admin-item" @click="goAdmin">
+          <view v-if="isLogin && canAccessAdmin" class="sidebar-item admin-item" @click="goAdmin">
             <image class="sidebar-item-icon" src="/static/icon/usersz.png" mode="aspectFit"></image>
-            <text class="sidebar-item-text">管理员中心</text>
+            <text class="sidebar-item-text">{{ adminEntryText }}</text>
             <text class="sidebar-arrow">›</text>
           </view>
         </view>
@@ -457,6 +475,7 @@ export default {
       sidebarOpen: false,
       sidebarMenus: [
         { label: '我的设置', icon: '/static/icon/usersz.png', type: 'page', url: '/pages/user/setting' },
+        { label: '我的举报', icon: '/static/icon/admin-alert-triangle-e67e22.svg', type: 'page', url: '/pages/user/my-reports' },
 		 { label: '我的二维码', icon: '/static/qewm.png', type: 'page', url: '/pages/user/qrcode' },
 		 		{ label: '我的订单', icon: '/static/shop/order.png', type: 'page', url: '/pages/market/orders' },
 		 { label: '社区集市', icon: '/static/icon/shop.png', type: 'page', url: '/pages/market/shop' },
@@ -474,6 +493,12 @@ export default {
       sheetType: 'avatar',
       showEdit: false,
       editForm: { nickname: '', signature: '' },
+      /* 签到信息 */
+      checkinInfo: {
+        is_checked: false,
+        streak: 0,
+        today_points: 5
+      },
       hud: { show: false, type: 'loading', text: '' },
       violationInfo: { show: false, id: 0, title: '' },
 
@@ -501,6 +526,18 @@ export default {
   },
 
   computed: {
+    canAccessAdmin() {
+      if (!this.isLogin) return false;
+      const role = this.userInfo.role || '';
+      const isAdmin = parseInt(this.userInfo.is_admin || 0) === 1;
+      return isAdmin || role === 'admin' || role === 'moderator' || role === 'auditor';
+    },
+    adminEntryText() {
+      const role = this.userInfo.role || '';
+      if (role === 'moderator') return '版主中心';
+      if (role === 'auditor') return '审核员中心';
+      return '管理员中心';
+    },
     currentList() { return this.lists[this.curTab] || []; },
     levelDisplay() { return calcLevelDisplay(this.userInfo.lv); },
   },
@@ -806,6 +843,47 @@ export default {
         .catch(() => {})
     },
 
+    /* 加载签到状态 */
+    async loadCheckinStatus() {
+      if (!this.isLogin) return;
+      try {
+        const res = await request('checkin/status', {}, { method: 'GET' });
+        if (res.code === 0 && res.data) {
+          this.checkinInfo = {
+            is_checked: res.data.is_checked,
+            streak: res.data.streak || 0,
+            today_points: res.data.today_points || 5
+          };
+        }
+      } catch (e) {
+        console.log('加载签到状态失败', e);
+      }
+    },
+
+    /* 执行签到 */
+    async doCheckin() {
+      if (this.checkinInfo.is_checked) {
+        uni.showToast({ title: '今日已签到', icon: 'none' });
+        return;
+      }
+      uni.showLoading({ title: '签到中...' });
+      try {
+        const res = await request('checkin/do', {}, { method: 'POST' });
+        if (res.code === 0) {
+          this.checkinInfo.is_checked = true;
+          this.checkinInfo.streak = res.data.streak;
+          uni.showToast({ title: res.message || '签到成功', icon: 'success' });
+          this.refreshData();
+        } else {
+          uni.showToast({ title: res.message || '签到失败', icon: 'none' });
+        }
+      } catch (e) {
+        uni.showToast({ title: '网络错误', icon: 'none' });
+      } finally {
+        uni.hideLoading();
+      }
+    },
+
     async refreshData() {
       // 使用 SWR 缓存：60秒内不重复请求用户信息
       // checkLogin 已先读 localStorage 立即渲染，这里只需控制后台刷新频率
@@ -851,6 +929,7 @@ export default {
       // 靓号字段可能被 functions.php 老版本遗漏，这里直查兜底
       this.fetchMyFancy();
       this.initialLoading = false;
+      this.loadCheckinStatus();
       if (this.lists[this.curTab].length === 0) this.loadList(true);
     },
 
@@ -1095,7 +1174,7 @@ export default {
     },
 
     goAdmin() {
-      if (!this.isLogin || parseInt(this.userInfo.is_admin || 0) !== 1) {
+      if (!this.isLogin || !this.canAccessAdmin) {
         uni.showToast({ title: '无权限访问', icon: 'none' });
         return;
       }
@@ -2011,6 +2090,68 @@ export default {
 .dm-num {
   font-size: 24rpx;
   color: #999;
+}
+
+/* 签到卡片 */
+.checkin-card {
+  margin: 0 16px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+.checkin-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.checkin-streak {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.streak-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.streak-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 4px;
+}
+.checkin-info {
+  display: flex;
+  flex-direction: column;
+}
+.checkin-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+.checkin-desc {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 4px;
+}
+.checkin-btn {
+  background: #fff;
+  color: #667eea;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 20px;
+}
+.checkin-btn.checked {
+  background: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.8);
 }
 
 </style>

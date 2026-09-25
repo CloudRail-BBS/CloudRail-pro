@@ -1,4 +1,4 @@
-﻿{
+{
   "easycom": {
     "autoscan": true,
     "custom": {
@@ -17,15 +17,21 @@
     {"path":"pages/message/group-search","style":{"navigationStyle":"custom"}},
     {"path":"pages/message/group-chat","style":{"navigationStyle":"custom","app-plus":{"softinputMode":"adjustResize","softinputNavBar":"none"}}},
     {"path":"pages/message/group-info","style":{"navigationStyle":"custom"}},
+    {"path":"pages/message/group-profile","style":{"navigationStyle":"custom"}},
+    {"path":"pages/message/group-members","style":{"navigationStyle":"custom"}},
     {"path":"pages/message/group-list","style":{"navigationStyle":"custom"}},
     {"path":"pages/mine/mine","style":{"navigationStyle":"custom"}},
     {"path":"pages/login/login","style":{"navigationBarTitleText":"登录"}},
     {"path":"pages/forget-pwd/forget-pwd","style":{"navigationStyle":"custom"}},
     {"path":"pages/register/register","style":{"navigationStyle":"custom"}},
     {"path":"pages/user/setting","style":{"navigationStyle":"custom"}},
+    {"path":"pages/user/cancellation","style":{"navigationStyle":"custom"}},
     {"path":"pages/user/review-posts","style":{"navigationStyle":"custom"}},
     {"path":"pages/user/report","style":{"navigationStyle":"custom"}},
+    {"path":"pages/user/my-reports","style":{"navigationStyle":"custom"}},
+    {"path":"pages/blackhole/blackhole","style":{"navigationStyle":"custom"}},
     {"path":"pages/circle/detail","style":{"navigationStyle":"custom"}},
+    {"path":"pages/circle/members","style":{"navigationStyle":"custom"}},
     {"path":"pages/publish/publish","style":{"navigationStyle":"custom"}},
     {"path":"pages/dynamic/publish","style":{"navigationStyle":"custom"}},
     {"path":"pages/dynamic/detail","style":{"navigationStyle":"custom"}},

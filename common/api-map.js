@@ -121,6 +121,7 @@ const apiMap = {
     'searchUser': ['user/search', 'GET'],
     'userInfo': ['user/profile', 'GET'],
     'moderatePostStatus': ['post/update', 'POST'],
+    'moderatorDelete': ['post/moderatorDelete', 'POST'],
   },
 
   // ==================== message.php (聊天) ====================
@@ -215,6 +216,10 @@ const apiMap = {
     'categories': ['circle/categories', 'GET'],
     'toggleJoin': ['circle/join', 'POST'],
     'getMembers': ['circle/members', 'GET'],
+    'get_circle_moderators': ['circle/get_circle_moderators', 'GET'],
+    'add_circle_moderator': ['circle/add_circle_moderator', 'POST'],
+    'remove_circle_moderator': ['circle/remove_circle_moderator', 'POST'],
+    'get_user_moderator_circles': ['circle/get_user_moderator_circles', 'GET'],
   },
 
   // ==================== dynamic.php (动态) ====================
@@ -354,6 +359,7 @@ const apiMap = {
     'submit': ['report/create', 'POST'],
     'create': ['report/create', 'POST'],
     'my': ['report/my', 'GET'],
+    'blacklist': ['report/blacklist', 'GET'],
   },
 
   // ==================== banner.php ====================
@@ -464,8 +470,11 @@ const apiMap = {
   'reports.php': {
     'get_reports': ['admin/reports', 'GET'],
     'handle_report': ['admin/reports', 'POST'],
+    'reply_report': ['admin/reports', 'POST'],
     'ignore_report': ['admin/reports', 'POST'],
     'unhide_post': ['admin/reports', 'POST'],
+    'take_down': ['admin/reports', 'POST'],
+    'ban_user': ['admin/reports', 'POST'],
   },
   'certifications.php': {
     'list': ['admin/certifications', 'GET'],
@@ -628,6 +637,10 @@ const apiMap = {
     'generate_codes': ['invite_code/generate_codes', 'POST'],
     'delete_code': ['invite_code/delete', 'POST'],
     'clear_used': ['invite_code/clear_used', 'POST'],
+    // 账号注销
+    'cancellation/submit': ['user/cancellation/submit', 'POST'],
+    'cancellation/status': ['user/cancellation/status', 'GET'],
+    'cancellation/cancel': ['user/cancellation/cancel', 'POST'],
   },
 }
 
