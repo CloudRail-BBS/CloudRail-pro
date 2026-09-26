@@ -178,6 +178,12 @@
           </view>
 
           <view class="card-content">
+            <!-- 标签 -->
+            <view v-if="post.mark || post.classification_name" class="card-tags">
+              <text class="card-tag" v-if="post.mark">{{ post.mark }}</text>
+              <text class="card-tag tag-secondary" v-else-if="post.classification_name">{{ post.classification_name }}</text>
+            </view>
+
             <text class="card-title" :class="{ 'vip-title': isVipUser(post) }">{{ getPostTitle(post) }}</text>
 
             <view v-if="currentTab === 2 && post.is_mutual" class="mutual-tag">
@@ -188,6 +194,12 @@
               <view class="user-row" @click.stop="goUserProfile(post.user_id)">
                 <view class="user-avatar-box">
                   <image :src="post.avatar || '/static/logo.png'" class="user-avatar" mode="aspectFill" lazy-load></image>
+                  <image
+                    v-if="getAvatarFrame(post)"
+                    :src="getAvatarFrame(post)"
+                    class="user-frame"
+                    mode="scaleToFill"
+                  ></image>
                 </view>
                 <view class="user-meta">
                   <scroll-view class="user-name-scroll" scroll-x :show-scrollbar="false">
@@ -197,11 +209,10 @@
               </view>
 
               <view class="action-row">
-                <image src="/static/post/xih1.png" class="action-icon-img"></image>
-                <text class="action-num">{{ formatNum(post.like_count) }}</text>
-                <text class="action-sep">·</text>
-                <image src="/static/tab/ydl.png" class="action-icon-img"></image>
-                <text class="action-num">{{ formatNum(post.view_count) }}</text>
+                <view class="like-btn" :class="{ liked: post.is_liked }" @click.stop="toggleLike(post)">
+                  <image :src="post.is_liked ? '/static/post/xih2.png' : '/static/post/xih1.png'" class="action-icon-img"></image>
+                  <text class="action-num">{{ formatNum(post.like_count) }}</text>
+                </view>
               </view>
             </view>
           </view>
@@ -351,6 +362,16 @@ export default {
     goUserProfile(uid) {
       if (!uid) return
       uni.navigateTo({ url: `/pages/user/profile?userId=${uid}` })
+    },
+
+    toggleLike(post) {
+      if (!post) return
+      // 乐观更新
+      const wasLiked = !!post.is_liked
+      post.is_liked = !wasLiked
+      post.like_count = parseInt(post.like_count || 0) + (wasLiked ? -1 : 1)
+      // 调用父组件的点赞方法
+      this.$emit('toggleLike', post)
     },
 
     isPaidLocked(post) {
@@ -611,8 +632,8 @@ export default {
 .waterfall-wrap {
   display: flex;
   align-items: flex-start;
-  gap: 16rpx;
-  padding: 0 20rpx;
+  gap: 12rpx;
+  padding: 0 16rpx;
   box-sizing: border-box;
   width: 100%;
 }
@@ -622,17 +643,18 @@ export default {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 12rpx;
 }
 
 .post-card {
   position: relative;
   width: 100%;
   overflow: hidden;
-  border-radius: 18rpx;
+  border-radius: 20rpx;
   background: #fff;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.03);
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06);
   box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .post-card:active {
@@ -642,9 +664,8 @@ export default {
 .card-img-wrap {
   position: relative;
   width: 100%;
-  min-height: 180rpx;
-  max-height: 400rpx;
-  background: #f0f0f0;
+  min-height: 200rpx;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
   overflow: hidden;
 }
 
@@ -832,8 +853,30 @@ export default {
 }
 
 .card-content {
-  padding: 16rpx;
+  padding: 18rpx 16rpx 14rpx;
   min-width: 0;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-bottom: 10rpx;
+}
+
+.card-tag {
+  display: inline-block;
+  padding: 4rpx 12rpx;
+  font-size: 20rpx;
+  color: #ff2442;
+  background: rgba(255,36,66,0.08);
+  border-radius: 6rpx;
+  font-weight: 500;
+}
+
+.card-tag.tag-secondary {
+  color: #666;
+  background: #f5f5f5;
 }
 
 .card-title {
@@ -888,7 +931,7 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 1rpx solid #eee;
+  border: 1rpx solid #f0f0f0;
 }
 
 .user-meta {
@@ -911,6 +954,41 @@ export default {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  gap: 4rpx;
+}
+
+.like-btn {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 20rpx;
+  transition: all 0.2s ease;
+}
+
+.like-btn:active {
+  transform: scale(0.9);
+}
+
+.like-btn.liked .action-num {
+  color: #ff2442;
+}
+
+.user-avatar-box {
+  position: relative;
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 8rpx;
+  overflow: visible;
+}
+
+.user-frame {
+  position: absolute;
+  top: -4rpx;
+  left: -4rpx;
+  width: 44rpx;
+  height: 44rpx;
+  pointer-events: none;
 }
 
 .action-icon-img {
