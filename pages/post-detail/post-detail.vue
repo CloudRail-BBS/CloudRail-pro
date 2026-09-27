@@ -552,15 +552,9 @@
             <text class="xhs-time">{{ formatTime(postInfo.create_time) }}</text>
           </view>
 
-          <!-- 打赏 + 浏览数: 保留功能但视觉弱化，不抢主体 -->
-          <view v-if="!isAnyMasked || isOwner || canManagePost" class="xhs-stat-row">
+          <!-- 打赏者头像 + 浏览数: 打赏按钮已移到底部操作栏 -->
+          <view v-if="(!isAnyMasked || isOwner || canManagePost) && (rewarders.length > 0 || postInfo.view_count)" class="xhs-stat-row">
             <view class="xhs-stat-left">
-              <view class="xhs-reward-btn" :class="{ disabled: rewardLock }" @tap="openRewardModal">
-                <view class="reward-icon-wrapper">
-                  <text class="reward-icon-text">赏</text>
-                </view>
-              </view>
-
               <view v-if="rewarders.length > 0" class="rewarders-section">
                 <view class="rewarders-list">
                   <view
@@ -816,6 +810,11 @@
         <view class="xhs-bar-action" @tap="focusComment">
           <image class="xhs-bar-icon" src="/static/post/pl.png" mode="aspectFit"></image>
           <text class="xhs-bar-count">{{ commentCount }}</text>
+        </view>
+
+        <view class="xhs-bar-action" :class="{ disabled: rewardLock }" @tap="openRewardModal">
+          <image class="xhs-bar-icon" src="/static/icon/gift-gray.svg" mode="aspectFit"></image>
+          <text class="xhs-bar-count">{{ postInfo.reward_count || 0 }}</text>
         </view>
       </view>
     </view>
