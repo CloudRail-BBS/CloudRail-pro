@@ -288,39 +288,49 @@
         :class="{ 'nav-glass': showFrostedNav }"
         :style="{ paddingTop: statusBarHeight + 'px', height: navTotalHeight + 'px' }"
       >
-        <view class="normal-nav-content" :style="{ height: navBarHeight + 'px' }">
-          <view class="normal-nav-btn left" @tap="goBack">
-            <text class="normal-back-text">‹</text>
+        <view class="xhs-nav-content" :style="{ height: navBarHeight + 'px' }">
+          <!-- 左：返回 -->
+          <view class="xhs-nav-back" @tap="goBack">
+            <text class="xhs-nav-back-icon">‹</text>
           </view>
 
-          <view class="normal-nav-user" :style="{ opacity: showFrostedNav ? 1 : 0 }">
-            <view class="normal-nav-avatar-box">
+          <!-- 中：作者头像 + 昵称（小红书是常驻显示，不随滚动淡入淡出） -->
+          <view class="xhs-nav-user" @tap="toUserHome">
+            <view class="xhs-nav-avatar-box">
               <image
-                class="normal-nav-avatar"
+                class="xhs-nav-avatar"
                 :src="postInfo?.avatar || '/static/logo.png'"
                 mode="aspectFill"
               ></image>
               <image
                 v-if="postInfo.current_frame_img"
                 :src="postInfo.current_frame_img"
-                class="normal-nav-avatar-frame"
+                class="xhs-nav-avatar-frame"
                 mode="scaleToFill"
               ></image>
             </view>
-            <view class="normal-nav-meta">
-              <view class="author-name-row compact">
-                <text class="normal-nav-name" :class="{ 'fancy-pink': parseInt(postInfo.is_fancy || 0) === 1, 'vip-red-text': parseInt(postInfo.vip || 0) === 1 }">{{ postInfo.name || '匿名' }}</text>
-              </view>
-            </view>
+            <text class="xhs-nav-name" :class="{ 'fancy-pink': parseInt(postInfo.is_fancy || 0) === 1, 'vip-red-text': parseInt(postInfo.vip || 0) === 1 }">{{ postInfo.name || '匿名' }}</text>
           </view>
 
-          <view class="normal-nav-btn right" @tap="openActionSheet">
-            <view class="more-dots dark-dots"><view class="more-dot"></view><view class="more-dot"></view><view class="more-dot"></view></view>
+          <!-- 右：关注 + 更多 -->
+          <view class="xhs-nav-right">
+            <view
+              v-if="showFollowBtn"
+              class="xhs-nav-follow"
+              :class="{ followed: isFollowingAuthor }"
+              @tap.stop="handleFollowAuthor"
+            >
+              <text>{{ isFollowingAuthor ? '已关注' : '关注' }}</text>
+            </view>
+
+            <view class="xhs-nav-more" @tap="openActionSheet">
+              <view class="more-dots dark-dots"><view class="more-dot"></view><view class="more-dot"></view><view class="more-dot"></view></view>
+            </view>
           </view>
         </view>
       </view>
 
-      <view class="normal-main" :style="{ paddingTop: (navTotalHeight + 16) + 'px' }">
+      <view class="xhs-main" :style="{ paddingTop: navTotalHeight + 'px' }">
         <view
           v-if="(isOwner || canManagePost) && isAnyMasked"
           class="post-status-bar"
@@ -329,37 +339,89 @@
           <text>当前状态：{{ maskStatusText }}，内容仅您可见</text>
         </view>
 
-        <view class="post-card">
-            <view class="post-header">
-              <view class="post-author" @tap="toUserHome">
-                <view class="normal-avatar-box">
-                  <image
-                    class="normal-avatar"
-                    :src="postInfo?.avatar || '/static/logo.png'"
-                    mode="aspectFill"
-                    lazy-load
-                  ></image>
-                  <image
-                    v-if="postInfo.current_frame_img"
-                    :src="postInfo.current_frame_img"
-                    class="normal-avatar-frame"
-                    mode="scaleToFill"
-                    lazy-load
-                  ></image>
-                </view>
+        <!-- 内容被屏蔽: 小红书风格居中白底提示 -->
+        <view v-if="isAnyMasked && !isOwner && !canManagePost" class="masked-box">
+          <text class="masked-title">{{ maskStatusText }}</text>
+          <text class="masked-sub">该内容暂时无法查看</text>
+        </view>
 
-              <view class="post-author-info">
-                <view class="author-name-row">
-                  <text class="post-author-name" :class="{ 'fancy-pink': parseInt(postInfo.is_fancy || 0) === 1, 'vip-red-text': parseInt(postInfo.vip || 0) === 1 }">{{ postInfo.name || '匿名' }}</text>
-                </view>
-                <view class="author-time-row">
-                  <text class="post-time">{{ formatTime(postInfo.create_time) }}</text>
-                </view>
+        <!-- 媒体区: 满宽出血(无左右内边距、无圆角)，与小红书一致 -->
+        <view
+          v-if="(!isAnyMasked || isOwner || canManagePost) && (postInfo.video || imagesVisible)"
+          class="xhs-media-box"
+        >
+          <view v-if="postInfo.video" class="normal-video-box">
+            <!-- #ifdef APP-PLUS -->
+            <video
+              v-if="!isAnyOverlayOpen"
+              id="detailVideo"
+              class="normal-video"
+              :src="postInfo.video"
+              :poster="videoCover"
+              :controls="true"
+              object-fit="cover"
+              @loadedmetadata="onVideoLoaded"
+              :style="{ height: videoStyleHeight }"
+            ></video>
+            <view
+              v-if="isAnyOverlayOpen"
+              class="normal-video-placeholder"
+              :style="{ height: videoStyleHeight }"
+            ></view>
+            <!-- #endif -->
+            <!-- #ifndef APP-PLUS -->
+            <video
+              id="detailVideo"
+              class="normal-video"
+              :src="isHls ? '' : postInfo.video"
+              :poster="videoCover"
+              :controls="true"
+              object-fit="cover"
+              @loadedmetadata="onVideoLoaded"
+              :style="{ height: videoStyleHeight }"
+            ></video>
+            <!-- #endif -->
+          </view>
+
+          <template v-else-if="imagesVisible">
+            <!-- 单图: 满宽、高度自适应 -->
+            <image
+              v-if="postInfo.images.length === 1"
+              class="xhs-single-image"
+              :src="getCachedImage(postInfo.images[0])"
+              mode="widthFix"
+              @tap="previewImage(postInfo.images, 0)"
+              @error="handleImgError(postInfo.images[0])"
+            ></image>
+
+            <!-- 多图: 横向滑动 + 右下角页码，和笔记一样 -->
+            <view v-else class="xhs-swiper-wrap">
+              <swiper
+                class="xhs-image-swiper"
+                :style="{ height: imageSwiperHeight }"
+                :current="imageIndex"
+                :duration="220"
+                @change="onImageSwiperChange"
+              >
+                <swiper-item v-for="(img, index) in postInfo.images" :key="'img-' + index">
+                  <image
+                    class="xhs-swiper-image"
+                    :src="getCachedImage(img)"
+                    mode="aspectFill"
+                    @tap="previewImage(postInfo.images, index)"
+                    @error="handleImgError(img)"
+                  ></image>
+                </swiper-item>
+              </swiper>
+              <view class="xhs-image-counter">
+                <text>{{ imageIndex + 1 }}/{{ postInfo.images.length }}</text>
               </view>
             </view>
+          </template>
+        </view>
 
-            <text class="circle-name">{{ postInfo.circle_name || '社区' }}</text>
-          </view>
+        <view class="xhs-body">
+          <text v-if="postInfo.circle_name" class="xhs-circle-tag">{{ postInfo.circle_name }}</text>
 
           <view
             v-if="postInfo.co_creators && postInfo.co_creators.length > 0"
@@ -383,12 +445,7 @@
             </view>
           </view>
 
-          <view v-if="isAnyMasked && !isOwner && !canManagePost" class="masked-box">
-            <text class="masked-title">{{ maskStatusText }}</text>
-            <text class="masked-sub">该内容暂时无法查看</text>
-          </view>
-
-          <view v-else class="post-body">
+          <view v-if="!isAnyMasked || isOwner || canManagePost" class="post-body">
             <text class="post-title" :class="{ 'fancy-pink': parseInt(postInfo?.is_fancy || 0) === 1, 'vip-red-text': parseInt(postInfo?.vip || 0) === 1 }" selectable>{{ postInfo?.title || '' }}</text>
 
             <!-- 内容已加密: 显示提示而不是乱码 -->
@@ -435,59 +492,6 @@
               </template>
               <view v-if="isContentLocked && !isOwner && !isAdmin" class="content-lock-fade"></view>
             </view>
-
-              <view v-if="postInfo.video" class="normal-video-box">
-                <!-- #ifdef APP-PLUS -->
-                <video
-                  v-if="!isAnyOverlayOpen"
-                  id="detailVideo"
-                  class="normal-video"
-                  :src="postInfo.video"
-                  :poster="videoCover"
-                  :controls="true"
-                  object-fit="cover"
-                  @loadedmetadata="onVideoLoaded"
-                  :style="{ height: videoStyleHeight }"
-                ></video>
-                <view
-                  v-if="isAnyOverlayOpen"
-                  class="normal-video-placeholder"
-                  :style="{ height: videoStyleHeight }"
-                ></view>
-                <!-- #endif -->
-                <!-- #ifndef APP-PLUS -->
-                <video
-                  id="detailVideo"
-                  class="normal-video"
-                  :src="isHls ? '' : postInfo.video"
-                  :poster="videoCover"
-                  :controls="true"
-                  object-fit="cover"
-                  @loadedmetadata="onVideoLoaded"
-                  :style="{ height: videoStyleHeight }"
-                ></video>
-                <!-- #endif -->
-              </view>
-
-              <view
-                v-if="imagesVisible"
-                class="image-grid"
-                :class="'grid-' + Math.min(postInfo.images.length, 3)"
-              >
-                <view
-                  v-for="(img, index) in postInfo.images"
-                  :key="'img-' + index"
-                  class="image-grid-item"
-                  @tap="previewImage(postInfo.images, index)"
-                >
-                  <image
-                    class="post-image"
-                    :src="getCachedImage(img)"
-                    :mode="postInfo.images.length === 1 ? 'widthFix' : 'aspectFill'"
-                    @error="handleImgError(img)"
-                  ></image>
-                </view>
-              </view>
 
               <view v-if="postInfo.share_product" class="shared-product-card" @tap="goMarketProduct(postInfo.share_product.id)">
                 <image :src="postInfo.share_product.image || (postInfo.share_product.images && postInfo.share_product.images[0]) || '/static/logo.png'" class="shared-product-img" mode="aspectFill" lazy-load></image>
@@ -543,47 +547,31 @@
             </view>
           </view>
 
-          <view v-if="!isAnyMasked || isOwner || canManagePost" class="post-actions">
-            <view
-              class="post-action"
-              :class="{ disabled: likeLock }"
-              @tap="handleLike"
-            >
-              <image
-                class="post-action-icon"
-                :src="isLiked ? '/static/post/xih1.png' : '/static/post/xih0.png'"
-                mode="aspectFit"
-              ></image>
-              <text :class="{ active: isLiked }">{{ postInfo.like_count || 0 }}</text>
-            </view>
+          <!-- 发布时间(小红书放在正文下面，灰色小字) -->
+          <view class="xhs-time-row">
+            <text class="xhs-time">{{ formatTime(postInfo.create_time) }}</text>
+          </view>
 
-            <view class="post-action" @tap="focusComment">
-              <image
-                class="post-action-icon"
-                src="/static/post/pl.png"
-                mode="aspectFit"
-              ></image>
-              <text>{{ commentCount }}</text>
-            </view>
-
-            <view class="reward-container">
-              <view class="post-action reward-action" :class="{ disabled: rewardLock }" @tap="openRewardModal">
+          <!-- 打赏 + 浏览数: 保留功能但视觉弱化，不抢主体 -->
+          <view v-if="!isAnyMasked || isOwner || canManagePost" class="xhs-stat-row">
+            <view class="xhs-stat-left">
+              <view class="xhs-reward-btn" :class="{ disabled: rewardLock }" @tap="openRewardModal">
                 <view class="reward-icon-wrapper">
                   <text class="reward-icon-text">赏</text>
                 </view>
               </view>
-              
+
               <view v-if="rewarders.length > 0" class="rewarders-section">
                 <view class="rewarders-list">
-                  <view 
-                    v-for="(user, idx) in displayRewarders" 
+                  <view
+                    v-for="(user, idx) in displayRewarders"
                     :key="'rewarder-' + user.id"
                     class="rewarder-avatar-wrapper"
                     @tap="toUserHomeById(user.id)"
                   >
-                    <image 
-                      class="rewarder-avatar" 
-                      :src="user.avatar || '/static/logo.png'" 
+                    <image
+                      class="rewarder-avatar"
+                      :src="user.avatar || '/static/logo.png'"
                       mode="aspectFill"
                     ></image>
                   </view>
@@ -594,9 +582,7 @@
               </view>
             </view>
 
-            <view class="post-action post-view-count">
-              <text>浏览 {{ postInfo.view_count || 0 }}</text>
-            </view>
+            <text class="xhs-view-count">浏览 {{ postInfo.view_count || 0 }}</text>
           </view>
         </view>
 
@@ -610,7 +596,7 @@
 
         <view v-if="!isAnyMasked || isOwner || canManagePost" class="comment-section">
           <view class="comment-title-row">
-            <text class="comment-title">评论 {{ commentCount }}</text>
+            <text class="comment-title">共 {{ commentCount }} 条评论</text>
           </view>
 
           <view v-if="commentLoading" class="comment-loading">
@@ -783,7 +769,7 @@
       </view>
     </view>
 
-    <!-- 普通详情页底部输入栏 -->
+    <!-- 普通详情页底部操作栏: 小红书式「说点什么… + 点赞 + 收藏 + 评论」 -->
     <view
       v-if="!isImmersiveVideoPage && postInfo && (!isAnyMasked || isOwner || canManagePost)"
       class="bottom-input-bar"
@@ -794,7 +780,7 @@
           v-model="commentContent"
           class="bottom-input"
           :placeholder="computedPlaceholder"
-          placeholder-style="color:#999"
+          placeholder-style="color:#bfbfbf"
           :focus="commentFocus"
           confirm-type="send"
           maxlength="500"
@@ -804,13 +790,34 @@
           @focus="onCommentFocus"
           @blur="onCommentBlur"
         />
-
-        <view class="bottom-send" @tap="publishComment">
-          <text>发送</text>
-        </view>
       </template>
 
       <text v-else class="comment-disabled-text">{{ computedPlaceholder }}</text>
+
+      <view class="xhs-bar-actions">
+        <view class="xhs-bar-action" :class="{ active: isLiked, disabled: likeLock }" @tap="handleLike">
+          <image
+            class="xhs-bar-icon"
+            :src="isLiked ? '/static/post/xih1.png' : '/static/post/xih0.png'"
+            mode="aspectFit"
+          ></image>
+          <text class="xhs-bar-count" :class="{ active: isLiked }">{{ postInfo.like_count || 0 }}</text>
+        </view>
+
+        <view class="xhs-bar-action" :class="{ active: isCollected }" @tap="handleCollect">
+          <image
+            class="xhs-bar-icon"
+            :src="isCollected ? '/static/icon/star-yellow.svg' : '/static/icon/star-line.svg'"
+            mode="aspectFit"
+          ></image>
+          <text class="xhs-bar-count" :class="{ active: isCollected }">{{ postInfo.collect_count || 0 }}</text>
+        </view>
+
+        <view class="xhs-bar-action" @tap="focusComment">
+          <image class="xhs-bar-icon" src="/static/post/pl.png" mode="aspectFit"></image>
+          <text class="xhs-bar-count">{{ commentCount }}</text>
+        </view>
+      </view>
     </view>
 
 
@@ -1273,6 +1280,10 @@ export default {
 
       isLiked: false,
       likeLock: false,
+      collectLock: false,
+
+      /* 多图横滑当前页(0 基)，对应小红书右下角 "1/9" 页码 */
+      imageIndex: 0,
 
       commentContent: '',
       commentFocus: false,
@@ -1483,6 +1494,22 @@ export default {
       if (!this.postInfo) return false
       // 锁定帖子（付费/评论可见）也显示图片，仅隐藏链接
       return Array.isArray(this.postInfo.images) && this.postInfo.images.length > 0
+    },
+
+    /* 是否已收藏(后端 post/detail 返回 is_collected) */
+    isCollected() {
+      if (!this.postInfo) return false
+      return this.parseBoolLike(this.postInfo.is_collected)
+    },
+
+    /* 多图横滑容器高度: 小红书是 4:5 竖图比例 */
+    imageSwiperHeight() {
+      let w = 375
+      try {
+        const sys = uni.getSystemInfoSync ? (uni.getSystemInfoSync() || {}) : {}
+        w = Number(sys.windowWidth) || 375
+      } catch (e) {}
+      return Math.round(w * 1.25) + 'px'
     },
 
     maskStatusText() {
@@ -3221,31 +3248,53 @@ export default {
       }
 
       if (!this.postInfo) return
+      if (this.collectLock) return
 
-      const oldCollected = this.postInfo.is_collected === 1
+      const oldCollected = this.isCollected
       const oldCount = Number(this.postInfo.collect_count) || 0
       const nextCollected = !oldCollected
 
+      // 乐观更新
+      this.collectLock = true
       this.$set(this.postInfo, 'is_collected', nextCollected ? 1 : 0)
       this.postInfo.collect_count = nextCollected ? oldCount + 1 : Math.max(0, oldCount - 1)
 
       try {
+        /* 后端 post/collect 本身就是「收藏/取消收藏」的切换接口，
+           不要传 uncollect —— 该 action 没有映射，会导致取消收藏失败 */
         const res = await request('post.php', {
-          action: nextCollected ? 'collect' : 'uncollect',
-          postId: this.postId,
-          userId: this.getCurrentUserId()
+          action: 'collect',
+          postId: this.postId
         }, 'POST')
 
         if (!this.isSuccessRes(res)) {
           this.$set(this.postInfo, 'is_collected', oldCollected ? 1 : 0)
           this.postInfo.collect_count = oldCount
           this.showToast(this.getResMsg(res, '操作失败'))
+        } else {
+          // 以服务端返回为准，避免乐观更新和真实状态不一致
+          const d = (res && res.data) || {}
+          if (typeof d.collected !== 'undefined') {
+            const real = this.parseBoolLike(d.collected)
+            this.$set(this.postInfo, 'is_collected', real ? 1 : 0)
+            this.postInfo.collect_count = real
+              ? (oldCollected ? oldCount : oldCount + 1)
+              : (oldCollected ? Math.max(0, oldCount - 1) : oldCount)
+          }
         }
       } catch (e) {
         this.$set(this.postInfo, 'is_collected', oldCollected ? 1 : 0)
         this.postInfo.collect_count = oldCount
         this.showToast('网络异常')
+      } finally {
+        setTimeout(() => { this.collectLock = false }, 250)
       }
+    },
+
+    /* 多图横滑翻页 → 更新右下角页码 */
+    onImageSwiperChange(e) {
+      const cur = e && e.detail ? Number(e.detail.current) : 0
+      this.imageIndex = cur >= 0 ? cur : 0
     },
 
     async submitComment(content) {
@@ -4292,19 +4341,374 @@ export default {
   padding-bottom: 140rpx;
 }
 
+/* 顶部导航白底常驻(小红书样式)，而不是随滚动才显示 */
 .custom-nav-bar {
   position: fixed;
   left: 0;
   top: 0;
   z-index: 100;
   width: 100%;
-  background: rgba(255,255,255,0);
+  background: #fff;
   transition: background 0.2s ease;
 }
 
 .custom-nav-bar.nav-glass {
-  background: rgba(255,255,255,0.95);
+  background: #fff;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+/* ==================== 小红书风格详情页 ==================== */
+
+/* 顶部导航: 返回 + 作者头像昵称 + 关注 + 更多 */
+.xhs-nav-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 20rpx;
+}
+
+.xhs-nav-back {
+  width: 56rpx;
+  height: 56rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.xhs-nav-back-icon {
+  font-size: 52rpx;
+  line-height: 48rpx;
+  color: #222;
+  margin-top: -4rpx;
+}
+
+.xhs-nav-user {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  margin-left: 6rpx;
+}
+
+.xhs-nav-avatar-box {
+  position: relative;
+  width: 56rpx;
+  height: 56rpx;
+  margin-right: 14rpx;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.xhs-nav-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #eee;
+}
+
+.xhs-nav-avatar-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 168%;
+  height: 168%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.xhs-nav-name {
+  max-width: 260rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #222;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xhs-nav-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.xhs-nav-follow {
+  height: 56rpx;
+  padding: 0 26rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid #ff2442;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.xhs-nav-follow text {
+  font-size: 26rpx;
+  color: #ff2442;
+  font-weight: 600;
+}
+
+.xhs-nav-follow.followed {
+  border-color: #e5e6eb;
+}
+
+.xhs-nav-follow.followed text {
+  color: #999;
+  font-weight: 400;
+}
+
+.xhs-nav-more {
+  width: 56rpx;
+  height: 56rpx;
+  margin-left: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 主体: 无左右内边距，媒体满宽出血 */
+.xhs-main {
+  min-height: 100vh;
+}
+
+.xhs-media-box {
+  width: 100%;
+  background: #f7f8fa;
+  overflow: hidden;
+}
+
+.xhs-single-image {
+  width: 100%;
+  display: block;
+  background: #f7f8fa;
+}
+
+.xhs-swiper-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.xhs-image-swiper {
+  width: 100%;
+}
+
+.xhs-swiper-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #f7f8fa;
+}
+
+.xhs-image-counter {
+  position: absolute;
+  right: 24rpx;
+  bottom: 24rpx;
+  height: 44rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.xhs-image-counter text {
+  font-size: 24rpx;
+  line-height: 1;
+  color: #fff;
+}
+
+/* 正文区: 左右 32rpx 内边距 */
+.xhs-body {
+  padding: 26rpx 32rpx 0;
+}
+
+.xhs-circle-tag {
+  display: inline-block;
+  height: 40rpx;
+  line-height: 40rpx;
+  padding: 0 16rpx;
+  margin-bottom: 16rpx;
+  border-radius: 8rpx;
+  background: #f2f3f5;
+  color: #666;
+  font-size: 22rpx;
+}
+
+.xhs-time-row {
+  margin-top: 24rpx;
+}
+
+.xhs-time {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+/* 打赏 + 浏览数: 功能保留、视觉弱化 */
+.xhs-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f2f3f5;
+}
+
+.xhs-stat-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.xhs-reward-btn {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background: #fff5f5;
+  border: 1rpx solid #ffd9df;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.xhs-view-count {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+/* 满宽媒体之后: 这些区块自带左右内边距 */
+.post-status-bar,
+.masked-box,
+.disclaimer-section {
+  margin-left: 32rpx;
+  margin-right: 32rpx;
+}
+
+/* 免责声明弱化: 去掉灰底、字号调小 */
+.disclaimer-section {
+  background: transparent;
+  padding: 24rpx 0;
+}
+
+.disclaimer-title {
+  font-size: 24rpx;
+  font-weight: 400;
+  color: #bbb;
+}
+
+.disclaimer-text {
+  font-size: 22rpx;
+  color: #c4c7cc;
+}
+
+/* 评论区: 顶部分隔线 + 纯文本列表(去掉气泡和卡片) */
+.comment-section {
+  margin: 0 32rpx;
+  border-top: 1rpx solid #f0f1f4;
+  padding: 24rpx 0 40rpx;
+}
+
+.comment-title-row {
+  padding: 0 0 8rpx;
+}
+
+.comment-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #222;
+}
+
+.comment-list {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+.comment-item {
+  padding: 22rpx 0;
+}
+
+.comment-item + .comment-item {
+  border-top: none;
+}
+
+.comment-bubble {
+  margin-top: 8rpx;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.comment-avatar {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.empty-comment {
+  background: transparent;
+  padding: 40rpx 0;
+}
+
+/* 底部操作栏: 说点什么… + 点赞 + 收藏 + 评论 */
+.bottom-input-bar {
+  background: #fff;
+  border-top: 1rpx solid #f0f1f4;
+  padding: 14rpx 24rpx calc(env(safe-area-inset-bottom) + 14rpx);
+}
+
+.bottom-input {
+  flex: 1;
+  height: 72rpx;
+  margin-right: 12rpx;
+  border-radius: 999rpx;
+  background: #f2f3f5;
+  padding: 0 28rpx;
+  color: #222;
+  font-size: 26rpx;
+}
+
+.xhs-bar-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.xhs-bar-action {
+  display: flex;
+  align-items: center;
+  margin-left: 26rpx;
+}
+
+.xhs-bar-action.disabled {
+  opacity: 0.6;
+}
+
+.xhs-bar-icon {
+  width: 46rpx;
+  height: 46rpx;
+}
+
+.xhs-bar-count {
+  margin-left: 8rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.xhs-bar-count.active {
+  color: #ff2442;
+}
+
+.comment-disabled-text {
+  flex: 1;
+  width: auto;
+  text-align: left;
+  color: #999;
+  font-size: 25rpx;
 }
 
 .normal-nav-content {
@@ -5222,28 +5626,7 @@ export default {
   font-size: 26rpx;
 }
 
-.bottom-send {
-  margin-left: 16rpx;
-  width: 104rpx;
-  height: 72rpx;
-  border-radius: 999rpx;
-  background: #111827;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.bottom-send text {
-  color: #fff;
-  font-size: 26rpx;
-}
-
-.comment-disabled-text {
-  width: 100%;
-  text-align: center;
-  color: #999;
-  font-size: 25rpx;
-}
 
 
 .drawer-open {
