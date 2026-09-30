@@ -13,19 +13,19 @@
 // 本地测试可用 XAMPP/phpStudy 启动后填写:
 //   'http://localhost/社区项目后端/api/index.php/'
 // ══════════════════════════════════════════════
-export const API_BASE = 'https://sq.baige.icu/api/index.php/'
+export const API_BASE = 'http://你的域名/api/index.php/'
 
 // ══════════════════════════════════════════════
 // 管理后台地址（Web 端管理面板，浏览器访问）
 // 部署在 <host>/admin/ 下
 // ══════════════════════════════════════════════
-export const ADMIN_BASE = 'http://lhc.baige.icu/'
+export const ADMIN_BASE = 'http://你的管理后台域名/'
 
 // ══════════════════════════════════════════════
 // Web 资源域名（用于生成 H5 分享链接：用户主页二维码、帖子分享、软件分享等）
 // 一般与后端同域，留空则由后端 fullUrl() 自动拼接
 // ══════════════════════════════════════════════
-export const WEB_BASE = 'https://sq.baige.icu/'
+export const WEB_BASE = 'http://你的域名/'
 
 // ══════════════════════════════════════════════
 // 站点名称 / 货币名称 等公共配置默认值
@@ -33,7 +33,7 @@ export const WEB_BASE = 'https://sq.baige.icu/'
 // ══════════════════════════════════════════════
 // WS 开关
 export const WS_ENABLED = false
-export const WS_URL = 'ws://sq.baige.icu//ws'
+export const WS_URL = 'ws://你的域名/ws'
 
 export const SITE_NAME = '栖屿社区'
 export const CURRENCY_NAME = '余额'
