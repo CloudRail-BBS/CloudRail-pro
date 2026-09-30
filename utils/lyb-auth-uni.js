@@ -512,7 +512,11 @@ var LYBAuth = {
     }).then(function (res) {
       if (res && res.error === true && res.info && res.info.code) {
         self._clearPendingSession()
-        console.log('[SDK] 换取授权码成功:', res.info.code); self._exchangeToken(res.info.code, redirectUri)
+        console.log('[SDK] 换取授权码成功:', res.info.code)
+        // ★★★ 不自己换token了，直接把code传给页面，让后端去换 ★★★
+        if (_config && typeof _config.onLogin === 'function') {
+          _config.onLogin({ code: res.info.code })
+        }
       } else {
         emitError(ERR.TOKEN_FAIL, '换取授权码失败: ' + ((res && res.info) || '未知错误'))
       }

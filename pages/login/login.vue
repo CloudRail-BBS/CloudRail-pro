@@ -737,12 +737,10 @@ export default {
     },
     
     handlePinhaoLoginSuccess(res) {
-      // res 里有 access_token, uid, username, avatar
-      // 调用后端接口，用拼好社的uid登录/注册我们的系统
+      // res 里只有code，调用后端接口，后端用code换用户信息
+      console.log('[拼好社] 拿到code，调用后端登录:', res.code)
       request('auth/pinhao_login', {
-        pinhao_uid: res.uid,
-        pinhao_name: res.username,
-        pinhao_avatar: res.avatar || ''
+        code: res.code
       }, 'POST').then((r) => {
         if (r && r.code === 0 && r.data && r.data.token) {
           try { uni.setStorageSync('token', r.data.token) } catch (e) {}

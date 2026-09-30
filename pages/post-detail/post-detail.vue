@@ -3369,18 +3369,15 @@ export default {
       this.showRewardModal = false
 
       try {
-        // 与 wallet/tip/send 后端对齐：同时传"新契约字段 + 旧兼容字段", 后端任意命中都能解析
+        // 打赏接口：post.php?action=reward_post（api-map里已映射到wallet/tip/send）
         const authorUid = this.postInfo && (this.postInfo.uid || this.postInfo.user_id)
         const res = await request('post.php', {
           action: 'reward_post',
-          // 新契约
           target_type: 'post',
           target_id: this.postId,
           amount: actualAmount,
           currency: 'points',
-          // 旧兼容字段（后端兼容层兜底）
           post_id: this.postId,
-          user_id: this.getCurrentUserId(),
           target_user_id: authorUid,
           receiver_uid: authorUid,
           remark: ''
@@ -3418,7 +3415,9 @@ export default {
           uni.showToast({ title: (res && res.msg) || '打赏失败', icon: 'none' })
         }
       } catch (e) {
-        uni.showToast({ title: '网络异常', icon: 'none' })
+        console.error('打赏失败详情:', e)
+        const errMsg = (e && (e.message || e.errMsg || (e.data && e.data.msg))) || '网络异常'
+        uni.showToast({ title: '打赏失败: ' + errMsg, icon: 'none', duration: 3000 })
       } finally {
         this.rewardLock = false
       }

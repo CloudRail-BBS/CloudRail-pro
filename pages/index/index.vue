@@ -106,6 +106,7 @@
           :isLoading="isLoading"
           :hasMore="hasMore"
           @goPostDetail="goPostDetail"
+          @toggleLike="onToggleLike"
         />
         </view>
       </scroll-view>
@@ -682,6 +683,11 @@ export default {
         display_number: post.display_number || '',
         is_fancy: parseInt(post.is_fancy || 0)
       }
+    },
+
+    onToggleLike(post) {
+      // 点赞事件处理（WaterfallTheme组件已经直接调用API了，这里只做预留）
+      console.log('toggleLike', post);
     },
 
     goPostDetail(post) {

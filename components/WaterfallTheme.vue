@@ -1,28 +1,37 @@
 ﻿<template>
   <view class="waterfall-theme">
-    <!-- 顶部预览图（banner）已隐藏 -->
-    <!--
-    <view v-if="currentTab !== 2 && safeBannerList.length > 0" class="banner-section">
+    <!-- 顶部轮播图（banner） -->
+    <view v-if="currentTab !== 2 && safeBannerList.length > 0" class="hero-band">
       <swiper
-        class="banner-swiper"
+        class="hero-swiper"
         circular
         autoplay
-        interval="4500"
-        duration="500"
+        interval="4200"
+        duration="450"
         :indicator-dots="true"
-        indicator-active-color="#ff2442"
-        indicator-color="rgba(255,255,255,0.65)"
+        indicator-active-color="#ffffff"
+        indicator-color="rgba(255,255,255,0.48)"
       >
         <swiper-item v-for="(item, index) in safeBannerList" :key="item.id || index">
-          <view class="banner-item" @click="handleBannerClick(item)">
-            <image :src="bannerImg(item.image)" class="banner-img" mode="widthFix"></image>
+          <view class="hero-slide" @click="handleBannerClick(item)">
+            <image :src="bannerImg(item.image)" class="hero-img" mode="aspectFill" :lazy-load="false"></image>
+            <view class="hero-shade"></view>
           </view>
         </swiper-item>
       </swiper>
-      <view class="banner-top-mask"></view>
-      <view class="banner-bottom-mask"></view>
     </view>
-    -->
+
+    <!-- 快捷入口卡片 -->
+    <view class="quick-grid">
+      <view v-for="item in quickEntries" :key="item.title" class="quick-item" @click="goEntry(item.url)">
+        <view class="quick-icon" :class="item.iconClass">
+          <view class="quick-icon-svg">
+            <image :src="item.icon" class="quick-svg-img" mode="aspectFit"></image>
+          </view>
+        </view>
+        <text class="quick-title">{{ item.title }}</text>
+      </view>
+    </view>
 
     <view v-if="currentTab === 2 && userInfo" class="follow-top-section">
       <view class="follow-header">
@@ -210,7 +219,7 @@
 
               <view class="action-row">
                 <view class="like-btn" :class="{ liked: post.is_liked }" @click.stop="toggleLike(post)">
-                  <image :src="post.is_liked ? '/static/post/xih2.png' : '/static/post/xih1.png'" class="action-icon-img"></image>
+                  <image :src="post.is_liked ? '/static/post/xih1.png' : '/static/post/xih0.png'" class="action-icon-img" mode="aspectFit"></image>
                   <text class="action-num">{{ formatNum(post.like_count) }}</text>
                 </view>
               </view>
@@ -296,6 +305,16 @@ export default {
   computed: {
     safeBannerList() {
       return (this.bannerList || []).filter(item => item && item.image)
+    },
+    quickEntries() {
+      return [
+        { title: '聚合应用', icon: '/static/icon/quick-apps-white.svg', iconClass: 'quick-icon-hub', url: '/pages/hub/hub' },
+        { title: '积分抽奖', icon: '/static/icon/quick-gift-white.svg', iconClass: 'quick-icon-lottery', url: '/pages/lottery/index' },
+        { title: '靓号商城', icon: '/static/icon/quick-tag-white.svg', iconClass: 'quick-icon-shop', url: '/pages/fancy/shop' },
+        { title: '权益认证', icon: '/static/icon/quick-shield-check-white.svg', iconClass: 'quick-icon-cert', url: '/pages/user/zhuanye' },
+        { title: '任务中心', icon: '/static/icon/quick-calendar-check-white.svg', iconClass: 'quick-icon-task', url: '/pages/mission/mission' },
+        { title: '小黑屋', icon: '/static/icon/quick-ban-white.svg', iconClass: 'quick-icon-blackhole', url: '/pages/blackhole/blackhole' }
+      ]
     }
   },
   methods: {
@@ -364,12 +383,54 @@ export default {
       uni.navigateTo({ url: `/pages/user/profile?userId=${uid}` })
     },
 
+    goEntry(url) {
+      uni.navigateTo({ url: url });
+    },
+
     toggleLike(post) {
       if (!post) return
       // 乐观更新
       const wasLiked = !!post.is_liked
       post.is_liked = !wasLiked
       post.like_count = parseInt(post.like_count || 0) + (wasLiked ? -1 : 1)
+      
+      // 调用点赞API
+      const token = uni.getStorageSync('token');
+      if (!token) {
+        uni.showToast({ title: '请先登录', icon: 'none' });
+        post.is_liked = wasLiked;
+        post.like_count = parseInt(post.like_count || 0) + (wasLiked ? 1 : -1);
+        return;
+      }
+      
+      const app = getApp();
+      const apiBase = (app.globalData && app.globalData.apiBase) || 'https://sq.baige.icu/api/index.php/';
+      
+      uni.request({
+        url: apiBase + 'post/like',
+        method: 'POST',
+        header: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          post_id: post.id
+        },
+        success: (res) => {
+          if (res.data && res.data.code !== 0) {
+            // 点赞失败，恢复状态
+            post.is_liked = wasLiked;
+            post.like_count = parseInt(post.like_count || 0) + (wasLiked ? 1 : -1);
+            uni.showToast({ title: res.data.message || '操作失败', icon: 'none' });
+          }
+        },
+        fail: () => {
+          // 请求失败，恢复状态
+          post.is_liked = wasLiked;
+          post.like_count = parseInt(post.like_count || 0) + (wasLiked ? 1 : -1);
+        }
+      });
+      
       // 调用父组件的点赞方法
       this.$emit('toggleLike', post)
     },
@@ -413,15 +474,29 @@ export default {
   box-sizing: border-box;
 }
 
-.banner-section {
+.hero-band {
+  padding: 20rpx 24rpx 0;
+  background: #fff;
+}
+.hero-swiper {
+  width: 100%;
+  height: 360rpx;
+  border-radius: 26rpx;
+  overflow: hidden;
+}
+.hero-slide {
   position: relative;
   width: 100%;
-  margin-bottom: 4rpx;
+  height: 100%;
 }
-
-.banner-swiper {
+.hero-img {
   width: 100%;
-  height: 480rpx;
+  height: 100%;
+}
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.02) 0%, rgba(18, 18, 18, 0.12) 100%);
 }
 
 .banner-item {
@@ -1176,4 +1251,70 @@ export default {
   to { transform: rotate(360deg); }
 }
 
+/* 快捷入口卡片 */
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8rpx;
+  padding: 24rpx 18rpx;
+  background: #fff;
+}
+.quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+.quick-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.quick-icon-hub {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 6rpx 16rpx rgba(118, 75, 162, 0.32);
+}
+.quick-icon-lottery {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 107, 0.32);
+}
+.quick-icon-shop {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  box-shadow: 0 6rpx 16rpx rgba(17, 153, 142, 0.32);
+}
+.quick-icon-cert {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  box-shadow: 0 6rpx 16rpx rgba(79, 172, 254, 0.32);
+}
+.quick-icon-task {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  box-shadow: 0 6rpx 16rpx rgba(245, 87, 108, 0.32);
+}
+.quick-icon-blackhole {
+  background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
+  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.32);
+}
+.quick-icon-svg {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.quick-icon-svg .quick-svg-img {
+  width: 100%;
+  height: 100%;
+}
+.quick-title {
+  font-size: 23rpx;
+  color: #5a463c;
+}
 </style>

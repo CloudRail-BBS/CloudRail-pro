@@ -51,8 +51,9 @@
 
       <view class="nav-placeholder" :style="{ height: (statusBarHeight + navBarHeight) + 'px' }"></view>
       <view class="bg-placeholder"></view>
-      <view class="profile-card">
-        <view class="profile-top">
+      <view class="profile-card dy-profile">
+        <!-- 顶部：头像在左，昵称在右 -->
+        <view class="dy-user-row">
           <view class="avatar-wrapper" @click="openAvatarModal">
             <view class="skeleton avatar-skeleton" v-if="!imgLoaded.avatar"></view>
             <image
@@ -64,7 +65,6 @@
               @load="onImgLoad('avatar')"
             ></image>
             <image v-if="currentFrameUrl" :src="currentFrameUrl" class="avatar-frame" mode="aspectFit"></image>
-            <!-- 认证徽标：头像右下角蓝V/红V，与个人主页一致 -->
             <image
               v-if="userInfo.auth_badge_label"
               :src="userInfo.auth_badge_type === 'enterprise' ? '/static/v/blue-v.svg' : '/static/v/red-v.svg'"
@@ -72,81 +72,86 @@
               mode="aspectFit"
             ></image>
           </view>
-          <view class="action-buttons">
-            <view class="action-buttons-row">
-              <view class="btn secondary" @click="onChangeBackground">更换封面</view>
-              <view class="btn primary" v-if="isLogin" @click="toSetting">编辑资料</view>
-              <view class="btn primary" v-else @click="toLoginPage">去登录</view>
-              <view class="btn asset" v-if="isLogin" @click="toTaskPage">我的资产</view>
-              <view class="btn vip-btn" v-if="isLogin" @click="toVipPage">{{ userInfo.vip == 1 ? 'VIP会员' : '开通VIP' }}</view>
-            </view>
-          </view>
-        </view>
 
-        <view class="profile-info">
-          <view class="name-line">
-            <text class="user-name" :class="{ 'vip-rainbow-text': userInfo.vip == 1 && isLogin }">{{ userInfo.name || userInfo.nickname || userInfo.username || '请登录' }}</text>
-            <view v-if="userInfo.vip == 1 && isLogin" class="vip-sole-icon">
-              <view class="vip-badge-inner">
-                <image class="vip-badge-crown-img" src="/static/icon/crown-white.svg" mode="aspectFit" />
-                <text class="vip-badge-text">VIP</text>
+          <view class="dy-user-info">
+            <view class="name-line">
+              <text class="user-name" :class="{ 'vip-rainbow-text': userInfo.vip == 1 && isLogin }">{{ userInfo.name || userInfo.nickname || userInfo.username || '请登录' }}</text>
+              <view v-if="userInfo.vip == 1 && isLogin" class="vip-sole-icon">
+                <view class="vip-badge-inner">
+                  <image class="vip-badge-crown-img" src="/static/icon/crown-white.svg" mode="aspectFit" />
+                  <text class="vip-badge-text">VIP</text>
+                </view>
+              </view>
+              <view class="level-tag" :class="['lv-tier-' + getLevelTier(levelDisplay), { 'tag-on-dark': bgIsDark }]" v-if="isLogin">
+                <image class="level-star-img" src="/static/icon/star-white.svg" mode="aspectFit" />
+                <text class="lv-text" :class="{ 'text-on-dark': bgIsDark }">Lv.{{ levelDisplay }}</text>
+              </view>
+              <view v-if="isLogin && userInfo.is_fancy == 1" class="fancy-badge-inline name-inline-badge">
+                <image src="/static/vip/lianghao.webp" class="fbi-icon" mode="aspectFit"></image>
+                <text class="fbi-num">{{ userInfo.display_number }}</text>
+              </view>
+              <text v-else-if="isLogin && userInfo.display_number" class="ordinary-num-inline name-inline-number">{{ userInfo.display_number }}</text>
+              <view class="title-row title-inline" :class="{ 'tag-on-dark': bgIsDark }" v-if="userInfo.user_title">
+                <image class="title-icon-img" src="/static/icon/check-white.svg" mode="aspectFit" />
+                <text class="title-text" :class="{ 'text-on-dark': bgIsDark }">{{ userInfo.user_title }}</text>
+              </view>
+              <view
+                v-if="isLogin && Number(userInfo.enterprise_verified || 0) === 1 && userInfo.enterprise_name"
+                class="enterprise-auth-btn"
+                :class="{ 'tag-on-dark': bgIsDark }"
+                @click.stop="showEnterpriseInfo"
+              >
+                <text class="enterprise-auth-icon" :class="{ 'text-on-dark': bgIsDark }">企</text>
               </view>
             </view>
-            <view class="level-tag" :class="['lv-tier-' + getLevelTier(levelDisplay), { 'tag-on-dark': bgIsDark }]" v-if="isLogin">
-              <image class="level-star-img" src="/static/icon/star-white.svg" mode="aspectFit" />
-              <text class="lv-text" :class="{ 'text-on-dark': bgIsDark }">Lv.{{ levelDisplay }}</text>
-            </view>
-            <view v-if="isLogin && userInfo.is_fancy == 1" class="fancy-badge-inline name-inline-badge">
-              <image src="/static/vip/lianghao.webp" class="fbi-icon" mode="aspectFit"></image>
-              <text class="fbi-num">{{ userInfo.display_number }}</text>
-            </view>
-            <text v-else-if="isLogin && userInfo.display_number" class="ordinary-num-inline name-inline-number">{{ userInfo.display_number }}</text>
-            <view class="title-row title-inline" :class="{ 'tag-on-dark': bgIsDark }" v-if="userInfo.user_title">
-              <image class="title-icon-img" src="/static/icon/check-white.svg" mode="aspectFit" />
-              <text class="title-text" :class="{ 'text-on-dark': bgIsDark }">{{ userInfo.user_title }}</text>
-            </view>
-            <view
-              v-if="isLogin && Number(userInfo.enterprise_verified || 0) === 1 && userInfo.enterprise_name"
-              class="enterprise-auth-btn"
-              :class="{ 'tag-on-dark': bgIsDark }"
-              @click.stop="showEnterpriseInfo"
-            >
-              <text class="enterprise-auth-icon" :class="{ 'text-on-dark': bgIsDark }">企</text>
+            <view class="dy-user-id" v-if="isLogin">
+              <text class="id-text">栖屿号：{{ userInfo.uid || userInfo.username }}</text>
             </view>
           </view>
+        </view>
+      </view>
+
+      <!-- 白色内容区域（顶部圆角） -->
+      <view class="dy-content-area">
+        <!-- 数据统计 + 编辑主页按钮 -->
+        <view class="dy-stats-row">
+          <view class="dy-stats">
+            <view class="stat-item">
+              <text class="num">{{ formatNum(userInfo.total_like) }}</text>
+              <text class="label">获赞</text>
+            </view>
+            <view class="stat-item">
+              <text class="num">{{ formatNum(userInfo.follow_count) }}</text>
+              <text class="label">关注</text>
+            </view>
+            <view class="stat-item" @click="toFansList">
+              <text class="num">{{ formatNum(userInfo.fans_count) }}</text>
+              <text class="label">粉丝</text>
+            </view>
+            <view class="stat-item">
+              <text class="num">{{ formatNum(userInfo.post_count) }}</text>
+              <text class="label">作品</text>
+            </view>
+            <view class="stat-item" @click="toTaskPage">
+              <text class="num">{{ formatBalance(userInfo.balance) }}</text>
+              <text class="label">余额</text>
+            </view>
+            <view class="stat-item">
+              <text class="num">{{ formatNum(userInfo.total_view_count) }}</text>
+              <text class="label">曝光</text>
+            </view>
+          </view>
+          <view class="edit-home-btn" v-if="isLogin" @click="toSetting">编辑主页</view>
+        </view>
+
+        <!-- 简介 -->
+        <view class="dy-bio">
           <view class="bio-line" @click="openInfoEdit">
-            <text v-if="userInfo.personal_signature" :class="{ 'vip-rainbow-text': userInfo.vip == 1 && isLogin }">{{ userInfo.personal_signature }}</text>
-            <text v-else class="bio-placeholder">填写个性签名，让大家认识你...</text>
-            <image src="/static/icon/edit-gray.svg" class="edit-pen" mode="aspectFit"></image>
+            <text v-if="userInfo.personal_signature">{{ userInfo.personal_signature }}</text>
+            <text v-else class="bio-placeholder">介绍一下自己吧~</text>
           </view>
         </view>
 
-        <view class="stats-row">
-          <view class="stat-item" @click="toFollowList">
-            <text class="num">{{ formatNum(userInfo.follow_count) }}</text>
-            <text class="label">关注</text>
-          </view>
-          <view class="stat-item" @click="toFansList">
-            <text class="num">{{ formatNum(userInfo.fans_count) }}</text>
-            <text class="label">粉丝</text>
-          </view>
-          <view class="stat-item">
-            <text class="num">{{ formatNum(userInfo.total_like) }}</text>
-            <text class="label">获赞</text>
-          </view>
-          <view class="stat-item">
-            <text class="num">{{ formatNum(userInfo.post_count) }}</text>
-            <text class="label">帖子</text>
-          </view>
-          <view class="stat-item" @click="toTaskPage">
-            <text class="num">{{ formatBalance(userInfo.balance) }}</text>
-            <text class="label">余额</text>
-          </view>
-          <view class="stat-item">
-            <text class="num">{{ formatNum(userInfo.total_view_count) }}</text>
-            <text class="label">曝光</text>
-          </view>
-        </view>
       </view>
 
       <!-- 每日签到卡片 -->
@@ -884,6 +889,26 @@ export default {
       }
     },
 
+    async loadUserStats() {
+      try {
+        const res = await request('user.php', { action: 'profile' });
+        if (res && res.code === 0 && res.data) {
+          // 合并统计数据到 userInfo
+          this.userInfo = Object.assign({}, this.userInfo, {
+            post_count: res.data.post_count || 0,
+            follow_count: res.data.follow_count || 0,
+            fans_count: res.data.fans_count || 0,
+            total_like: res.data.total_like || 0,
+            total_view_count: res.data.total_view_count || 0
+          });
+          // 更新缓存
+          uni.setStorageSync('userInfo', this.userInfo);
+        }
+      } catch (e) {
+        console.error('获取用户统计失败', e);
+      }
+    },
+
     async refreshData() {
       // 使用 SWR 缓存：60秒内不重复请求用户信息
       // checkLogin 已先读 localStorage 立即渲染，这里只需控制后台刷新频率
@@ -912,6 +937,9 @@ export default {
           this.currentFrameUrl = data.current_frame_img || '';
           uni.setStorageSync('userInfo', data);
           this.checkImageCache(data.avatar, 'avatar');
+          
+          // 额外获取用户统计数据（关注、粉丝、获赞、作品数等）
+          this.loadUserStats();
           this.checkImageCache(data.background_image, 'bg');
           this.checkBgBrightness();
         }
@@ -1318,6 +1346,111 @@ export default {
   position: relative; padding: 0 32rpx;
   z-index: 10; margin-bottom: 0;
   background: transparent;
+}
+
+/* 抖音风格个人中心 */
+.dy-profile {
+  padding: 20rpx 32rpx 40rpx;
+}
+.dy-user-row {
+  display: flex; align-items: center;
+  gap: 30rpx;
+}
+.dy-user-row .avatar-wrapper {
+  width: 140rpx; height: 140rpx; flex-shrink: 0;
+}
+.dy-user-row .avatar-img {
+  width: 140rpx; height: 140rpx; border-radius: 50%;
+  border: 4rpx solid rgba(255,255,255,0.4);
+}
+.dy-user-info {
+  flex: 1; min-width: 0;
+}
+.dy-user-info .name-line {
+  margin-bottom: 10rpx; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 10rpx;
+}
+.dy-user-info .user-name {
+  font-size: 40rpx; font-weight: 700; color: #fff;
+  text-shadow: 0 2rpx 10rpx rgba(0,0,0,0.3);
+}
+.dy-user-id { margin-top: 8rpx; }
+.dy-user-id .id-text {
+  font-size: 26rpx; color: rgba(255,255,255,0.7);
+}
+
+/* 白色内容区域 */
+.dy-content-area {
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  margin-top: -30rpx;
+  padding: 30rpx 32rpx 20rpx;
+  position: relative;
+  z-index: 5;
+}
+.dy-stats-row {
+  display: flex; align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28rpx;
+}
+.dy-stats {
+  display: flex; flex-wrap: wrap; gap: 24rpx 36rpx;
+  flex: 1;
+}
+.dy-stats .stat-item {
+  display: flex; flex-direction: row; align-items: baseline; gap: 8rpx;
+}
+.dy-stats .stat-item .num {
+  font-size: 36rpx; font-weight: 700; color: #1a1a1a;
+  line-height: 1.1;
+}
+.dy-stats .stat-item .label {
+  font-size: 24rpx; color: #999; margin-top: 0;
+}
+.edit-home-btn {
+  padding: 16rpx 28rpx;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-left: 20rpx;
+}
+.dy-bio {
+  margin-bottom: 32rpx;
+}
+.dy-bio .bio-line { padding: 0; }
+.dy-bio .bio-line text {
+  font-size: 28rpx; color: #333; line-height: 1.6;
+}
+.dy-bio .bio-placeholder { color: #bbb; }
+.dy-function-row {
+  display: flex; gap: 16rpx;
+  padding-bottom: 24rpx;
+}
+.dy-func-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12rpx; padding: 20rpx 16rpx;
+  background: #f8f8f8; border-radius: 16rpx;
+  flex: 1;
+}
+.dy-func-item .func-icon-box {
+  width: 56rpx; height: 56rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.dy-func-item .func-icon-bg {
+  width: 40rpx; height: 40rpx;
+  background: #e8e8e8; border-radius: 10rpx;
+}
+.dy-func-item .func-icon-bg.wallet {
+  background: linear-gradient(135deg, #ffd700, #ffb347);
+}
+.dy-func-item .func-icon-bg.crown {
+  background: linear-gradient(135deg, #ff6b6b, #ffa500);
+}
+.dy-func-item .func-label {
+  font-size: 24rpx; color: #666;
 }
 .profile-top {
   display: flex; justify-content: space-between;
@@ -2094,64 +2227,64 @@ export default {
 
 /* 签到卡片 */
 .checkin-card {
-  margin: 0 16px 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 16px;
+  margin: 20rpx 32rpx 20rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .checkin-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 20rpx;
 }
 .checkin-streak {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(255,255,255,0.2);
-  border-radius: 8px;
-  padding: 8px 12px;
+  background: #fff5f5;
+  border-radius: 16rpx;
+  padding: 16rpx 24rpx;
 }
 .streak-num {
-  font-size: 22px;
+  font-size: 40rpx;
   font-weight: 700;
-  color: #fff;
+  color: #ff2442;
   line-height: 1;
 }
 .streak-label {
-  font-size: 11px;
-  color: rgba(255,255,255,0.8);
-  margin-top: 4px;
+  font-size: 22rpx;
+  color: #ff6b81;
+  margin-top: 6rpx;
 }
 .checkin-info {
   display: flex;
   flex-direction: column;
 }
 .checkin-title {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: #333;
 }
 .checkin-desc {
-  font-size: 12px;
-  color: rgba(255,255,255,0.8);
-  margin-top: 4px;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 6rpx;
 }
 .checkin-btn {
-  background: #fff;
-  color: #667eea;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 20px;
-  border-radius: 20px;
+  background: #ff2442;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 500;
+  padding: 14rpx 32rpx;
+  border-radius: 32rpx;
 }
 .checkin-btn.checked {
-  background: rgba(255,255,255,0.3);
-  color: rgba(255,255,255,0.8);
+  background: #f5f5f5;
+  color: #999;
 }
 
 </style>

@@ -205,4 +205,17 @@ export default {
 .loading-circle { width: 36rpx; height: 36rpx; border: 4rpx solid #e0e0e0; border-top-color: #ff2442; border-radius: 50%; animation: rotate 0.8s linear infinite; }
 .no-more { text-align: center; color: #ccc; font-size: 24rpx; padding: 30rpx; }
 @keyframes rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.fancy-num {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+.fancy-star {
+  width: 24rpx;
+  height: 24rpx;
+}
+.divider {
+  margin: 0 12rpx;
+  color: #ddd;
+}
 </style>
