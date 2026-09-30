@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="xhs-login">
     <view class="logo-box">
       <image src="/static/logo.png" mode="aspectFit" class="logo-img" />
@@ -122,7 +122,7 @@
             <image src="/static/icon/phone.png" class="s-icon"></image>
             <text>手机号</text>
           </view>
-          <view class="icon-item" @click="handlePinhaoLogin">
+          <view v-if="pinhaoEnabled" class="icon-item" @click="handlePinhaoLogin">
             <image src="/static/icon/pinhao.jpg" class="s-icon"></image>
             <text>拼好社</text>
           </view>
@@ -178,6 +178,7 @@
 <script>
 import { request, baseUrl, getKefuUrl } from '../../common/request.js'
 import { isLoggedIn, setAuth } from '../../common/auth.js'
+import LYBAuth from '../../utils/lyb-auth-uni.js'
 
 export default {
   data() {
@@ -210,7 +211,18 @@ export default {
       kefuLink: '',
       oauthEnabled: null,
       pinhaoWv: null,
-      pinhaoPollTimer: null
+      pinhaoPollTimer: null,
+      pinhaoEnabled: true,
+      pinhaoAppid: '10007',
+      pinhaoOauthUrl: 'https://dl.baige.icu',
+      pinhaoLoading: false,
+      pinhaoConfig: {
+        client_id: '10007',
+        redirect_uri: '',
+        authorize_url: 'https://dl.baige.icu/oauth/authorize.php',
+        token_url: 'https://dl.baige.icu/oauth/token.php',
+        app_name: '栖屿社区'
+      }
     }
   },
 
@@ -238,6 +250,7 @@ export default {
     if (options.loginError) this.showHud('error', decodeURIComponent(options.loginError), true);
     this.checkPinhaoCallback(options);
     this.checkOauthStatus();
+    this.loadPinhaoConfig();
   },
 
   onShow() {
@@ -634,60 +647,160 @@ export default {
       return (body && typeof body === 'object') ? body : null
     },
 
-    // 拼好社 OAuth 快捷登录 (App: 优先唤起拼好社App; 未安装则降级WebView; H5: 跳转授权后回调)
-    handlePinhaoLogin() {
-      const APPID = '10007'
-      // #ifdef APP-PLUS
-      this.showHud('loading', '正在唤起拼好社...')
-      this._pinhaoAppLogin(APPID)
-      // #endif
-      // #ifdef H5
-      const state = Math.random().toString(36).substr(2) + Date.now()
-      try { uni.setStorageSync('pinhao_oauth_state', state) } catch (e) {}
-      // H5 先创建登录会话拿到 sid, 授权回调后前端凭 sid 直接换取授权码(避免服务端回连)
-      uni.request({
-        url: 'https://oauth.your-domain.com/api.php?s=api/qr_login_create',
-        method: 'POST',
-        data: { appid: APPID, app: '拼好社3.0' },
-        timeout: 15000,
-        success: (res) => {
-          const body = this._parsePinhaoBody(res) || {}
-          const sid = body && body.error === true && body.info ? body.info.sid : ''
-          if (!sid) {
-            this.showHud('error', (body && body.info) || '创建拼好社登录会话失败', true)
-            return
+    async loadPinhaoConfig() {
+      try {
+        const res = await request('system/settings', {}, { method: 'GET' })
+        if (res && res.code === 0 && res.data) {
+          this.pinhaoEnabled = parseInt(res.data.pinhao_enabled || 0) === 1
+          this.pinhaoAppid = res.data.pinhao_appid || ''
+          // 后台可能把 pinhao_oauth_url 填成完整接口地址(如 https://dl.baige.icu/oauth/authorize.php)，
+          // 这里统一剥离到根地址，避免拼出 /oauth/authorize.php/oauth/token.php 这类错误 URL
+          let oauthUrl = (res.data.pinhao_oauth_url || '').trim()
+          oauthUrl = oauthUrl.split(/[?#]/)[0].replace(/\/(oauth\/(authorize|token)\.php|oauth|api\.php)$/i, '').replace(/\/$/, '')
+          this.pinhaoOauthUrl = oauthUrl
+          
+          // ★★★ 同步更新 pinhaoConfig 对象，让SDK用后台配置 ★★★
+          if (this.pinhaoEnabled && this.pinhaoAppid && this.pinhaoOauthUrl) {
+            this.pinhaoConfig = {
+              client_id: this.pinhaoAppid,
+              redirect_uri: '',
+              authorize_url: this.pinhaoOauthUrl + '/oauth/authorize.php',
+              token_url: this.pinhaoOauthUrl + '/oauth/token.php',
+              app_name: '栖屿社区'
+            }
+            console.log('[拼好社] 配置已从后台加载:', this.pinhaoConfig)
+          } else {
+            console.log('[拼好社] 后台未开启或配置不完整，按钮将隐藏')
+            this.pinhaoEnabled = false
           }
-          try { uni.setStorageSync('pinhao_oauth_sid', sid) } catch (e) {}
-          const h5Redirect = window.location.origin + '/oauth_callback.php?sid=' + encodeURIComponent(sid)
-          const h5AuthUrl = 'https://oauth.your-domain.com/oauth/authorize.php' +
-            '?appid=' + APPID +
-            '&redirect_uri=' + encodeURIComponent(h5Redirect) +
-            '&state=' + state +
-            '&front=' + encodeURIComponent(window.location.href)
-          window.location.href = h5AuthUrl
-        },
-        fail: () => {
-          this.showHud('error', '网络错误，无法连接拼好社', true)
         }
+      } catch (e) {
+        console.log('拼好社配置加载失败:', e)
+        this.pinhaoEnabled = false
+      }
+    },
+
+    // 拼好社登录
+    handlePinhaoLogin() {
+      // ★★★ 先检查配置是否完整 ★★★
+      if (!this.pinhaoConfig || !this.pinhaoConfig.client_id) {
+        this.showHud('error', '拼好社登录未配置，请联系管理员', true);
+        return;
+      }
+      if (!this.pinhaoConfig.authorize_url || !this.pinhaoConfig.token_url) {
+        this.showHud('error', '拼好社OAuth地址未配置', true);
+        return;
+      }
+
+      // ★★★ 先取消之前的会话，清除缓存 ★★★
+      try {
+        if (typeof LYBAuth !== "undefined") {
+          LYBAuth.cancel();
+        }
+        if (typeof sessionStorage !== "undefined") {
+          sessionStorage.removeItem('lyb_oauth_pending');
+        }
+      } catch (e) {}
+
+      console.log('[拼好社] 开始登录，配置:', this.pinhaoConfig);
+
+      if (this.pinhaoLoading) return;
+      this.pinhaoLoading = true;
+      
+      let redirectUri = '';
+      // #ifdef H5
+      if (typeof window !== 'undefined') {
+        redirectUri = window.location.origin + '/oauth_callback.php';
+      }
+      // #endif
+      
+      LYBAuth.init({
+        platform: 'pinhao',
+        client_id: this.pinhaoConfig.client_id,
+        redirect_uri: redirectUri,
+        authorize_url: this.pinhaoConfig.authorize_url,
+        token_url: this.pinhaoConfig.token_url,
+        app_name: this.pinhaoConfig.app_name,
+        onLogin: (res) => {
+          console.log('[拼好社] 登录成功:', res);
+          this.pinhaoLoading = false;
+          this.handlePinhaoLoginSuccess(res);
+        },
+        onError: (err, msg) => {
+          console.error('[拼好社] 登录失败:', err, msg);
+          this.pinhaoLoading = false;
+          this.showHud('error', msg || '登录失败，请重试', true);
+        }
+      });
+      
+      LYBAuth.login();
+    },
+    
+    handlePinhaoLoginSuccess(res) {
+      // res 里有 access_token, uid, username, avatar
+      // 调用后端接口，用拼好社的uid登录/注册我们的系统
+      request('auth/pinhao_login', {
+        pinhao_uid: res.uid,
+        pinhao_name: res.username,
+        pinhao_avatar: res.avatar || ''
+      }, 'POST').then((r) => {
+        if (r && r.code === 0 && r.data && r.data.token) {
+          try { uni.setStorageSync('token', r.data.token) } catch (e) {}
+          try { uni.setStorageSync('userInfo', r.data.user || {}) } catch (e) {}
+          this.showHud('success', '登录成功', false);
+          setTimeout(() => { uni.reLaunch({ url: '/pages/index/index' }) }, 800);
+        } else {
+          this.showHud('error', (r && r.message) || '登录失败', true);
+        }
+      }).catch((e) => {
+        this.showHud('error', '登录失败: ' + (e.msg || ''), true);
+      });
+    },
+
+    // App端: 用code换登录态
+    _pinhaoExchangeCode(code) {
+      request('auth/pinhao_login', { code: code }, 'POST').then((res) => {
+        if (res && res.code === 0 && res.data && res.data.token) {
+          try { uni.setStorageSync('token', res.data.token) } catch (e) {}
+          try { uni.setStorageSync('userInfo', res.data.user || {}) } catch (e) {}
+          this._closePinhaoWv()
+          this.showHud('success', '登录成功', false)
+          setTimeout(() => { uni.reLaunch({ url: '/pages/index/index' }) }, 800)
+        } else {
+          this._closePinhaoWv()
+          this.showHud('error', (res && res.message) || '登录失败', true)
+        }
+      }).catch((e) => {
+        this._closePinhaoWv()
+        this.showHud('error', '登录失败: ' + (e.msg || ''), true)
       })
-      // #endif
-      // #ifdef MP
-      this.showHud('warn', '小程序暂不支持拼好社登录', true)
-      // #endif
+    },
+
+    // App端: 用code换登录态
+    _pinhaoExchangeCode(code) {
+      request('auth/pinhao_login', { code: code }, 'POST').then((res) => {
+        if (res && res.code === 0 && res.data && res.data.token) {
+          try { uni.setStorageSync('token', res.data.token) } catch (e) {}
+          try { uni.setStorageSync('userInfo', res.data.user || {}) } catch (e) {}
+          this._closePinhaoWv()
+          this.showHud('success', '登录成功', false)
+          setTimeout(() => { uni.reLaunch({ url: '/pages/index/index' }) }, 800)
+        } else {
+          this._closePinhaoWv()
+          this.showHud('error', (res && res.message) || '登录失败', true)
+        }
+      }).catch((e) => {
+        this._closePinhaoWv()
+        this.showHud('error', '登录失败: ' + (e.msg || ''), true)
+      })
     },
 
     // App 端: 拼好社 App 唤起登录 (创建会话 -> 唤起App -> 轮询授权 -> 换取授权码)
     _pinhaoAppLogin(APPID) {
       if (this.pinhaoPollTimer) { clearInterval(this.pinhaoPollTimer); this.pinhaoPollTimer = null }
-      const apiBase = 'https://oauth.your-domain.com'
-      // 1. 创建登录会话
-      uni.request({
-        url: apiBase + '/api.php?s=api/qr_login_create',
-        method: 'POST',
-        data: { appid: APPID, app: '拼好社3.0' },
-        timeout: 15000,
-        success: (res) => {
-          const body = this._parsePinhaoBody(res) || {}
+      const apiBase = this.pinhaoOauthUrl || 'https://oauth.your-domain.com'
+      // 1. 通过后端代理创建登录会话
+      request('system/pinhao_create', {}, { method: 'POST' }).then((body) => {
           if (!body || body.error !== true || !body.info || !body.info.sid) {
             this.hideHud()
             this.showHud('error', (body && body.info) || '创建拼好社登录会话失败', true)
@@ -709,11 +822,9 @@ export default {
           }
           // 3. 轮询授权结果
           this._pinhaoPoll(APPID, sid, apiBase)
-        },
-        fail: () => {
-          this.hideHud()
-          this.showHud('error', '网络错误，无法连接拼好社', true)
-        }
+      }).catch(() => {
+        this.hideHud()
+        this.showHud('error', '网络错误，无法连接拼好社', true)
       })
     },
 
@@ -728,13 +839,7 @@ export default {
           this.showHud('error', '授权超时，请重新发起登录', true)
           return
         }
-        uni.request({
-          url: apiBase + '/api.php?s=api/qr_login_check&sid=' + encodeURIComponent(sid) +
-            '&appid=' + encodeURIComponent(APPID) + '&oauth=1',
-          method: 'GET',
-          timeout: 15000,
-          success: (res) => {
-            const body = this._parsePinhaoBody(res) || {}
+        request('system/pinhao_status', { sid: sid }, { method: 'GET' }).then((body) => {
             if (!body || body.error !== true || !body.info) return
             const status = body.info.status
             if (status === 2) {
@@ -744,24 +849,13 @@ export default {
               this._closePinhaoWv()
               this.showHud('error', '拼好社登录会话已过期，请重新发起', true)
             }
-          },
-          fail: () => {}
-        })
+        }).catch(() => {})
       }, 1500)
     },
 
     // 用 sid 换取授权码 code, 交给社区后端完成登录 (AppSecret 只在服务端)
     _pinhaoGetCode(APPID, sid, apiBase) {
-      uni.request({
-        url: apiBase + '/api.php?s=api/oauth_code&sid=' + encodeURIComponent(sid) + '&appid=' + encodeURIComponent(APPID),
-        method: 'POST',
-        data: {
-          redirect_uri: 'http://your-domain.com/oauth_callback.php'
-        },
-        header: { 'Content-Type': 'application/json' },
-        timeout: 15000,
-        success: (res) => {
-          const body = this._parsePinhaoBody(res) || {}
+      request('system/pinhao_code', { sid: sid }, { method: 'GET' }).then((body) => {
           if (body && body.error === true && body.info && body.info.code) {
             const info = body.info || {}
             this._pinhaoExchange(body.info.code, {
@@ -773,11 +867,9 @@ export default {
             this._closePinhaoWv()
             this.showHud('error', (body && body.info) || '换取授权码失败，请重试', true)
           }
-        },
-        fail: () => {
+      }).catch(() => {
           this._closePinhaoWv()
           this.showHud('error', '网络错误，获取授权码失败', true)
-        }
       })
     },
 
@@ -858,7 +950,7 @@ export default {
     // H5 端: 授权回调后凭 sid 直接换取授权码并登录(避免服务端回连)
     _pinhaoH5Finish(sid) {
       this.showHud('loading', '正在获取授权信息...')
-      this._pinhaoGetCode('10007', sid, 'https://oauth.your-domain.com')
+      this._pinhaoGetCode(this.pinhaoAppid || '10007', sid, this.pinhaoOauthUrl || 'https://oauth.your-domain.com')
     },
 
     closeOauthQr() {
