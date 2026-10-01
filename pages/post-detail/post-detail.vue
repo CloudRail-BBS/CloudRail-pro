@@ -4346,6 +4346,10 @@ export default {
   top: 0;
   z-index: 100;
   width: 100%;
+  /* 必须 border-box: 元素同时设了 height:navTotalHeight + paddingTop:statusBarHeight,
+     而 navTotalHeight 本身已包含状态栏高度. 若按 content-box 计算, 导航栏实际高度会多出
+     一个状态栏高度, 白底会把正文顶部盖住(无图帖子正好盖住「共创」那一行, 看起来只显示一半) */
+  box-sizing: border-box;
   background: #fff;
   transition: background 0.2s ease;
 }
