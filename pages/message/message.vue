@@ -174,7 +174,9 @@ export default {
     combinedMsgList() {
       const privateItems = this.privateList.map(item => {
         let lastMsg = item.last_msg || ''
-        if (typeof lastMsg === 'string' && lastMsg.indexOf('[群名片]') === 0) {
+        if (item.last_message && typeof item.last_message === 'object') {
+          lastMsg = this.previewText(item.last_message)
+        } else if (typeof lastMsg === 'string' && lastMsg.indexOf('[群名片]') === 0) {
           lastMsg = '[群名片]'
         }
         return {
@@ -240,6 +242,39 @@ export default {
     this.fetchData(false).finally(() => uni.stopPullDownRefresh())
   },
   methods: {
+    /* 会话列表"最后一条消息"预览文案
+       红包/转账/群邀请/名片等卡片消息的 content 是 JSON，直接显示会变成一串"代码"，
+       这里按消息类型转成可读文案（与后端 chat.php 的 $msgPreview 保持一致） */
+    previewText(data) {
+      const type = String((data && (data.type || data.msg_type)) || 'text')
+      const content = String((data && data.content) || '')
+      if (type === 'text') {
+        return content.indexOf('[群名片]') === 0 ? '[群名片]' : content
+      }
+      if (type === 'image') return '[图片]'
+      if (type === 'emoticon') return '[表情]'
+      if (type === 'recalled') return '撤回了一条消息'
+      if (['card', 'group_card', 'transfer', 'redpacket', 'group_invite'].indexOf(type) < 0) return content
+
+      let j = null
+      try { j = JSON.parse(content || '{}') } catch (e) { j = null }
+      if (!j || typeof j !== 'object') j = {}
+      if (type === 'redpacket') {
+        const greeting = String(j.greeting || '').trim()
+        return '[红包] ' + (greeting || '恭喜发财，大吉大利')
+      }
+      if (type === 'transfer') {
+        return '[转账] ¥' + Number(j.amount || 0).toFixed(2)
+      }
+      if (type === 'group_invite') {
+        const inviter = String(j.inviter || '').trim() || '好友'
+        const gname = String(j.group_name || '').trim()
+        return '[群邀请] ' + inviter + ' 邀请你加入群聊' + (gname ? '「' + gname + '」' : '')
+      }
+      const n = String(j.name || '').trim()
+      if (type === 'group_card') return '[群名片] ' + (n || '群聊')
+      return '[名片] ' + (n || '用户')
+    },
     onScrollToLower() {
     },
     goPublish() {
@@ -361,12 +396,7 @@ export default {
       const idx = this.privateList.findIndex(i => Number(i.chat_id) === Number(chatId))
       if (idx >= 0) {
         const item = { ...this.privateList[idx] }
-        let lastMsg = data.content || ''
-        if (data.type === 'image') {
-          lastMsg = '[图片]'
-        } else if (typeof lastMsg === 'string' && lastMsg.indexOf('[群名片]') === 0) {
-          lastMsg = '[群名片]'
-        }
+        const lastMsg = this.previewText(data)
         item.last_msg = lastMsg
         item.update_time = data.create_time
         item.unread = Number(item.unread || 0) + 1
@@ -386,7 +416,7 @@ export default {
         if (Number(data.sender_id) !== Number(this.myId || 0)) {
           item.unread = Number(item.unread || 0) + 1
         }
-        item.last_msg_preview = data.msg_type === 'image' ? '[图片]' : (data.content || '').slice(0, 60)
+        item.last_msg_preview = this.previewText(data).slice(0, 60)
         item.last_msg_time = data.create_time
         this.$set(this.groupList, idx, item)
       }

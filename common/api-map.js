@@ -199,6 +199,7 @@ const apiMap = {
     'group_receive_redpacket': ['wallet/redpacket/grab', 'POST'],
     'group_redpacket_detail': ['wallet/redpacket/detail', 'GET'],
     'group_search_by_identity': ['chat/group_search', 'GET'],
+    'group_search': ['chat/group_search', 'GET'],
     'group_set_announcement': ['chat/group_setting', 'POST'],
     'group_set_avatar': ['chat/group_setting', 'POST'],
     'group_set_join_need_approve': ['chat/group_setting', 'POST'],

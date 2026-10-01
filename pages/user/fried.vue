@@ -22,7 +22,7 @@
           <text class="search-icon">⌕</text>
           <input
             class="search-input"
-            placeholder="输入她的昵称或ID"
+            placeholder="输入昵称 / 靓号 / 社区ID / 群名或群号"
             placeholder-class="search-placeholder"
             v-model="keyword"
             confirm-type="search"
@@ -48,8 +48,8 @@
             <view
               class="search-result-item"
               v-for="item in searchResults"
-              :key="item.id"
-              @click="goToUserProfile(item.id)"
+              :key="(item.kind === 'group' ? 'g' : 'u') + item.id"
+              @click="item.kind === 'group' ? goToGroup(item) : goToUserProfile(item.id)"
             >
               <view class="search-result-avatar-wrap">
                 <image
@@ -67,16 +67,22 @@
               </view>
 
               <view class="search-result-info">
-                <text class="search-result-name">{{ item.name }}</text>
-                <view class="search-result-id" :style="item.is_fancy == 1 ? 'color:#f59e0b;font-weight:700;' : 'color:#aaa;'">
+                <view class="search-result-name-row">
+                  <text class="search-result-name">{{ item.name }}</text>
+                  <text v-if="item.kind === 'group'" class="search-result-badge">群</text>
+                </view>
+                <view v-if="item.kind === 'group'" class="search-result-id">
+                  <text style="color:#aaa;">群号 {{ item.identity_code || '-' }} · {{ item.member_count }}人</text>
+                </view>
+                <view v-else class="search-result-id" :style="item.is_fancy == 1 ? 'color:#f59e0b;font-weight:700;' : 'color:#aaa;'">
                   <image v-if="item.is_fancy == 1" src="/static/icon/star-gold.svg" class="fancy-star" mode="aspectFit"></image>
-                  <text>{{ item.display_number || '' }}</text>
+                  <text>{{ item.display_number || item.id || '' }}</text>
                 </view>
               </view>
             </view>
 
             <view class="search-result-empty" v-if="searchResults.length === 0">
-              <text>没有找到相关用户</text>
+              <text>没有找到相关用户或群聊</text>
             </view>
           </template>
         </view>
@@ -246,7 +252,10 @@ export default {
     },
 
     normalizeRecommendUser(item) {
+      /* 后端 recommend 合并了真实统计，这里直接用；取不到才回退 0 */
       const fans = Number(item.fans_count || 0)
+      const follows = Number(item.follow_count || 0)
+      const likes = Number(item.total_like || 0)
       const posts = Number(item.post_count || 0)
 
       let activeText = ''
@@ -256,9 +265,12 @@ export default {
       else if (posts >= 3) activeText = '最近活跃'
       else activeText = '推荐认识'
 
+      /* 后端 uid 是字符串(如 202610012244331A2B3C)，不能 Number()，
+         否则会变成 NaN：v-for :key 非法，关注/移除/进主页也会一起失效 */
+      const uid = String(item.id || item.uid || '')
       return {
-        id: Number(item.id),
-        name: item.name || item.username || `用户${item.id}`,
+        id: uid,
+        name: item.name || item.username || '用户',
         avatar: item.avatar || '/static/logo.png',
         current_frame_img: item.current_frame_img || '',
         cornerText: item.cornerText || '',
@@ -266,7 +278,7 @@ export default {
         tag: fans >= 5000 ? '热门' : '',
         tagStyle: 'light',
         activeText,
-        workText: `粉丝 ${fans} · 发帖 ${posts}`,
+        workText: `粉丝 ${fans} · 关注 ${follows} · 获赞 ${likes} · 发帖 ${posts}`,
         desc: item.personal_signature || '这个人很神秘，什么都没留下',
         followed: !!(item.is_following || item.followed),
         isFollowedBy: !!item.is_followed_by
@@ -282,8 +294,10 @@ export default {
           limit: 20
         }, 'GET')
 
-        if (res.code === 0 && Array.isArray(res.data)) {
-          this.recommendList = res.data.map(this.normalizeRecommendUser)
+        /* 后端 user/recommend 返回的是 { list }，兼容个别返回纯数组的老版本 */
+        if (res.code === 0) {
+          const arr = Array.isArray(res.data) ? res.data : ((res.data && res.data.list) || [])
+          this.recommendList = arr.map(this.normalizeRecommendUser)
         } else {
           this.recommendList = []
         }
@@ -339,18 +353,33 @@ export default {
       this.showSearchResults = true
 
       try {
-        const res = await request('user.php', {
-          action: 'searchUser',
-          keyword: kw
-        }, 'GET')
+        /* 用户 + 群聊一起搜，结果合并到同一个列表 */
+        const [res, groupRes] = await Promise.all([
+          request('user.php', { action: 'searchUser', keyword: kw }, 'GET'),
+          request('message.php', { action: 'group_search', q: kw }, 'GET').catch(() => null)
+        ])
 
         if (reqId !== this.searchReqId) return
 
-        if (res.code === 0 && Array.isArray(res.data)) {
-          this.searchResults = res.data
-        } else {
-          this.searchResults = []
-        }
+        /* 后端返回的是 { list, total }，兼容个别返回纯数组的老版本 */
+        const users = (res && res.code === 0)
+          ? (Array.isArray(res.data) ? res.data : ((res.data && res.data.list) || []))
+          : []
+        const groups = (groupRes && groupRes.code === 0)
+          ? (Array.isArray(groupRes.data) ? groupRes.data : ((groupRes.data && groupRes.data.list) || []))
+          : []
+
+        this.searchResults = [
+          ...users.map(u => ({ ...u, kind: 'user' })),
+          ...groups.map(g => ({
+            kind: 'group',
+            id: Number(g.id || g.session_id || 0),
+            name: g.name || '群聊',
+            avatar: g.avatar || '',
+            identity_code: g.identity_code || '',
+            member_count: Number(g.member_count || 0)
+          }))
+        ]
       } catch (err) {
         if (reqId !== this.searchReqId) return
         this.searchResults = []
@@ -503,6 +532,21 @@ export default {
     goToUserProfile(userId) {
       uni.navigateTo({
         url: `/pages/user/profile?userId=${userId}`
+      })
+    },
+
+    /* 搜索结果里的群聊: 进群资料页(可在那里直接加入 / 进入群聊) */
+    goToGroup(item) {
+      const gid = Number((item && item.id) || 0)
+      if (!gid) {
+        uni.showToast({ title: '群聊不存在', icon: 'none' })
+        return
+      }
+      uni.navigateTo({
+        url: `/pages/message/group-profile?groupId=${gid}`,
+        fail: () => {
+          uni.showToast({ title: '打开群资料失败', icon: 'none' })
+        }
       })
     }
   }
@@ -659,6 +703,28 @@ export default {
 .search-result-info {
   flex: 1;
   min-width: 0;
+}
+
+.search-result-name-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.search-result-name-row .search-result-name {
+  margin-bottom: 0;
+}
+
+.search-result-badge {
+  margin-left: 10rpx;
+  padding: 0 10rpx;
+  height: 32rpx;
+  line-height: 32rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  color: #7c5cff;
+  background: rgba(124, 92, 255, 0.12);
+  flex-shrink: 0;
 }
 
 .search-result-name {
