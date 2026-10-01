@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container" :class="themeClass" :style="themeVars">
     <view v-if="initialLoading" class="init-loading-mask">
       <view class="spinner"></view>
@@ -148,7 +148,7 @@
 
           <!-- IP属地 -->
           <view class="ip-location-row" v-if="userInfo.ip_location && userInfo.ip_location !== '未知'">
-            <text class="ip-location-icon">📍</text>
+            <text class="ip-location-icon"></text>
             <text class="ip-location-text">IP属地：{{ userInfo.ip_location }}</text>
           </view>
         </view>
