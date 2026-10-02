@@ -43,7 +43,10 @@
             :key="member.user_id || member.id"
             @click="onMemberClick(member)"
           >
-            <image class="member-avatar" :src="fixUrl(member.avatar)" mode="aspectFill" />
+            <view class="member-avatar-wrap">
+              <image class="member-avatar" :src="fixUrl(member.avatar)" mode="aspectFill" />
+              <view class="member-online-dot" :class="{ on: isOnline(member) }"></view>
+            </view>
             <view class="member-info">
               <view class="member-name-row">
                 <text class="member-name">{{ member.nickname || member.name || member.username }}</text>
@@ -81,7 +84,10 @@
             :key="member.user_id || member.id"
             @click="onMemberClick(member)"
           >
-            <image class="member-avatar" :src="fixUrl(member.avatar)" mode="aspectFill" />
+            <view class="member-avatar-wrap">
+              <image class="member-avatar" :src="fixUrl(member.avatar)" mode="aspectFill" />
+              <view class="member-online-dot" :class="{ on: isOnline(member) }"></view>
+            </view>
             <view class="member-info">
               <view class="member-name-row">
                 <text class="member-name">{{ member.nickname || member.name || member.username }}</text>
@@ -210,6 +216,7 @@
 
 <script>
 import { request } from '@/common/request.js'
+import presence from '@/common/presence.js'
 import XhsModal from '@/components/XhsModal.vue'
 
 export default {
@@ -232,7 +239,8 @@ export default {
       inviteModal: { show: false },
       inviteFriends: [],
       inviteSelected: {},
-      inviteSearchKeyword: ''
+      inviteSearchKeyword: '',
+      onlineMap: {}
     }
   },
   computed: {
@@ -285,8 +293,42 @@ export default {
     this.groupName = options.groupName || ''
     await this.fetchMyInfo()
     await this.loadMembers(true)
+    /* 在线状态: 进入页面查一次, WS 实时推送 + 每 10 秒兜底刷新 */
+    this.refreshOnline()
+    this._onlineTimer = setInterval(() => this.refreshOnline(), 10000)
+    uni.$off('presence_changed', this._onPresence)
+    uni.$on('presence_changed', this._onPresence)
   },
+
+  onUnload() {
+    if (this._onlineTimer) { clearInterval(this._onlineTimer); this._onlineTimer = null }
+    uni.$off('presence_changed', this._onPresence)
+  },
+
   methods: {
+    /* WS 推来在线变化时立刻改小圆点, 不走网络 */
+    _onPresence() {
+      this.allMembers.forEach(m => {
+        const uid = String(m.uid || m.user_id || '')
+        if (!uid) return
+        const v = presence.getCached(uid)
+        if (v === null) return
+        if (!!this.onlineMap[uid] !== v) this.$set(this.onlineMap, uid, v)
+      })
+    },
+    /* 在线状态: 批量查询当前已加载成员的在线情况 */
+    isOnline(member) {
+      if (!member) return false
+      const uid = String(member.uid || member.user_id || '')
+      return !!this.onlineMap[uid]
+    },
+    async refreshOnline() {
+      const uids = this.allMembers.map(m => String(m.uid || m.user_id || '')).filter(Boolean)
+      if (!uids.length) return
+      try {
+        this.onlineMap = await presence.fetchOnline(uids)
+      } catch (e) {}
+    },
     goBack() {
       uni.navigateBack()
     },
@@ -356,7 +398,7 @@ export default {
     },
     loadMore() {
       if (this.hasMore && !this.loading && !this.searchKeyword) {
-        this.loadMembers(false)
+        this.loadMembers(false).then(() => this.refreshOnline())
       }
     },
     toggleSearch() {
@@ -662,6 +704,28 @@ export default {
   border-radius: 12rpx;
   background: #DDD;
   flex-shrink: 0;
+}
+
+/* 在线状态: 头像包裹层 + 右下角小圆点（绿=在线 灰=离线） */
+.member-avatar-wrap {
+  position: relative;
+  width: 80rpx;
+  height: 80rpx;
+  flex-shrink: 0;
+}
+.member-online-dot {
+  position: absolute;
+  right: -6rpx;
+  bottom: -6rpx;
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background: #C9CED6;
+  border: 3rpx solid #fff;
+  box-sizing: border-box;
+}
+.member-online-dot.on {
+  background: #22C55E;
 }
 .member-info {
   flex: 1;

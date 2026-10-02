@@ -1,5 +1,6 @@
-﻿<template>
+<template>
   <view class="index-container">
+    <OnlineNotifyCard />
     <view
       class="custom-app-bar pc-centered-nav"
       :style="{ paddingTop: statusBarHeight + 'px', height: navBarHeight + 'px' }"
@@ -257,6 +258,7 @@ import MarketShopSection from '../../components/MarketShopSection.vue'
 import SoftwareLibrarySection from '../../components/SoftwareLibrarySection.vue'
 
 import RedPacketModal from '../../components/RedPacketModal.vue'
+import OnlineNotifyCard from '../../components/OnlineNotifyCard.vue'
 import { applyH5ViewportHeightVar, getScreenMetrics } from '../../common/screen.js'
 import { saveLevelConfig } from '../../common/level.js'
 
@@ -290,6 +292,7 @@ export default {
     MarketShopSection,
     SoftwareLibrarySection,
     RedPacketModal,
+    OnlineNotifyCard,
   },
 
   data() {

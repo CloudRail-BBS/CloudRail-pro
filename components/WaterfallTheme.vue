@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="waterfall-theme">
     <!-- 顶部轮播图（banner） -->
     <view v-if="currentTab !== 2 && safeBannerList.length > 0" class="hero-band">
@@ -404,7 +404,7 @@ export default {
       }
       
       const app = getApp();
-      const apiBase = (app.globalData && app.globalData.apiBase) || 'https://sq.baige.icu/api/index.php/';
+      const apiBase = (app.globalData && app.globalData.apiBase) || 'https://example.com/api/index.php/';
       
       uni.request({
         url: apiBase + 'post/like',

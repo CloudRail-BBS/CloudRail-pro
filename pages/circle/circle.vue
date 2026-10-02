@@ -1,5 +1,6 @@
 <template>
   <view class="circle-page">
+    <OnlineNotifyCard />
     <view class="top-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="header-row">
         <view class="nav-tabs">
@@ -159,10 +160,11 @@ import { request } from '../../common/request.js'
 import DynamicFeed from '../../components/DynamicFeed.vue'
 import PublishModal from '../../components/PublishModal.vue'
 import CustomTabBar from '../../components/CustomTabBar.vue'
+import OnlineNotifyCard from '../../components/OnlineNotifyCard.vue'
 import { applyH5ViewportHeightVar, getScreenMetrics } from '../../common/screen.js'
 
 export default {
-  components: { DynamicFeed, PublishModal, CustomTabBar },
+  components: { DynamicFeed, PublishModal, CustomTabBar, OnlineNotifyCard },
   data() {
     return {
       statusBarHeight: 0,

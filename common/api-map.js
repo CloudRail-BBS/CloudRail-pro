@@ -145,6 +145,7 @@ const apiMap = {
     'checkMyStyle': ['chat/setting', 'GET'],
     'getWsStatus': ['chat/setting', 'GET'],
     'getUserOnline': ['chat/setting', 'GET'],
+    'getUserOnlineBatch': ['chat/online', 'GET'],
     'getLogEnable': ['chat/setting', 'GET'],
     'setLogEnable': ['chat/setting', 'POST'],
     'searchChatMessages': ['chat/messages', 'GET'],

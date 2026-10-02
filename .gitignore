@@ -1,4 +1,4 @@
-﻿# HBuilderX
+# HBuilderX
 .hbuilderx/
 
 # uni-app 编译产物
@@ -33,3 +33,6 @@ desktop.ini
 *.temp
 # uni-app 编译缓存和产物
 unpackage/
+
+# 表情包源压缩包（已解压到 static/emoticons/）
+static/*.zip

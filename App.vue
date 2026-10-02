@@ -8,6 +8,7 @@
 import { isLoggedIn, setAuth } from '@/common/auth.js'
 import { request, normalizeServerMessage } from '@/common/request.js'
 import ws from '@/common/ws.js'
+import { startOnlineNotify } from '@/common/online-notify.js'
 import { applyH5DocumentTitle, setupH5TitleSync } from '@/common/pageTitle.js'
 import { parseOauthCallbackUrl, saveOauthCallback, readOauthCallback, clearOauthCallback } from '@/common/oauthCallback.js'
 import { saveLevelConfig } from '@/common/level.js'
@@ -87,9 +88,16 @@ export default {
     // #endif
 
     this.syncRuntimeConfig()
+    /* 先注销上一轮注册的监听: onShow 会被多次触发, 不注销会导致监听器累积、未读数被重复累加 */
+    if (this._wsUnsubUnread) { this._wsUnsubUnread(); this._wsUnsubUnread = null }
+    if (this._wsUnsubChat) { this._wsUnsubChat(); this._wsUnsubChat = null }
+    if (this._wsUnsubGroupMsg) { this._wsUnsubGroupMsg(); this._wsUnsubGroupMsg = null }
+    if (this._wsUnsubNotif) { this._wsUnsubNotif(); this._wsUnsubNotif = null }
     // 已登录时连接 WebSocket 并获取初始未读数
     if (isLoggedIn()) {
       ws.ensureConnected()
+      // 互关好友上线提醒（幂等，内部自己注册 presence_changed 监听）
+      startOnlineNotify()
       // 注册 WebSocket 未读数更新回调
       this._wsUnsubUnread = ws.on('unread_update', (data) => {
         this.fetchGlobalUnread()
@@ -110,14 +118,14 @@ export default {
         this.fetchGlobalUnread()
       }, delay)
     }
-    // 监听消息页面发送的未读更新事件
+    // 监听消息页面发送的未读更新事件（先解绑，避免多次 onShow 重复注册）
+    uni.$off('message_unread_updated', this.onUnreadUpdated)
     uni.$on('message_unread_updated', this.onUnreadUpdated)
   },
 
-  onHide() {
-    // 不停止轮询，由message.vue负责轮询
-  },
-
+  /* 在线状态完全交给 WebSocket 连接本身去判断（纯 WS 检测）：
+     连接活着 = 在线，连接断了 = 离线，前端不做任何"后台"相关处理。
+     App 被划掉或系统挂起后心跳自然停止，服务端 20 秒内判定离线并广播。 */
   onUnload() {
     if (this._unreadRefreshTimer) { clearTimeout(this._unreadRefreshTimer); this._unreadRefreshTimer = null }
     if (this._wsUnsubUnread) { this._wsUnsubUnread(); this._wsUnsubUnread = null }

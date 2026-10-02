@@ -1,5 +1,6 @@
 <template>
   <view class="msg-page">
+    <OnlineNotifyCard />
     <view class="fixed-header">
       <view class="header-row">
         <text class="page-title">消息</text>
@@ -75,6 +76,8 @@
                 mode="aspectFill"
                 @error="onAvatarError(item)"
               />
+              <!-- 在线状态: 仅私聊显示（群聊头像不显示） -->
+              <view v-if="item.type === 'private'" class="online-dot" :class="{ on: item.online }"></view>
             </view>
 
             <view class="chat-body">
@@ -141,11 +144,14 @@ import PublishModal from '../../components/PublishModal.vue'
 import CustomTabBar from '../../components/CustomTabBar.vue'
 import { applyH5ViewportHeightVar } from '../../common/screen.js'
 import { swr, invalidate, subscribe, CACHE_KEYS } from '../../common/cache.js'
+import presence from '../../common/presence.js'
+import OnlineNotifyCard from '../../components/OnlineNotifyCard.vue'
 
 export default {
   components: {
     PublishModal,
-    CustomTabBar
+    CustomTabBar,
+    OnlineNotifyCard
   },
   data() {
     return {
@@ -203,15 +209,16 @@ export default {
     const user = uni.getStorageSync('userInfo') || {}
     this.myId = Number(user.id || 0)
     uni.$on('message_read_changed', this.onMessageReadChanged)
+    /* WebSocket 实时更新会话列表：在 onLoad 里注册一次，页面存活期间一直有效。
+       以前是放在 onShow 注册、onHide 注销，切到别的 Tab 就会注销掉，
+       于是新消息只更新了小红点（那是 App.vue 全局监听的），
+       列表预览必须手动刷新才变。 */
+    this._registerWsCallbacks()
     // 订阅消息列表缓存刷新事件：后台拉到新数据后静默更新
     this._unsubMsgCache = subscribe(CACHE_KEYS.MESSAGE_LIST, (newData) => {
-      if (newData && typeof newData === 'object') {
-        if (Array.isArray(newData.privateList)) this.privateList = newData.privateList
-        if (Array.isArray(newData.groupList)) this.groupList = newData.groupList
-        if (newData.unreadCounts) this.unreadCounts = newData.unreadCounts
-        if (newData.lastSystem) this.lastSystem = newData.lastSystem
-        this.syncGlobalUnread()
-      }
+      /* 缓存里存的就是 { privateRes, groupRes }（见 swr 的 fetcher 返回值），
+         以前这里判断 newData.privateList 永远不成立，等于什么都没做 */
+      this._applyMessageData(newData)
     })
   },
   onShow() {
@@ -219,22 +226,36 @@ export default {
     invalidate(CACHE_KEYS.MESSAGE_LIST)
     this.fetchData(true)
     ws.ensureConnected()
-    this._wsUnsubChat = ws.on('chat', this._onWsChat)
-    this._wsUnsubGroup = ws.on('group_msg', this._onWsGroupMsg)
-    this._wsUnsubNotif = ws.on('notification', this._onWsNotification)
-    this._wsUnsubUnread = ws.on('unread_update', this._onWsUnreadUpdate)
+    /* 在线状态: 会话列表进入页面时由后端给一次, 之后 WS 实时推送 + 每 10 秒兜底刷新 */
+    this.refreshOnlineDots()
+    if (!this._onlineTimer) {
+      this._onlineTimer = setInterval(() => this.refreshOnlineDots(), 10000)
+    }
+    uni.$off('presence_changed', this._onPresence)
+    uni.$on('presence_changed', this._onPresence)
   },
   onUnload() {
     this._unregisterWsCallbacks()
     uni.$off('message_read_changed', this.onMessageReadChanged)
+    uni.$off('presence_changed', this._onPresence)
     if (this._readRefreshTimer) {
       clearTimeout(this._readRefreshTimer)
       this._readRefreshTimer = null
     }
+    if (this._onlineTimer) {
+      clearInterval(this._onlineTimer)
+      this._onlineTimer = null
+    }
     if (this._unsubMsgCache) this._unsubMsgCache()
   },
   onHide() {
-    this._unregisterWsCallbacks()
+    /* 注意：这里不能注销 WebSocket 监听。
+       切到别的 Tab / 切后台都会触发 onHide，一注销就收不到实时消息，
+       会话列表只能靠手动刷新。监听改为在 onLoad 注册、onUnload 注销。 */
+    if (this._onlineTimer) {
+      clearInterval(this._onlineTimer)
+      this._onlineTimer = null
+    }
   },
   onPullDownRefresh() {
     // 用户主动下拉刷新：强制失效缓存，立即拉取最新
@@ -242,6 +263,35 @@ export default {
     this.fetchData(false).finally(() => uni.stopPullDownRefresh())
   },
   methods: {
+    /* WS 推来在线变化时立刻改小圆点, 不走网络 */
+    _onPresence() {
+      this.privateList.forEach((item, idx) => {
+        const uid = String(item.target_uid || (item.peer && item.peer.uid) || '')
+        if (!uid) return
+        const v = presence.getCached(uid)
+        if (v === null) return
+        if (!!item.online !== v) this.$set(this.privateList, idx, { ...item, online: v })
+      })
+    },
+    /* 在线状态: 只刷新私聊会话头像上的小圆点，不重新拉整个列表 */
+    async refreshOnlineDots() {
+      const uids = this.privateList
+        .map(it => String(it.target_uid || (it.peer && it.peer.uid) || ''))
+        .filter(Boolean)
+      if (!uids.length) return
+      let map = {}
+      try {
+        map = await presence.fetchOnline(uids)
+      } catch (e) {
+        return
+      }
+      this.privateList.forEach((item, idx) => {
+        const uid = String(item.target_uid || (item.peer && item.peer.uid) || '')
+        if (!uid) return
+        const on = !!map[uid]
+        if (!!item.online !== on) this.$set(this.privateList, idx, { ...item, online: on })
+      })
+    },
     /* 会话列表"最后一条消息"预览文案
        红包/转账/群邀请/名片等卡片消息的 content 是 JSON，直接显示会变成一串"代码"，
        这里按消息类型转成可读文案（与后端 chat.php 的 $msgPreview 保持一致） */
@@ -384,6 +434,14 @@ export default {
     goAddFriend() {
       uni.navigateTo({ url: '/pages/user/fried' })
     },
+    /* 页面存活期间一直挂着的 WebSocket 监听（onLoad 注册一次） */
+    _registerWsCallbacks() {
+      this._unregisterWsCallbacks()
+      this._wsUnsubChat = ws.on('chat', this._onWsChat)
+      this._wsUnsubGroup = ws.on('group_msg', this._onWsGroupMsg)
+      this._wsUnsubNotif = ws.on('notification', this._onWsNotification)
+      this._wsUnsubUnread = ws.on('unread_update', this._onWsUnreadUpdate)
+    },
     _unregisterWsCallbacks() {
       if (this._wsUnsubChat) { this._wsUnsubChat(); this._wsUnsubChat = null }
       if (this._wsUnsubGroup) { this._wsUnsubGroup(); this._wsUnsubGroup = null }
@@ -392,18 +450,22 @@ export default {
     },
     _onWsChat(data) {
       const chatId = data.chat_id
-      const senderId = data.sender_id
       const idx = this.privateList.findIndex(i => Number(i.chat_id) === Number(chatId))
       if (idx >= 0) {
         const item = { ...this.privateList[idx] }
         const lastMsg = this.previewText(data)
         item.last_msg = lastMsg
         item.update_time = data.create_time
-        item.unread = Number(item.unread || 0) + 1
+        /* 自己发出去的消息不加未读（服务端会推给会话里所有人，包括发送者） */
+        if (Number(data.sender_id) !== Number(this.myId || 0)) {
+          item.unread = Number(item.unread || 0) + 1
+        }
         const newList = this.privateList.filter((_, i) => i !== idx)
         newList.unshift(item)
         this.privateList = newList
       } else {
+        /* 列表里还没有这个会话（第一次聊天）：清掉缓存重新拉一次，让新会话直接出现 */
+        invalidate(CACHE_KEYS.MESSAGE_LIST)
         this.fetchData(false)
       }
       this.syncGlobalUnread()
@@ -419,6 +481,10 @@ export default {
         item.last_msg_preview = this.previewText(data).slice(0, 60)
         item.last_msg_time = data.create_time
         this.$set(this.groupList, idx, item)
+      } else {
+        /* 列表里还没有这个群：清掉缓存重新拉一次 */
+        invalidate(CACHE_KEYS.MESSAGE_LIST)
+        this.fetchData(false)
       }
       this.syncGlobalUnread()
     },
@@ -973,6 +1039,21 @@ export default {
 
 .ava-wrap{ position:relative; overflow:hidden; }
 .ava-wrap .img{ width:100%; height:100%; border-radius:inherit; display:block; }
+
+/* 在线状态: 头像右下角小圆点（.ava-wrap 是 overflow:hidden，圆点放在头像内）
+   绿=在线，灰=离线，由后端 chat_list 的 item.online 驱动 */
+.online-dot{
+  position:absolute;
+  right:8rpx;
+  bottom:8rpx;
+  width:22rpx;
+  height:22rpx;
+  border-radius:50%;
+  background:#c9ced6;
+  border:3rpx solid #fff;
+  box-sizing:border-box;
+}
+.online-dot.on{ background:#22c55e; }
 
 .chat-body{ flex:1; overflow:hidden; }
 .chat-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10rpx; gap:16rpx; }

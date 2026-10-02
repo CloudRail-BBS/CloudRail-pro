@@ -1,6 +1,8 @@
 <template>
   <view class="page-container">
 
+    <OnlineNotifyCard />
+
     <view class="init-loading-mask" v-if="initialLoading" @touchmove.stop.prevent>
       <view class="spinner"></view>
     </view>
@@ -435,13 +437,15 @@ import { request, uploadBackgroundImage, uploadAvatar, baseUrl } from '../../com
 import { getLevelDisplay as calcLevelDisplay } from '../../common/level.js';
 import PublishModal from '../../components/PublishModal.vue';
 import CustomTabBar from '../../components/CustomTabBar.vue';
+import OnlineNotifyCard from '../../components/OnlineNotifyCard.vue';
 import { applyH5ViewportHeightVar, getScreenMetrics } from '../../common/screen.js';
 import { swr, invalidate, CACHE_KEYS } from '../../common/cache.js';
 
 export default {
   components: {
     PublishModal,
-    CustomTabBar
+    CustomTabBar,
+    OnlineNotifyCard
   },
   data() {
     return {

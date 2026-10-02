@@ -11,25 +11,39 @@ const MAX_RECONNECT_DELAY = 30000
 const BASE_RECONNECT_DELAY = 1000
 
 // 心跳间隔（ms）
-const HEARTBEAT_INTERVAL = 25000
+// 必须明显小于服务端的 CONN_IDLE_SEC(20 秒)，否则 App 被划掉/断网时
+// 服务端要等很久才能判定"离线"，在线状态就会时灵时不灵
+const HEARTBEAT_INTERVAL = 8000
+
+// 连接保活超时（ms）
+// 心跳 8 秒一次，连续 3 次收不到服务端任何数据就认为这条连接已经"假死"。
+// 拔网线/切 WiFi 和蜂窝/手机锁屏时 TCP 不会发 FIN，客户端 onClose 不会触发，
+// 看上去 connected 还是 true，其实早就断了 —— 在线状态就会一直是错的，
+// 而且永远不会自己重连。靠这个超时把它揪出来强制重连。
+const LIVENESS_TIMEOUT = 25000
 
 class WebSocketManager {
   constructor() {
     this.socketTask = null
     this.connected = false
+    this.connecting = false        // ★ 新增：正在连接中
     this.reconnectTimer = null
     this.reconnectDelay = BASE_RECONNECT_DELAY
     this.reconnectCount = 0
     this.heartbeatTimer = null
-    this.listeners = {}        // type -> [callback, ...]
-    this.manualClose = false   // 是否手动关闭（不重连）
-    this.pendingGroups = []    // 待订阅的群聊ID列表
+    this.watchdogTimer = null
+    this.lastRecv = 0              // ★ 最近一次收到服务端数据的时间
+    this.listeners = {}
+    this.manualClose = false
+    this.pendingGroups = []
   }
 
   /**
-   * 建立连接
+   * 建立连接（防重复建连）
    */
   connect() {
+    // ★ 关键：正在连接 或 已连接 → 直接返回
+    if (this.connecting) return
     if (this.socketTask && this.connected) return
 
     const token = getToken()
@@ -37,61 +51,106 @@ class WebSocketManager {
       console.log('[WS] 未登录，跳过连接')
       return
     }
-
     if (!WS_ENABLED) {
       console.log('[WS] WebSocket 服务未启用，跳过连接')
       return
     }
 
     this.manualClose = false
-    this.reconnectDelay = BASE_RECONNECT_DELAY
+    this.connecting = true   // ★ 上锁
+
+    // ★ 关键：先把旧连接彻底关掉，避免叠连（先置空引用，旧的回调就会被忽略）
+    const oldTask = this.socketTask
+    this.socketTask = null
+    if (oldTask) {
+      try { oldTask.close({}) } catch (e) {}
+    }
 
     const url = `${WS_URL}?token=${encodeURIComponent(token)}`
     console.log('[WS] 正在连接...')
 
-    this.socketTask = uni.connectSocket({
+    let task = null
+    task = uni.connectSocket({
       url,
       success: () => {},
       fail: (err) => {
         console.error('[WS] 连接失败:', err)
+        if (!task || this.socketTask !== task) return
+        this.socketTask = null
+        this.connecting = false   // ★ 解锁
         this._scheduleReconnect()
       }
     })
+    this.socketTask = task
 
-    this.socketTask.onOpen(() => {
+    /* ★ 下面每个回调都先判断 "this.socketTask !== task"：
+       旧连接被替换掉之后，它的回调还会继续跑。如果不拦住，
+       旧连接的 onClose 会把刚建立的新连接状态改成"已断开"——
+       于是心跳停发、25 秒保活超时、服务端判定离线、又重连……
+       表现就是"一会儿在线一会儿不在线"。 */
+
+    task.onOpen(() => {
+      if (this.socketTask !== task) return
       console.log('[WS] 连接成功')
       this.connected = true
+      this.connecting = false     // ★ 解锁
+      this.lastRecv = Date.now()  // ★ 开始计保活
       this.reconnectDelay = BASE_RECONNECT_DELAY
       this.reconnectCount = 0
       this._startHeartbeat()
+      this._startWatchdog()
       this._emit('open', {})
-      // 重新订阅之前记录的群聊
       if (this.pendingGroups.length > 0) {
         this.send({ type: 'join_groups', data: { group_ids: this.pendingGroups } })
       }
     })
 
-    this.socketTask.onMessage((res) => {
+    task.onMessage((res) => {
+      if (this.socketTask !== task) return
+      /* 收到任何数据都算连接活着（哪怕内容解析失败） */
+      this.lastRecv = Date.now()
       try {
         const msg = JSON.parse(res.data)
-        if (msg.type === 'pong') return  // 心跳回复，静默
+        if (msg.type === 'pong') return
+
+        // 在线状态广播
+        if (msg.type === 'presence') {
+          this._emit('presence', msg.data || {}, msg)
+          uni.$emit('ws:presence', msg.data || {})
+          return
+        }
+
         this._emit(msg.type, msg.data || {}, msg)
       } catch (e) {
         console.warn('[WS] 消息解析失败:', res.data)
       }
     })
 
-    this.socketTask.onClose((res) => {
+    task.onClose((res) => {
+      if (this.socketTask !== task) return   // 旧连接的关闭事件，忽略
       console.log('[WS] 连接关闭', res)
+      this.socketTask = null
+      this.connecting = false     // ★ 解锁
       this._cleanup()
       if (!this.manualClose) {
         this._scheduleReconnect()
       }
     })
 
-    this.socketTask.onError((err) => {
+    task.onError((err) => {
+      if (this.socketTask !== task) return   // 旧连接的错误事件，忽略
       console.error('[WS] 连接错误:', err)
+      this.socketTask = null
+      this.connected = false
+      this.connecting = false     // ★ 解锁
+      this._cleanup()
       this._emit('error', err)
+      try { task.close({}) } catch (e) {}
+      /* 关键：onError 之后不一定会跟着触发 onClose。
+         如果这里不安排重连，连接已经断了但 connected 还停在 true，
+         ensureConnected() 会认为"已连接"什么都不做，结果就是
+         一直显示离线、再也不重连。 */
+      this._scheduleReconnect()
     })
   }
 
@@ -101,11 +160,16 @@ class WebSocketManager {
   disconnect() {
     this.manualClose = true
     this._cleanup()
-    if (this.socketTask) {
-      this.socketTask.close({})
-      this.socketTask = null
+    /* 先把引用置空再关：这样它的 onClose 回调会因为
+       "this.socketTask !== task" 直接返回，不会又安排一次重连 */
+    const task = this.socketTask
+    this.socketTask = null
+    if (task) {
+      try { task.close({}) } catch (e) {}
     }
     this.connected = false
+    this.connecting = false
+    this.lastRecv = 0
   }
 
   /**
@@ -125,18 +189,11 @@ class WebSocketManager {
     return true
   }
 
-  /**
-   * 注册消息监听
-   * @param {string} type - 消息类型（chat/group_msg/notification/unread_update/system_notice/open/close/error）
-   * @param {function} callback - 回调函数
-   * @returns {function} 取消监听的函数
-   */
   on(type, callback) {
     if (!this.listeners[type]) {
       this.listeners[type] = []
     }
     this.listeners[type].push(callback)
-    // 返回取消监听函数
     return () => {
       const idx = this.listeners[type]?.indexOf(callback)
       if (idx >= 0) {
@@ -145,9 +202,6 @@ class WebSocketManager {
     }
   }
 
-  /**
-   * 取消消息监听
-   */
   off(type, callback) {
     if (!this.listeners[type]) return
     if (callback) {
@@ -158,9 +212,6 @@ class WebSocketManager {
     }
   }
 
-  /**
-   * 订阅群聊房间（进入群聊页面时调用）
-   */
   joinGroup(groupID) {
     if (!this.pendingGroups.includes(groupID)) {
       this.pendingGroups.push(groupID)
@@ -170,9 +221,6 @@ class WebSocketManager {
     }
   }
 
-  /**
-   * 取消订阅群聊房间（离开群聊页面时调用）
-   */
   leaveGroup(groupID) {
     const idx = this.pendingGroups.indexOf(groupID)
     if (idx >= 0) {
@@ -183,20 +231,22 @@ class WebSocketManager {
     }
   }
 
-  /**
-   * 确保已连接（页面onShow时调用）
-   */
   ensureConnected() {
     const token = getToken()
     if (!token) return
-    if (!this.connected) {
+    /* 回到前台时先看这条连接是不是已经假死（切后台期间定时器被节流，
+       心跳发不出去，服务端早就把它断了，但客户端还以为是连着的）。
+       这种情况直接强制重连，不用干等保活超时。 */
+    if (this.connected && this.lastRecv && Date.now() - this.lastRecv > LIVENESS_TIMEOUT) {
+      console.log('[WS] 连接已假死，强制重连')
+      this._forceReconnect()
+      return
+    }
+    if (!this.connected && !this.connecting) {
       this.connect()
     }
   }
 
-  /**
-   * 是否已连接
-   */
   isConnected() {
     return this.connected
   }
@@ -228,9 +278,43 @@ class WebSocketManager {
     }
   }
 
+  /* 保活看门狗：心跳照发，但一直收不到服务端任何数据 → 判定假死，强制重连 */
+  _startWatchdog() {
+    this._stopWatchdog()
+    this.watchdogTimer = setInterval(() => {
+      if (this.manualClose || !this.connected) return
+      if (this.lastRecv && Date.now() - this.lastRecv > LIVENESS_TIMEOUT) {
+        console.warn('[WS] 连接假死，强制重连')
+        this._forceReconnect()
+      }
+    }, HEARTBEAT_INTERVAL)
+  }
+
+  _stopWatchdog() {
+    if (this.watchdogTimer) {
+      clearInterval(this.watchdogTimer)
+      this.watchdogTimer = null
+    }
+  }
+
+  /* 主动断开当前（可能已经死掉的）连接并安排重连 */
+  _forceReconnect() {
+    this.connected = false
+    this.connecting = false
+    this._cleanup()
+    const task = this.socketTask
+    this.socketTask = null
+    if (task) {
+      try { task.close({}) } catch (e) {}
+    }
+    if (this.manualClose) return
+    this._scheduleReconnect()
+  }
+
   _cleanup() {
     this.connected = false
     this._stopHeartbeat()
+    this._stopWatchdog()
   }
 
   _scheduleReconnect() {
@@ -238,12 +322,7 @@ class WebSocketManager {
     if (this.manualClose) return
 
     this.reconnectCount++
-    if (this.reconnectCount > 5) {
-      console.log('[WS] 重连次数过多，停止重连')
-      return
-    }
-
-    console.log(`[WS] ${this.reconnectDelay / 1000}s 后重连...`)
+    console.log(`[WS] 第 ${this.reconnectCount} 次重连，${this.reconnectDelay / 1000}s 后...`)
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null
       if (!this.manualClose && !this.connected) {
@@ -251,11 +330,9 @@ class WebSocketManager {
       }
     }, this.reconnectDelay)
 
-    // 指数退避
     this.reconnectDelay = Math.min(this.reconnectDelay * 2, MAX_RECONNECT_DELAY)
   }
 }
 
-// 单例导出
 const wsManager = new WebSocketManager()
 export default wsManager

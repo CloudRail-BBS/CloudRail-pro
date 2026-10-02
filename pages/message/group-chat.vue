@@ -3,7 +3,7 @@
     <view class="top-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
         <view class="nav-left" @click="goBack">
-          <text class="back-text">返回</text>
+          <image class="back-icon-img" src="/static/icon/back.svg" mode="aspectFit"></image>
         </view>
         <view class="nav-center" @click="openGroupInfo">
           <text class="nav-title">{{ groupName || '群聊' }}（{{ memberCount }}）</text>
@@ -117,7 +117,7 @@
         <view class="chat-disabled-tip" v-if="!canChat">{{ chatDisabledReason }}</view>
         <view class="input-inner">
           <view class="tool-btn emoji-btn" @click="toggleEmojiPicker">
-            <image src="/static/icon/smile-color.svg" class="tool-icon-img" mode="aspectFit"></image>
+            <image src="/static/icon/smile.svg" class="tool-icon-img" mode="aspectFit"></image>
           </view>
           <view class="rich-input">
             <!-- #ifdef H5 -->
@@ -1718,9 +1718,9 @@ export default {
   align-items:center;
   justify-content:center;
 }
-.back-text{
-  font-size:28rpx;
-  color:#374151;
+.back-icon-img{
+  width:44rpx;
+  height:44rpx;
 }
 .more-icon{
   font-size:48rpx;

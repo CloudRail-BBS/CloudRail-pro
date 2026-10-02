@@ -63,6 +63,8 @@
               class="avatar-auth-badge"
               mode="aspectFit"
             ></image>
+            <!-- 在线状态: 左下角小圆点（查看自己主页时不显示） -->
+            <view v-if="!isMe" class="avatar-online-dot" :class="{ 'is-on': userOnline }"></view>
           </view>
 
           <view class="action-buttons">
@@ -442,6 +444,7 @@
 <script>
 import { request, webBaseUrl } from '../../common/request.js'
 import { getLevelDisplay as calcLevelDisplay } from '../../common/level.js'
+import presence from '../../common/presence.js'
 import DouyinPlayer from '../../components/DouyinPlayer.vue'
 import { buildDouyinVideoList } from '../../common/douyinPlayer.js'
 
@@ -495,6 +498,7 @@ export default {
       messageReason: '',
       isFollowing: false,
       actionLock: false,
+      userOnline: false,
 
       defaultAvatar: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg',
       defaultBg: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg',
@@ -613,10 +617,36 @@ export default {
       this.targetUserId = String(options.userId || "")
       this.fetchData()
       this.loadModeratorCircles()
+      /* 在线状态: 进入页面查一次(WS 会实时推送, 这里是兜底), 之后每 10 秒兜底刷新 */
+      this.refreshUserOnline()
+      this._onlineTimer = setInterval(() => this.refreshUserOnline(), 10000)
+      uni.$off('presence_changed', this._onPresence)
+      uni.$on('presence_changed', this._onPresence)
     }
   },
 
+  onUnload() {
+    if (this._onlineTimer) { clearInterval(this._onlineTimer); this._onlineTimer = null }
+    uni.$off('presence_changed', this._onPresence)
+  },
+
   methods: {
+    /* WS 推来在线变化时立刻改状态, 不走网络 */
+    _onPresence() {
+      if (!this.targetUserId) return
+      const v = presence.getCached(this.targetUserId)
+      if (v !== null) this.userOnline = v
+    },
+    /* 兜底: 每 10 秒查一次(WS 正常时缓存已是新值, 基本不会发请求) */
+    async refreshUserOnline() {
+      if (!this.targetUserId) return
+      try {
+        const map = await presence.fetchOnline([this.targetUserId])
+        this.userOnline = !!map[String(this.targetUserId)]
+      } catch (e) {
+        /* 查询失败时保留上一次的状态，不要谎报离线 */
+      }
+    },
     // 等级分层配色（参考B站等级体系）
     getLevelTier(lv) {
       const n = parseInt(lv) || 0
@@ -1382,6 +1412,25 @@ export default {
   z-index: 5;
   box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.22);
   background: #fff;
+}
+
+/* 在线状态: 左下角小圆点（右下角已被认证徽标占用，故放左下角） */
+.avatar-online-dot {
+  position: absolute;
+  left: -4rpx;
+  bottom: -4rpx;
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background: #c9ced6;
+  border: 4rpx solid var(--card-bg);
+  box-sizing: border-box;
+  z-index: 6;
+}
+
+.avatar-online-dot.is-on {
+  background: #22c55e;
+  box-shadow: 0 0 0 2rpx rgba(34, 197, 94, 0.25);
 }
 
 .action-buttons {

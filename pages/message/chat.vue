@@ -1,9 +1,10 @@
 <template>
   <view class="chat-page" :style="pageBgStyle">
+    <OnlineNotifyCard />
     <view class="top-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
         <view class="nav-left" @click="goBack">
-          <text class="back-text">返回</text>
+          <image class="back-icon-img" src="/static/icon/back.svg" mode="aspectFit"></image>
         </view>
 
         <view class="nav-center" @click.stop="toUserProfile(targetId)">
@@ -19,6 +20,10 @@
             />
           </view>
           <text class="nav-title" :class="{ 'vip-rainbow-text': targetVip === 1 }">{{ targetName }}</text>
+          <view class="online-state">
+            <view class="online-dot" :class="{ 'is-on': targetOnline }"></view>
+            <text class="online-text" :class="{ 'is-on': targetOnline }">{{ targetOnline ? '在线' : '离线' }}</text>
+          </view>
         </view>
 
         <view class="nav-right" @click.stop="openMore">
@@ -34,7 +39,7 @@
         :scroll-top="scrollTop"
         :scroll-with-animation="scrollAnim"
         @scroll="onScroll"
-        @scrolltolower="loadOlder"
+        @scrolltoupper="loadOlder"
         @click="onPageTap"
       >
         <view class="msg-container" id="msgContainer" :style="msgContainerStyle">
@@ -42,6 +47,9 @@
             <text>消息加载中...</text>
           </view>
           <template v-else>
+          <!-- 历史消息提示：老消息在列表顶部，所以提示也放顶部，只有真的往上翻才出现 -->
+          <view v-if="loadingOlder" class="loading-tip">加载中...</view>
+          <view v-else-if="noMoreOlder && msgList.length" class="loading-tip">没有更多消息</view>
           <view v-for="(msg, idx) in msgList" :key="msg.id || msg.tempId" class="msg-item">
             <view v-if="showTime(idx)" class="msg-time">{{ fmtTime(msg.create_time) }}</view>
             <view v-if="msg.type === 'recalled'" class="recalled">
@@ -150,9 +158,7 @@
               </view>
             </view>
           </view>
-          <view v-if="loadingOlder" class="loading-tip">加载中...</view>
-          <view v-else-if="noMoreOlder && msgList.length" class="loading-tip">没有更多消息</view>
-          <view v-else-if="!msgList.length" class="welcome-placeholder">
+          <view v-if="!msgList.length" class="welcome-placeholder">
             <image class="welcome-ava" :src="targetAvatar || '/static/logo.png'" mode="aspectFill" />
             <text class="welcome-name">{{ targetName }}</text>
             <text class="welcome-hint">开始聊天吧~</text>
@@ -166,8 +172,8 @@
         <view class="chat-disabled-tip" v-if="!canChat">{{ chatDisabledReason }}</view>
         <view class="input-inner">
           <view class="tool-btn emoji-btn" @click="toggleEmojiPicker">
-        <image src="/static/icon/smile-color.svg" class="tool-icon-img" mode="aspectFit"></image>
-      </view>
+            <image src="/static/icon/smile.svg" class="tool-icon-img" mode="aspectFit"></image>
+          </view>
           <view class="input-box">
             <!-- #ifdef H5 -->
             <div
@@ -209,17 +215,24 @@
       </view>
 
       <view class="emoji-picker" v-if="showEmojiPicker">
+        <view class="emoji-handle"></view>
         <view class="emoji-tabs">
-          <view class="emoji-tab" :class="{ active: emojiTab === 'recent' }" @click="switchToRecent">最近</view>
-          <view class="emoji-tab" :class="{ active: emojiTab === 'default' }" @click="emojiTab = 'default'">全部</view>
+          <view class="emoji-tab" :class="{ active: emojiTab === 'recent' }" @click="switchToRecent">
+            <text>最近</text>
+            <text class="emoji-tab-num" v-if="recentlyUsedEmoticons.length">{{ recentlyUsedEmoticons.length }}</text>
+          </view>
+          <view class="emoji-tab" :class="{ active: emojiTab === 'default' }" @click="emojiTab = 'default'">
+            <text>全部</text>
+          </view>
         </view>
         <scroll-view class="emoji-scroll" scroll-y>
           <view class="emoji-grid" v-if="emojiTab === 'recent'">
             <view class="emoji-item" v-for="emo in recentlyUsedEmoticons" :key="emo.id" @click="insertEmoji(emo)">
               <image class="emoji-img" :src="emo.url" mode="aspectFit" @error="onEmojiImgError" />
             </view>
-            <view class="empty-tip" v-if="recentlyUsedEmoticons.length === 0">
-              <text>暂无最近使用</text>
+            <view class="emoji-empty" v-if="recentlyUsedEmoticons.length === 0">
+              <text class="emoji-empty-txt">还没有最近使用的表情</text>
+              <text class="emoji-empty-hint">点「全部」里的表情，用过的会自动收在这里</text>
             </view>
           </view>
           <view class="emoji-grid" v-if="emojiTab === 'default'">
@@ -477,11 +490,14 @@
 <script>
 import { request, baseUrl, uploadFile, uploadBackgroundImage } from '../../common/request.js'
 import ws from '../../common/ws.js'
+import presence from '../../common/presence.js'
 import XhsConfirm from '../../components/XhsConfirm.vue'
+import OnlineNotifyCard from '../../components/OnlineNotifyCard.vue'
 
 export default {
   components: {
-    XhsConfirm
+    XhsConfirm,
+    OnlineNotifyCard
   },
   data() {
     return {
@@ -495,6 +511,7 @@ export default {
 
       targetId: 0,
       targetName: '',
+      targetOnline: false,
       targetAvatar: '',
       targetAvatarReady: false,
       targetVip: 0,
@@ -517,6 +534,9 @@ export default {
 
       loadingOlder: false,
       noMoreOlder: false,
+      /* 刚进页面时 scrolltoupper 会被自动触发一次，
+         用它挡住那次误触发，避免一进来就显示"没有更多消息" */
+      olderReady: false,
 
       showWarn: false,
       warnTitle: '',
@@ -705,12 +725,20 @@ export default {
     this.loadMsg(true)
     ws.ensureConnected()
     this._wsUnsubChat = ws.on('chat', this._onWsChat)
+    /* 对方在线状态: 进入页面查一次(WS 会实时推送, 这里是兜底), 之后每 10 秒兜底刷新 */
+    this.refreshTargetOnline()
+    this._onlineTimer = setInterval(() => this.refreshTargetOnline(), 10000)
+    uni.$off('presence_changed', this._onPresence)
+    uni.$on('presence_changed', this._onPresence)
   },
   onReady() {
     this.measureInputBar()
   },
   onUnload() {
     if (this._wsUnsubChat) { this._wsUnsubChat(); this._wsUnsubChat = null }
+    if (this._onlineTimer) { clearInterval(this._onlineTimer); this._onlineTimer = null }
+    if (this._olderTimer) { clearTimeout(this._olderTimer); this._olderTimer = null }
+    uni.$off('presence_changed', this._onPresence)
     this.stopBanTimer()
     if (this.toastBox.timer) clearTimeout(this.toastBox.timer)
     this._clearKbFallback()
@@ -1241,10 +1269,15 @@ export default {
       this.$nextTick(() => {
         setTimeout(() => {
           uni.createSelectorQuery().in(this).select('.msg-container').boundingClientRect((rect) => {
-            if (rect && rect.height) {
-              this.scrollTop = rect.height
+            const target = (rect && rect.height) ? Math.ceil(rect.height) : 99999999
+            /* scroll-top 必须"值发生变化"才会生效。
+               如果目标值和上一次完全相同（连续发消息就会这样），
+               先回退 1px 再设回目标值，否则滚不过去、看着像卡住。 */
+            if (this.scrollTop === target) {
+              this.scrollTop = target - 1
+              this.$nextTick(() => { this.scrollTop = target })
             } else {
-              this.scrollTop = 99999999
+              this.scrollTop = target
             }
           }).exec()
         }, 50)
@@ -1279,6 +1312,22 @@ export default {
       uni.navigateTo({ url: `/pages/message/group-info?groupId=${groupId}` })
     },
 
+    /* WS 推来在线变化时立刻改状态, 不走网络 */
+    _onPresence() {
+      if (!this.targetId) return
+      const v = presence.getCached(this.targetId)
+      if (v !== null) this.targetOnline = v
+    },
+    /* 兜底: 每 10 秒查一次(WS 正常时缓存已是新值, 基本不会发请求) */
+    async refreshTargetOnline() {
+      if (!this.targetId) return
+      /* 查询失败（网络抖动/超时）时保留上一次的状态：
+         之前这里 catch 里写死 false，会把人明明在线显示成离线 */
+      try {
+        const map = await presence.fetchOnline([this.targetId])
+        this.targetOnline = !!map[String(this.targetId)]
+      } catch (e) {}
+    },
     _onWsChat(data) {
       if (String(data.sender_id) !== String(this.targetId) && String(data.sender_id) !== String(this.myId)) return
       const nm = this.normalizeMsg({
@@ -1307,6 +1356,20 @@ export default {
           this.blockedMe = !!res.data.blocked_me
           this.bgUrl = res.data.bg_url ? this.fixUrl(res.data.bg_url) : ''
           this.targetVip = parseInt(res.data.vip || 0)
+          /* 兜底：从只有 targetId 的入口进来时（没带 name/avatar），
+             这里把对方昵称/头像补上，否则聊天页顶部和消息头像会空白或显示错人。
+             getChatProfile 在 api-map 里映射到 user/profile，返回的就是 userPublic() 资料包 */
+          if (!this.targetName) {
+            this.targetName = res.data.nickname || res.data.name || res.data.username || ''
+          }
+          if (!this.targetAvatar || this.targetAvatar === '/static/logo.png') {
+            const av = res.data.avatar || ''
+            if (av) {
+              this.targetAvatar = this.fixUrl(av)
+              this.targetAvatarReady = false
+              this.preloadAvatar('target')
+            }
+          }
         }
       } catch (e) {}
 
@@ -1440,6 +1503,10 @@ export default {
 
     async loadMsg(scrollToBottom = true) {
       this.pageLoading = true
+      /* 重新拉取消息时重置历史分页状态，否则上一次遗留的"没有更多消息"会一直挂着 */
+      this.noMoreOlder = false
+      this.olderReady = false
+      if (this._olderTimer) { clearTimeout(this._olderTimer); this._olderTimer = null }
       try {
         const res = await request('message.php', { action: 'getChatDetail', targetId: this.targetId }, 'GET')
         if (res.code === 0) {
@@ -1451,6 +1518,8 @@ export default {
             this.measureInputBar()
             if (scrollToBottom) this.scrollBottom(false)
           })
+          /* 等首屏滚动到底稳定后再放开"上拉加载历史"，避免自动触发的 scrolltoupper 误判 */
+          this._olderTimer = setTimeout(() => { this.olderReady = true }, 600)
           uni.$emit('message_read_changed', { targetId: this.targetId })
         }
       } finally {
@@ -1492,6 +1561,8 @@ export default {
     },
 
     async loadOlder() {
+      /* 进页面时 scrolltoupper 会被自动触发，此时还没准备好，直接忽略 */
+      if (!this.olderReady) return
       if (this.loadingOlder || this.noMoreOlder) return
       if (!this.msgList.length) return
 
@@ -1571,7 +1642,9 @@ export default {
               sending: false,
               bubble_style: res.data?.bubble_style || this.myBubbleStyle
             })
-            this.$nextTick(() => this.scrollBottom(false))
+            /* 用带动画的方式滚到底：这里如果瞬间跳（false），
+               会打断上一条的平滑滚动，看上去就是"消息列表抖了一下" */
+            this.$nextTick(() => this.scrollBottom(true))
           }
           this.inputTxt = ''
           this.clearRichInput()
@@ -2167,15 +2240,9 @@ export default {
   align-items:center;
   justify-content:center;
 }
-.back-icon{
-  font-size:56rpx;
-  color:#15171a;
-  font-weight:300;
-  line-height:1;
-}
-.back-text{
-  font-size:28rpx;
-  color:#374151;
+.back-icon-img{
+  width:44rpx;
+  height:44rpx;
 }
 .more-icon{
   font-size:48rpx;
@@ -2205,6 +2272,29 @@ export default {
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
+}
+.online-state{
+  display:flex;
+  align-items:center;
+  margin-left:10rpx;
+  flex-shrink:0;
+}
+.online-dot{
+  width:14rpx;
+  height:14rpx;
+  border-radius:50%;
+  background:#c9ced6;
+  margin-right:6rpx;
+}
+.online-dot.is-on{
+  background:#22c55e;
+}
+.online-text{
+  font-size:22rpx;
+  color:#9aa1ab;
+}
+.online-text.is-on{
+  color:#22c55e;
 }
 
 .ava-wrap{
@@ -3224,46 +3314,73 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #fff;
-  border-top: 1rpx solid #f3f4f6;
-  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.08);
   z-index: 1999;
   height: 470rpx;
   box-sizing: border-box;
-  animation: emojiPickerIn .25s ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafc 100%);
+  border-top-left-radius: 28rpx;
+  border-top-right-radius: 28rpx;
+  box-shadow: 0 -8rpx 32rpx rgba(17, 17, 26, 0.10);
+  animation: emojiPickerIn .28s cubic-bezier(.22, .61, .36, 1);
 }
 @keyframes emojiPickerIn{
   from{ opacity:0; transform:translateY(100%); }
   to{ opacity:1; transform:translateY(0); }
 }
 
+/* 顶部小拖手 */
+.emoji-handle {
+  width: 72rpx;
+  height: 8rpx;
+  margin: 14rpx auto 0;
+  border-radius: 999rpx;
+  background: #e6e8ec;
+  flex-shrink: 0;
+}
+
 .emoji-tabs {
   display: flex;
   align-items: center;
-  padding: 16rpx 20rpx;
-  border-bottom: 1rpx solid #f3f4f6;
-  gap: 16rpx;
+  gap: 12rpx;
+  padding: 14rpx 26rpx 8rpx;
   flex-shrink: 0;
 }
 
 .emoji-tab {
-  font-size: 26rpx;
-  color: #6b7280;
-  padding: 8rpx 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  font-size: 25rpx;
+  line-height: 1;
+  color: #8a8f99;
+  padding: 12rpx 26rpx;
   border-radius: 999rpx;
-  background: #f9fafb;
-  transition: all 0.2s;
-  flex-shrink: 0;
+  background: #f4f5f7;
+  transition: background .2s ease, color .2s ease, transform .14s ease, box-shadow .2s ease;
 }
 
+.emoji-tab:active { transform: scale(.94); }
+
 .emoji-tab.active {
-  background: #ff4d6d;
-  color: #fff;
+  background: linear-gradient(135deg, #ff5c7a, #ff4d6d);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 6rpx 16rpx rgba(255, 77, 109, 0.28);
+}
+
+.emoji-tab-num {
+  font-size: 20rpx;
+  opacity: .8;
 }
 
 .emoji-scroll {
-  height: 360rpx;
-  padding: 16rpx 20rpx;
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 8rpx 26rpx 24rpx;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
 }
@@ -3271,46 +3388,54 @@ export default {
 .emoji-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 14rpx;
+  gap: 12rpx;
 }
 
 .emoji-item {
-  width: 84rpx;
-  height: 84rpx;
+  width: 82rpx;
+  height: 82rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  border-radius: 16rpx;
-  background: #fff;
-  transition: all 0.2s;
+  border-radius: 20rpx;
+  background: #ffffff;
+  border: 1rpx solid #f0f1f4;
+  box-shadow: 0 2rpx 6rpx rgba(17, 17, 26, 0.04);
+  transition: transform .14s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .emoji-item:active {
-  background: #f3f4f6;
+  transform: scale(.88);
+  background: #fff1f4;
+  border-color: #ffd6e0;
+  box-shadow: none;
 }
 
 .emoji-img {
-  width: 68rpx;
-  height: 68rpx;
+  width: 62rpx;
+  height: 62rpx;
   border-radius: 12rpx;
 }
 
-.empty-tip {
+.emoji-empty {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60rpx 0;
-  color: #9ca3af;
-  font-size: 26rpx;
+  padding: 64rpx 0 20rpx;
 }
 
-.empty-tip .hint {
-  font-size: 24rpx;
-  color: #d1d5db;
-  margin-top: 16rpx;
+.emoji-empty-txt {
+  font-size: 26rpx;
+  color: #b4b8c0;
+}
+
+.emoji-empty-hint {
+  margin-top: 12rpx;
+  font-size: 23rpx;
+  color: #d3d6dc;
 }
 
 .inline-emoticon {

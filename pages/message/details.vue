@@ -3,7 +3,7 @@
     <view class="custom-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-header">
         <view class="back-wrap" @click="goBack">
-          <text class="back-text">返回</text>
+          <image class="back-icon-img" src="/static/icon/back.svg" mode="aspectFit"></image>
         </view>
 
         <view class="tab-box" :class="{ 'single-tab': visibleTabs.length === 1 }">
@@ -431,11 +431,9 @@ page { background-color: #F8F9FA; }
   font-weight: 500;
   line-height: 1;
 }
-.back-text {
-  font-size: 26rpx;
-  color: #111;
-  margin-left: 6rpx;
-  font-weight: 600;
+.back-icon-img {
+  width: 40rpx;
+  height: 40rpx;
 }
 .clear-btn {
   width: 80rpx;
