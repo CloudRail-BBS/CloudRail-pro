@@ -45,7 +45,7 @@ var PLATFORMS = {
     name: '拼好社',
     scheme: 'pinhao://',
     icon: '拼',
-    apiBase: 'https://dl.baige.icu',
+    apiBase: 'https://example.com',
     createSession: '/api.php?s=api/qr_login_create',
     checkSession: '/api.php?s=api/qr_login_check',
     exchangeCode: '/api.php?s=api/oauth_code',

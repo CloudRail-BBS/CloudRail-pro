@@ -214,13 +214,13 @@ export default {
       pinhaoPollTimer: null,
       pinhaoEnabled: true,
       pinhaoAppid: '10007',
-      pinhaoOauthUrl: 'https://dl.baige.icu',
+      pinhaoOauthUrl: 'https://example.com',
       pinhaoLoading: false,
       pinhaoConfig: {
         client_id: '10007',
         redirect_uri: '',
-        authorize_url: 'https://dl.baige.icu/oauth/authorize.php',
-        token_url: 'https://dl.baige.icu/oauth/token.php',
+        authorize_url: 'https://example.com/oauth/authorize.php',
+        token_url: 'https://example.com/oauth/token.php',
         app_name: '栖屿社区'
       }
     }
@@ -653,7 +653,7 @@ export default {
         if (res && res.code === 0 && res.data) {
           this.pinhaoEnabled = parseInt(res.data.pinhao_enabled || 0) === 1
           this.pinhaoAppid = res.data.pinhao_appid || ''
-          // 后台可能把 pinhao_oauth_url 填成完整接口地址(如 https://dl.baige.icu/oauth/authorize.php)，
+          // 后台可能把 pinhao_oauth_url 填成完整接口地址(如 https://example.com/oauth/authorize.php)，
           // 这里统一剥离到根地址，避免拼出 /oauth/authorize.php/oauth/token.php 这类错误 URL
           let oauthUrl = (res.data.pinhao_oauth_url || '').trim()
           oauthUrl = oauthUrl.split(/[?#]/)[0].replace(/\/(oauth\/(authorize|token)\.php|oauth|api\.php)$/i, '').replace(/\/$/, '')

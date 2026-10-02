@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="overlay">
     <!-- 顶部渐变 -->
     <div class="top-gradient"></div>
@@ -147,7 +147,7 @@
 </template>
 
 <script>
-const API_BASE = 'http://sq.baige.icu/api/index.php/'
+const API_BASE = 'http://example.com/api/index.php/'
 
 export default {
   data() {
@@ -319,7 +319,7 @@ export default {
     copyLink() {
       this.closeAction()
       uni.setClipboardData({
-        data: 'http://sq.baige.icu/post/' + this.postId,
+        data: 'http://example.com/post/' + this.postId,
         success: () => {
           uni.showToast({ title: '链接已复制', icon: 'success' })
         }
