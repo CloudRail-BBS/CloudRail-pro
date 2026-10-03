@@ -15,8 +15,44 @@
  */
 
 const apiMap = {
+  'zjh.php': {
+    /* 炸金花（单机版）：后端只记账 */
+    'settle': ['zjh/settle', 'POST'],
+    'records': ['zjh/records', 'GET'],
+  },
+  'system.php': {
+    /* 开屏广告配置（App 启动时读取，公开接口） */
+    'splash': ['system/splash', 'GET'],
+    'splash_save': ['system/splash_save', 'POST'],
+  },
+  'relation.php': {
+    /* 关系系统：和互关好友建立 情侣/闺蜜/死党/自定义 关系 */
+    'types': ['relation/types', 'GET'],
+    'info': ['relation/info', 'GET'],
+    'board': ['relation/board', 'GET'],
+    'detail': ['relation/detail', 'GET'],
+    'apply': ['relation/apply', 'POST'],
+    'handle': ['relation/handle', 'POST'],
+    'cancel': ['relation/cancel', 'POST'],
+    /* 亲密值 / 打 call / 每日任务 */
+    'call': ['relation/call', 'POST'],
+    'task_claim': ['relation/task_claim', 'POST'],
+    /* 我们的回忆 */
+    'memories': ['relation/memories', 'GET'],
+    'memory_add': ['relation/memory_add', 'POST'],
+    'memory_del': ['relation/memory_del', 'POST'],
+    /* 亲密团（多人结拜 / 组队） */
+    'group_list': ['relation/group_list', 'GET'],
+    'group_create': ['relation/group_create', 'POST'],
+    'group_invite': ['relation/group_invite', 'POST'],
+    'group_handle': ['relation/group_handle', 'POST'],
+    'group_leave': ['relation/group_leave', 'POST'],
+    'group_dissolve': ['relation/group_dissolve', 'POST'],
+  },
   // ==================== user.php ====================
   'user.php': {
+    /* 个人资料：兜底读取积分/等级等（duel-game 等页面用它取积分） */
+    'profile': ['user/profile', 'GET'],
     // 认证
     'login': ['auth/login', 'POST'],
     'register': ['auth/register', 'POST'],
@@ -142,7 +178,7 @@ const apiMap = {
     'operateChat': ['chat/read', 'POST'],
     'setChatBackground': ['chat/setting', 'POST'],
     'setBlock': ['chat/setting', 'POST'],
-    'checkMyStyle': ['chat/setting', 'GET'],
+    'checkMyStyle': ['bubble/my_style', 'GET'],
     'getWsStatus': ['chat/setting', 'GET'],
     'getUserOnline': ['chat/setting', 'GET'],
     'getUserOnlineBatch': ['chat/online', 'GET'],
@@ -328,6 +364,8 @@ const apiMap = {
   },
   'bubble.php': {
     'list': ['bubble/list', 'GET'],
+    'my_style': ['bubble/my_style', 'GET'],
+    'custom_css': ['bubble/custom_css', 'GET'],
     'buy': ['bubble/buy', 'POST'],
     'equip': ['bubble/equip', 'POST'],
   },
@@ -382,6 +420,7 @@ const apiMap = {
     'accept_duel': ['games/duel_accept', 'POST'],
     'check_duel': ['games/duel_check', 'GET'],
     'end_duel': ['games/duel_end', 'POST'],
+    'settle_duel': ['games/duel_settle', 'POST'],
     'get_challenges': ['games/duel_challenges', 'GET'],
     'get_history': ['games/duel_history', 'GET'],
     'get_score': ['games/duel_score', 'GET'],
@@ -404,6 +443,34 @@ const apiMap = {
   },
   'games.php': {
     'list': ['games/list', 'GET'],
+  },
+
+  // ==================== game_center.php (炸金花 / 斗地主) ====================
+  'game_center.php': {
+    'rooms': ['game_center/rooms', 'GET'],
+    'find_room': ['game_center/find_room', 'GET'],
+    'brand': ['game_center/brand', 'GET'],
+    'session_info': ['game_center/session_info', 'GET'],
+    /* 斗地主「真人对局」联机牌局：必须在这里登记，否则会拼成
+       /api/index.php/game_center.php?... 这种旧式地址，服务器上不存在 → 直接 404 */
+    'ddz_state': ['game_center/ddz_state', 'GET'],
+    'ddz_bid': ['game_center/ddz_bid', 'POST'],
+    'ddz_play':  ['game_center/ddz_play',  'POST'],
+      'room_start': ['game_center/room_start', 'POST'],
+    'start': ['game_center/start', 'POST'],
+    'create_room': ['game_center/create_room', 'POST'],
+    'match_join': ['game_center/match_join', 'POST'],
+    'match_cancel': ['game_center/match_cancel', 'POST'],
+    'match_poll': ['game_center/match_poll', 'GET'],
+    'settle': ['game_center/settle', 'POST'],
+    'abandon': ['game_center/abandon', 'POST'],
+    'my_sessions': ['game_center/my_sessions', 'GET'],
+    'replay_list': ['game_center/replay_list', 'GET'],
+    'replay_get': ['game_center/replay_get', 'GET'],
+    'mail_list': ['game_center/mail_list', 'GET'],
+    'mail_unread': ['game_center/mail_unread', 'GET'],
+    'mail_claim': ['game_center/mail_claim', 'POST'],
+    'mail_read': ['game_center/mail_read', 'POST'],
   },
 
   // ==================== douyin.php ====================
@@ -484,15 +551,18 @@ const apiMap = {
     'delete': ['admin/certifications', 'POST'],
   },
   'groups.php': {
-    'search_groups': ['chat/sessions', 'GET'],
-    'list_groups': ['chat/sessions', 'GET'],
-    'get_group_members': ['chat/members', 'GET'],
-    'get_join_requests': ['chat/group_join_requests', 'GET'],
-    'get_group_messages': ['chat/messages', 'GET'],
-    'review_join_request': ['chat/group_join_review', 'POST'],
-    'mute_member': ['chat/group_setting', 'POST'],
-    'kick_member': ['chat/group_kick', 'POST'],
-    'dissolve_group': ['chat/group_dissolve', 'POST'],
+    /* 管理端「聊天管理」专用: 走 admin 模块全量查询。
+       之前映射到 chat/sessions —— 那个接口只返回当前登录者自己加入的会话,
+       管理员不在群里时列表永远为空(界面显示"暂无群聊数据")。 */
+    'search_groups': ['admin/groups', 'GET'],
+    'list_groups': ['admin/groups', 'GET'],
+    'get_group_members': ['admin/group_members', 'GET'],
+    'get_join_requests': ['admin/group_requests', 'GET'],
+    'get_group_messages': ['admin/group_messages', 'GET'],
+    'review_join_request': ['admin/group_review', 'POST'],
+    'mute_member': ['admin/group_mute', 'POST'],
+    'kick_member': ['admin/group_kick', 'POST'],
+    'dissolve_group': ['admin/group_dissolve', 'POST'],
   },
   'system_notices.php': {
     'get_list': ['notification/system', 'GET'],
@@ -511,7 +581,8 @@ const apiMap = {
     'delete_app_version': ['system/settings', 'POST'],
   },
   'bubbles.php': {
-    'get_bubbles': ['bubble/list', 'GET'],
+    /* 管理端「气泡管理」: 需要看到下架的气泡, 所以走 admin_list */
+    'get_bubbles': ['bubble/admin_list', 'GET'],
     'delete_bubble': ['bubble/delete', 'POST'],
     'create': ['bubble/create', 'POST'],
     'update': ['bubble/update', 'POST'],

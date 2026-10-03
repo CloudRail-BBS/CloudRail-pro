@@ -1,6 +1,8 @@
 <template>
   <view class="app-container">
     <slot></slot>
+    <!-- 开屏广告：覆盖全屏，App 启动时由 onLaunch 拉取配置后展示 -->
+    <SplashAd ref="splashAd" />
   </view>
 </template>
 
@@ -12,6 +14,7 @@ import { startOnlineNotify } from '@/common/online-notify.js'
 import { applyH5DocumentTitle, setupH5TitleSync } from '@/common/pageTitle.js'
 import { parseOauthCallbackUrl, saveOauthCallback, readOauthCallback, clearOauthCallback } from '@/common/oauthCallback.js'
 import { saveLevelConfig } from '@/common/level.js'
+import { ensureCustomBubbleCss } from '@/common/bubble-style.js'
 
 export default {
   data() {
@@ -32,6 +35,9 @@ export default {
   onLaunch() {
     this.hideNativeTabBar()
 
+    /* 把后台「气泡管理」里写的自定义气泡样式注入到页面(不然自定义气泡不生效) */
+    ensureCustomBubbleCss()
+
     // #ifdef H5
     this.ensureH5DefaultRoute()
     setupH5TitleSync()
@@ -42,6 +48,8 @@ export default {
     // #endif
 
     // #ifdef APP-PLUS
+    /* 全局竖屏（牌桌不再自动横屏）；基座若按 auto 打包，这里兜住不让页面乱转 */
+    try { plus.screen.lockOrientation('portrait-primary') } catch (e) {}
     plus.globalEvent.addEventListener('newintent', () => {
       setTimeout(() => {
         this.checkArguments()
@@ -136,6 +144,7 @@ export default {
   },
 
   methods: {
+    /* 开屏广告：拉配置成功后展示（后台关掉或没配图就不展示） */
     hideNativeTabBar() {
       try {
         uni.hideTabBar({ animation: false, fail: () => {} })

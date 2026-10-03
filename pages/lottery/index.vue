@@ -90,6 +90,75 @@
           </view>
         </view>
 
+        <!-- 斗地主（网页版玩法，WebView 打开，走积分） -->
+        <view class="fixed-game-card" v-if="ddzShow" @click="goDdz()">
+          <view class="card-bg-decoration"></view>
+          <view class="card-header-row">
+            <view class="game-title">
+              <view class="title-svg"><image src="/static/icon/gamepad-red.svg" class="title-img" mode="aspectFit"></image></view>
+              <text>斗地主</text>
+            </view>
+            <view class="game-status duel-status">经典玩法</view>
+          </view>
+          <view class="game-content">
+            <view class="game-emoji-group">
+              <view class="emoji-box">
+                <view class="emoji-svg ic-red"><image src="/static/icon/gamepad-red.svg" class="emoji-img" mode="aspectFit"></image></view>
+                <text class="emoji-label">三人一桌</text>
+              </view>
+              <view class="emoji-box">
+                <view class="emoji-svg ic-gold"><image src="/static/icon/coin-gold.svg" class="emoji-img" mode="aspectFit"></image></view>
+                <text class="emoji-label">积分入场</text>
+              </view>
+              <view class="emoji-box">
+                <view class="emoji-svg ic-orange"><image src="/static/icon/trophy-gold.svg" class="emoji-img" mode="aspectFit"></image></view>
+                <text class="emoji-label">赢取积分</text>
+              </view>
+            </view>
+          </view>
+          <view class="card-footer">
+            <text class="game-desc">经典斗地主，三人一桌，积分结算</text>
+            <view class="enter-btn">
+              <text>马上开玩</text>
+              <view class="enter-arrow-svg"><image src="/static/icon/chevron-right-white.svg" class="enter-arrow-img" mode="aspectFit"></image></view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 炸金花（网页版玩法，WebView 打开，走积分） -->
+        <view class="fixed-game-card" v-if="zjhShow" @click="goZjh()">
+          <view class="card-bg-decoration"></view>
+          <view class="card-header-row">
+            <view class="game-title">
+              <view class="title-svg"><image src="/static/icon/sparkle-4-white.svg" class="title-img" mode="aspectFit"></image></view>
+              <text>炸金花</text>
+            </view>
+            <view class="game-status duel-status">多人对战</view>
+          </view>
+          <view class="game-content">
+            <view class="game-emoji-group">
+              <view class="emoji-box">
+                <view class="emoji-svg ic-red"><image src="/static/icon/sparkle-4-white.svg" class="emoji-img" mode="aspectFit"></image></view>
+                <text class="emoji-label">比牌定输赢</text>
+              </view>
+              <view class="emoji-box">
+                <view class="emoji-svg ic-gold"><image src="/static/icon/coin-gold.svg" class="emoji-img" mode="aspectFit"></image></view>
+                <text class="emoji-label">积分入场</text>
+              </view>
+              <view class="emoji-box">
+                <view class="emoji-svg ic-orange"><image src="/static/icon/trophy-gold.svg" class="emoji-img" mode="aspectFit"></image></view>
+                <text class="emoji-label">赢取积分</text>
+              </view>
+            </view>
+          </view>
+          <view class="card-footer">
+            <text class="game-desc">炸金花，多人比牌，积分结算</text>
+            <view class="enter-btn">
+              <text>马上开玩</text>
+              <view class="enter-arrow-svg"><image src="/static/icon/chevron-right-white.svg" class="enter-arrow-img" mode="aspectFit"></image></view>
+            </view>
+          </view>
+        </view>
         <view class="fixed-game-card" v-if="rpsShow" @click="goRpsGame">
           <!-- 装饰背景 -->
           <view class="card-bg-decoration"></view>
@@ -318,6 +387,7 @@
 
 <script>
 import { request } from '../../common/request.js'
+import { GAME_CENTER_URL } from '../../common/config.js'
 
 export default {
   name: 'LotteryPage',
@@ -328,6 +398,8 @@ export default {
       rpsShow: false,
       rpsStatus: 0,
       duelShow: true, // 巅峰对决暂无独立配置，默认显示
+      ddzShow: true, // 斗地主（网页版玩法，走积分）
+      zjhShow: true, // 炸金花（网页版玩法，走积分）
       statusBarHeight: 0,
       ranking: [],
       myRanking: null,
@@ -381,23 +453,30 @@ export default {
     async loadUserScore() {
       try {
         const userInfo = uni.getStorageSync('userInfo') || {}
-        if (!userInfo.id) return
-        
-        const res = await request('extensions/rps_game.php', {
-          action: 'get_user_score',
-          user_id: userInfo.id
-        }, 'GET')
-        
-        if (res.code === 0) {
-          // 仅在积分变化时才更新 storage，减少同步 IO 开销
-          if (this.userScore !== res.data.score) {
-            this.userScore = res.data.score
-            userInfo.score = this.userScore
-            uni.setStorageSync('userInfo', userInfo)
+        let fetched = null
+        /* 必须是「真实积分余额」(users.points)。
+           以前读的是 games/rps_score —— 那是「猜拳胜场数×10」的游戏分，
+           不是账户余额，所以会显示 0，而且对战赢了不加、输了也不扣（看着像没生效）。 */
+        try {
+          const prof = await request('user.php', { action: 'profile', userId: userInfo.id }, 'GET')
+          if (prof && prof.code === 0 && prof.data) {
+            const d = prof.data
+            const v = (typeof d.points !== 'undefined') ? d.points : ((typeof d.jifen !== 'undefined') ? d.jifen : d.score)
+            fetched = Number(v) || 0
           }
+        } catch (e) {}
+        if (fetched === null) {
+          const lv = (typeof userInfo.points !== 'undefined') ? userInfo.points : ((typeof userInfo.jifen !== 'undefined') ? userInfo.jifen : userInfo.score)
+          fetched = Number(lv) || 0
         }
-      } catch (e) {
-      }
+        this.userScore = fetched
+        const latest = uni.getStorageSync('userInfo') || {}
+        latest.score = fetched
+        latest.jifen = fetched
+        latest.points = fetched
+        uni.setStorageSync('userInfo', latest)
+        this.userInfo = latest
+      } catch (e) {}
     },
     async loadData() {
       try {
@@ -452,6 +531,23 @@ export default {
         url: '/pages/rps-game/index'
       })
     },
+    /* 网页版小游戏：带 token 打开 WebView，由游戏平台侧 sso_bridge.php 完成登录态桥接 */
+    /* 网页版小游戏：带 token 打开 WebView，由游戏平台侧 sso_bridge.php 完成登录态桥接 */
+    /* 炸金花：原生游戏页（逻辑全在前端，后端只记账） */
+    /* 斗地主：原生游戏页（逻辑全在前端，后端只记账） */
+    goDdz() {
+      uni.navigateTo({ url: '/pages/game/hall?type=doudizhu' })
+    },
+
+    goZjh() {
+      uni.navigateTo({ url: '/pages/game/hall?type=zhajinhua' })
+    },
+
+    /* 原生游戏大厅：炸金花 / 斗地主（游戏逻辑在前端，后端只做开局记账与房间管理） */
+    goGameHall(kind) {
+      uni.navigateTo({ url: "/pages/game/hall?type=" + encodeURIComponent(kind) })
+    },
+
     goDuelGame() {
       uni.navigateTo({
         url: '/pages/duel-game/index'
@@ -459,17 +555,24 @@ export default {
     },
     async loadRanking() {
       try {
-        // 调用 Go 接口 user/rps/score_ranking
         const res = await request('rps_game.php', { action: 'score_ranking' }, 'GET')
-        // 适配后端返回格式：{code:0, data:{ranking:[...], my_ranking:{...}}}
-        if (res.code === 0 && res.data) {
-          this.ranking = res.data.ranking || []
-          this.myRanking = res.data.my_ranking || null
-        } else {
-          this.loadMockRanking()
+        /* 后端返回的是 { list: [...] }，以前这里读 res.data.ranking，
+           取不到就变成空数组 —— 排行榜永远显示"暂无数据" */
+        let list = []
+        if (res && res.code === 0) {
+          if (Array.isArray(res.data)) list = res.data
+          else if (res.data && Array.isArray(res.data.ranking)) list = res.data.ranking
+          else if (res.data && Array.isArray(res.data.list)) list = res.data.list
         }
+        this.ranking = list
+        /* 我的排名：从榜单里找自己（后端没单独给 my_ranking） */
+        const myId = String((this.userInfo && this.userInfo.id) || 
+''
+)
+        this.myRanking = myId ? (list.find(it => String(it.uid || it.id || '') === myId) || null) : null
       } catch (e) {
-        this.loadMockRanking()
+        this.ranking = []
+        this.myRanking = null
       }
     },
     loadMockRanking() {

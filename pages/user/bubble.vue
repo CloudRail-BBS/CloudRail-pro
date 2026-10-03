@@ -10,8 +10,8 @@
     <view class="content-wrapper">
       <view class="header-card">
         <view class="balance-box">
-          <text class="label">我的余额</text>
-          <text class="value">¥ {{ userBalance }}</text>
+          <text class="label">我的积分</text>
+          <text class="value">{{ userPoints }}</text>
         </view>
         <text class="tips">个性气泡，彰显独特魅力</text>
       </view>
@@ -25,8 +25,10 @@
           @click="selectItem(item)"
         >
           <view class="preview-area">
-            <view class="bubble-mini" :class="item.style_class">
+            <view class="bubble-mini" :class="item.style_class" :style="skinStyle(item.style_class)">
+              <text v-if="skinDeco(item.style_class, 'before')" class="bubble-deco" :style="skinDeco(item.style_class, 'before').style">{{ skinDeco(item.style_class, 'before').text }}</text>
               <text>Hello</text>
+              <text v-if="skinDeco(item.style_class, 'after')" class="bubble-deco" :style="skinDeco(item.style_class, 'after').style">{{ skinDeco(item.style_class, 'after').text }}</text>
             </view>
           </view>
 
@@ -34,7 +36,7 @@
 
           <view class="status-badge" v-if="item.is_equipped">使用中</view>
           <view class="price-tag" v-else-if="item.is_owned">已拥有</view>
-          <view class="price-tag cost" v-else>¥ {{ item.price }}</view>
+          <view class="price-tag cost" v-else>{{ item.price }} 积分</view>
         </view>
       </view>
     </view>
@@ -45,7 +47,7 @@
     >
       <view class="selected-info" v-if="selectedItem">
         <text class="s-name">{{ selectedItem.name }}</text>
-        <text class="s-price" v-if="!selectedItem.is_owned">¥{{ selectedItem.price }}</text>
+        <text class="s-price" v-if="!selectedItem.is_owned">{{ selectedItem.price }} 积分</text>
       </view>
 
       <view class="selected-info" v-else>
@@ -66,16 +68,16 @@
         <view class="m-title">安全验证</view>
         <view class="m-content">
           <text class="m-tip">
-            购买 "{{ targetItem?.name }}" 需支付
+            购买 "{{ targetItem?.name }}" 需消耗
             <text style="color:#ff2442;font-weight:bold">{{ targetItem?.price }}</text>
-            元
+            积分
           </text>
 
           <input
             type="password"
             v-model="password"
             class="m-input"
-            placeholder="请输入登录密码"
+            placeholder="请输入支付密码"
             :focus="showPwdModal"
             cursor-spacing="100"
           />
@@ -99,6 +101,7 @@
 <script>
 import { request } from '@/common/request.js';
 import CustomNavBar from '@/components/bubble.vue';
+import { ensureCustomBubbleCss, getBubbleSkins } from '@/common/bubble-style.js';
 
 export default {
   components: {
@@ -107,7 +110,9 @@ export default {
   data() {
     return {
       list: [],
-      userBalance: '0.00',
+      userPoints: 0,
+      /* 类名 -> {style, before, after}：App 端插 <style> 不一定生效，气泡外观走内联样式 */
+      bubbleSkins: {},
       selectedId: 0,
       selectedItem: null,
       showPwdModal: false,
@@ -134,11 +139,26 @@ export default {
   onLoad() {
     const sys = uni.getSystemInfoSync();
     this.safeAreaBottom = (sys.safeAreaInsets && sys.safeAreaInsets.bottom) || 0;
+    /* 后台写的自定义气泡样式要重新拉一次，否则新加的自定义气泡在商城里还是默认样子。
+       拉回来的是「类名 -> 内联样式」，绑到气泡元素上（不依赖注入 <style>） */
+    ensureCustomBubbleCss(true).then(() => { this.bubbleSkins = getBubbleSkins(); });
     this.loadData();
   },
   methods: {
     onNavInit(e) {
       this.navInfo = e;
+    },
+
+    /* 气泡皮肤内联样式（App 端插 <style> 不一定生效，所以外观走内联） */
+    skinStyle(cls) {
+      const s = this.bubbleSkins[cls];
+      return s && s.style ? s.style : '';
+    },
+    /* 气泡的 ::before / ::after（如左上角小星星），用额外小元素还原 */
+    skinDeco(cls, which) {
+      const s = this.bubbleSkins[cls];
+      if (!s || !s[which]) return null;
+      return s[which];
     },
 
     showHUD(text = '加载中') {
@@ -156,8 +176,12 @@ export default {
         const res = await request('bubble.php', { action: 'list' }, 'POST');
         if (res.code === 0) {
           this.list = res.data.list || [];
-          this.userBalance = res.data.balance || '0.00';
-
+          this.userPoints = Number(res.data.points || 0);
+          /* 选中的那条要在刷新后换成新对象, 否则按钮状态(已拥有/使用中)不会更新 */
+          if (this.selectedId) {
+            const fresh = this.list.find(i => i.id === this.selectedId);
+            if (fresh) this.selectedItem = fresh;
+          }
           const equipped = this.list.find(i => i.is_equipped);
           if (equipped && !this.selectedItem) {
             this.selectItem(equipped);
@@ -239,7 +263,7 @@ export default {
     async confirmBuy() {
       if (!this.password) {
         return uni.showToast({
-          title: '请输入密码',
+          title: '请输入支付密码',
           icon: 'none'
         });
       }
@@ -256,17 +280,28 @@ export default {
           {
             action: 'buy',
             bubbleId,
-            password: pwdToSend
+            pay_password: pwdToSend
           },
           'POST'
         );
 
         if (res.code === 0) {
           uni.showToast({
-            title: '购买成功',
+            title: res.msg || '购买成功',
             icon: 'success'
           });
           this.loadData();
+        } else if (res.code === -4) {
+          /* 还没设置支付密码: 引导去设置, 而不是把"随便输的密码"当成功 */
+          uni.showModal({
+            title: '未设置支付密码',
+            content: res.msg || '请先前往账户安全设置支付密码',
+            confirmText: '去设置',
+            cancelText: '取消',
+            success: (r) => {
+              if (r.confirm) uni.navigateTo({ url: '/pages/user/pay-password' });
+            }
+          });
         } else {
           uni.showToast({
             title: res.msg || '购买失败',
@@ -362,6 +397,12 @@ export default {
   align-items: center;
   justify-content: center;
   margin-bottom: 16rpx;
+}
+
+/* 自定义气泡的 ::before / ::after 装饰（内容与定位都在内联样式里） */
+.bubble-deco {
+  position: absolute;
+  line-height: 1;
 }
 
 .name {

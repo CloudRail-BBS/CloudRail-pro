@@ -74,7 +74,7 @@
             <view class="arena-center">
               <image src="/static/icon/clock-white.svg" class="waiting-icon" mode="aspectFit"></image>
               <text class="arena-title">等待应战</text>
-              <text class="arena-desc">已投入 {{ currentDuel.bet_amount }} 积分</text>
+              <text class="arena-desc">已投入 {{ currentDuel?.bet_amount }} 积分</text>
             </view>
             <view class="avatar-circle right">
               <view class="avatar-placeholder waiting">
@@ -98,8 +98,8 @@
         <view class="battle-card">
           <view class="arena-area">
             <view class="avatar-circle left">
-              <image :src="currentDuel.challenger_avatar || '/static/user/default.png'" class="avatar-img" mode="aspectFill"></image>
-              <text class="player-name">{{ currentDuel.challenger_name }}</text>
+              <image :src="currentDuel?.challenger_avatar || '/static/user/default.png'" class="avatar-img" mode="aspectFill"></image>
+              <text class="player-name">{{ currentDuel?.challenger_name }}</text>
               <text class="role-tag">挑战者</text>
               <!-- 血条 -->
               <view class="hp-bar">
@@ -113,11 +113,11 @@
                 <text class="countdown-num">{{ countdown }}</text>
                 <text class="countdown-unit">秒</text>
               </view>
-              <text class="pool-info">奖池: {{ currentDuel.bet_amount * 2 }} 积分</text>
+              <text class="pool-info">奖池: {{ currentDuel?.bet_amount * 2 }} 积分</text>
             </view>
             <view class="avatar-circle right">
-              <image :src="currentDuel.defender_avatar || '/static/user/default.png'" class="avatar-img" mode="aspectFill"></image>
-              <text class="player-name">{{ currentDuel.defender_name }}</text>
+              <image :src="currentDuel?.defender_avatar || '/static/user/default.png'" class="avatar-img" mode="aspectFill"></image>
+              <text class="player-name">{{ currentDuel?.defender_name }}</text>
               <text class="role-tag">应战者</text>
               <!-- 血条 -->
               <view class="hp-bar">
@@ -145,11 +145,11 @@
           <view class="result-stats">
             <view class="stat-item">
               <text class="stat-label">投入</text>
-              <text class="stat-value">-{{ currentDuel.bet_amount }}</text>
+              <text class="stat-value">-{{ currentDuel?.bet_amount }}</text>
             </view>
             <view class="stat-item" :class="{ highlight: isWinner }">
               <text class="stat-label">{{ isWinner ? '获得' : '损失' }}</text>
-              <text class="stat-value">{{ isWinner ? '+' + (currentDuel.bet_amount * 2) : '-' + currentDuel.bet_amount }}</text>
+              <text class="stat-value">{{ isWinner ? '+' + (currentDuel?.bet_amount * 2) : '-' + currentDuel?.bet_amount }}</text>
             </view>
           </view>
           <view class="result-btn" @click="backToIdle">
@@ -165,16 +165,16 @@
           <text class="section-title">正在进行的挑战</text>
         </view>
         <view class="challenge-cards">
-          <view v-for="challenge in challenges" :key="challenge.id" class="challenge-card">
+          <view v-for="(challenge, ci) in challenges" :key="(challenge && challenge.id) || ci" class="challenge-card">
             <view class="challenge-header" @click="handleChallengeClick(challenge)">
-              <image :src="challenge.challenger_avatar || '/static/user/default.png'" class="challenge-avatar" mode="aspectFill"></image>
+              <image :src="challenge?.challenger_avatar || '/static/user/default.png'" class="challenge-avatar" mode="aspectFill"></image>
               <view class="challenge-info">
-                <text class="challenge-name">{{ challenge.challenger_name }}</text>
-                <text class="challenge-desc">发起了 {{ challenge.bet_amount }} 积分挑战</text>
+                <text class="challenge-name">{{ challenge?.challenger_name }}</text>
+                <text class="challenge-desc">发起了 {{ challenge?.bet_amount }} 积分挑战</text>
               </view>
             </view>
-            <view class="action-btn" :class="challenge.challenger_id === userInfo.id ? 'cancel' : 'accept'" @click="handleChallengeClick(challenge)">
-              <text>{{ challenge.challenger_id === userInfo.id ? '取消' : '应战' }}</text>
+            <view class="action-btn" :class="challenge?.challenger_id === userInfo.id ? 'cancel' : 'accept'" @click="handleChallengeClick(challenge)">
+              <text>{{ challenge?.challenger_id === userInfo.id ? '取消' : '应战' }}</text>
             </view>
           </view>
         </view>
@@ -224,10 +224,10 @@
                 <text class="history-role">应战</text>
               </view>
             </view>
-            <view class="history-result" :class="record.winner_id === userInfo.id ? 'win' : 'lose'">
-              <image v-if="record.winner_id === userInfo.id" src="/static/icon/trophy-white.svg" class="result-icon" mode="aspectFit"></image>
+            <view class="history-result" :class="(record.result === 1 && String(record.challenger_id) === String(userInfo.id)) || (record.result === 2 && String(record.defender_id) === String(userInfo.id)) ? 'win' : 'lose'">
+              <image v-if="(record.result === 1 && String(record.challenger_id) === String(userInfo.id)) || (record.result === 2 && String(record.defender_id) === String(userInfo.id))" src="/static/icon/trophy-white.svg" class="result-icon" mode="aspectFit"></image>
               <image v-else src="/static/icon/heart-broken-white.svg" class="result-icon" mode="aspectFit"></image>
-              <text class="result-text">{{ record.winner_id === userInfo.id ? '胜利' : '失败' }}</text>
+              <text class="result-text">{{ (record.result === 1 && String(record.challenger_id) === String(userInfo.id)) || (record.result === 2 && String(record.defender_id) === String(userInfo.id)) ? '胜利' : '失败' }}</text>
               <text class="result-bet">{{ record.bet_amount * 2 }} 积分</text>
             </view>
             <text class="history-time">{{ record.created_at }}</text>
@@ -242,7 +242,7 @@
     <view class="modal-content win-modal" @click.stop>
       <image src="/static/icon/trophy-white.svg" class="win-icon" mode="aspectFit"></image>
       <text class="win-title">胜利！</text>
-      <text class="win-desc">恭喜你获得 {{ currentDuel.bet_amount * 2 }} 积分！</text>
+      <text class="win-desc">恭喜你获得 {{ currentDuel?.bet_amount * 2 }} 积分！</text>
       <view class="win-btn" @click="hideWinModal">
         <text>太棒了！</text>
       </view>
@@ -254,7 +254,7 @@
     <view class="modal-content lose-modal" @click.stop>
       <image src="/static/icon/heart-broken-white.svg" class="lose-icon" mode="aspectFit"></image>
       <text class="lose-title">失败</text>
-      <text class="lose-desc">损失了 {{ currentDuel.bet_amount }} 积分，再接再厉！</text>
+      <text class="lose-desc">损失了 {{ currentDuel?.bet_amount }} 积分，再接再厉！</text>
       <view class="lose-btn" @click="hideLoseModal">
         <text>继续努力</text>
       </view>
@@ -265,6 +265,7 @@
 
 <script>
 import { request } from '../../common/request.js'
+import ws from '../../common/ws.js'
 
 export default {
   name: 'DuelGame',
@@ -314,6 +315,10 @@ export default {
     this.scoreTimer = setInterval(() => {
       this.loadUserScore()
     }, 15000)
+    /* 实时：对方应战 / 结算时后端会推 duel_update，这里立刻切界面（不靠轮询） */
+    this._duelWsOff = ws.on('duel_update', this._onDuelPush)
+    /* 对局记录：以前从来没调用过 loadHistory，所以记录一直是空的 */
+    this.loadHistory()
   },
   onUnload() {
     if (this.countdownTimer) {
@@ -365,26 +370,24 @@ export default {
         if (!userInfo.id) return
 
         let fetched = null
+
+        /* 注意：这里必须读「用户真实积分余额」(users.points)，
+           不能读 games/rps_score —— 后者返回的是「胜场数×10」的游戏积分，
+           不是账户余额。之前用它当余额判断，导致"有积分但从没赢过对战"的用户
+           永远被判积分不足。 */
         try {
-          // 前端 duel-game 调用 extensions/rps_game.php?action=get_user_score；
-          // 若后端该接口不存在, 回退到 user.php/profile 读真实积分(users.points)，保证不显示 0
-          const res = await request('extensions/rps_game.php', {
-            action: 'get_user_score',
-            user_id: userInfo.id
-          }, 'GET')
-          if (res && res.code === 0 && res.data && (typeof res.data.score !== 'undefined' || typeof res.data.points !== 'undefined')) {
-            fetched = Number(res.data.score ?? res.data.points ?? 0) || 0
+          const prof = await request('user.php', { action: 'profile', userId: userInfo.id }, 'GET')
+          if (prof && prof.code === 0 && prof.data) {
+            const d = prof.data
+            const v = (typeof d.points !== 'undefined') ? d.points : ((typeof d.jifen !== 'undefined') ? d.jifen : d.score)
+            fetched = Number(v) || 0
           }
         } catch (e) {}
 
+        /* 兜底：拿不到就走本地缓存的积分 */
         if (fetched === null) {
-          try {
-            const fallback = await request('user.php', { action: 'profile', userId: userInfo.id }, 'GET')
-            if (fallback && fallback.code === 0 && fallback.data) {
-              const d = fallback.data
-              fetched = Number(d.score ?? d.jifen ?? d.points ?? 0) || 0
-            }
-          } catch (e2) {}
+          const lv = (typeof userInfo.points !== 'undefined') ? userInfo.points : ((typeof userInfo.jifen !== 'undefined') ? userInfo.jifen : userInfo.score)
+          fetched = Number(lv) || 0
         }
 
         if (fetched !== null && !Number.isNaN(fetched)) {
@@ -419,32 +422,56 @@ export default {
         uni.showToast({ title: '积分不足', icon: 'none' })
         return
       }
+      if (!this.selectedAmount || this.selectedAmount < 100) {
+        uni.showToast({ title: '最低 100 积分', icon: 'none' })
+        return
+      }
 
       try {
+        /* 1) 先从「互关好友」里选一个挑战对象 */
+        const fr = await request('user.php', { action: 'mutual' }, 'GET')
+        const list = (fr && fr.code === 0 && fr.data && fr.data.list) || []
+        if (!list.length) {
+          uni.showToast({ title: '还没有互关好友，先去互相关注几个人吧', icon: 'none' })
+          return
+        }
+        const top = list.slice(0, 20)
+        const itemList = top.map(u => (u.nickname || u.username || u.uid) + '  (' + String(u.uid || '').slice(-6) + ')')
+        const idx = await new Promise((resolve) => {
+          uni.showActionSheet({
+            itemList,
+            success: (ev) => resolve(ev.tapIndex),
+            fail: () => resolve(-1)
+          })
+        })
+        if (idx < 0 || !top[idx]) return
+        const rivalUid = String(top[idx].uid || '')
+        if (!rivalUid) return
+
+        /* 2) 带上 rival_uid + bet_amount 发起挑战（后端已改成扣积分） */
         const res = await request('duel_game.php', {
           action: 'start_duel',
-          user_id: this.userInfo.id,
+          rival_uid: rivalUid,
           bet_amount: this.selectedAmount
         }, 'POST')
 
-        if (res.code === 0) {
-          uni.showToast({ title: '挑战已发布', icon: 'success' })
+        if (res && res.code === 0) {
+          uni.showToast({ title: '挑战已发出', icon: 'success' })
           this.gameStatus = 'waiting'
-          this.currentDuel = res.data.duel
-          this.syncScoreFromData(res.data, 'user_score')
+          this.currentDuel = (res.data && res.data.duel) ? res.data.duel : { id: res.data && res.data.id }
           this.listenForMatch()
         } else {
-          uni.showToast({ title: res.msg || '发起失败', icon: 'none' })
+          uni.showToast({ title: (res && res.msg) || '发起失败', icon: 'none' })
         }
       } catch (e) {
-        uni.showToast({ title: '发起失败', icon: 'none' })
+        uni.showToast({ title: '发起失败，请检查网络', icon: 'none' })
       }
     },
     async cancelDuel() {
       try {
         const res = await request('duel_game.php', {
           action: 'cancel_duel',
-          duel_id: this.currentDuel.id,
+          duel_id: this.currentDuel?.id,
           user_id: this.userInfo.id
         }, 'POST')
 
@@ -461,7 +488,7 @@ export default {
       }
     },
     async acceptChallenge(challenge) {
-      if (challenge.bet_amount > this.userScore) {
+      if (challenge?.bet_amount > this.userScore) {
         uni.showToast({ title: '积分不足', icon: 'none' })
         return
       }
@@ -476,7 +503,7 @@ export default {
         if (res.code === 0) {
           uni.showToast({ title: '已应战', icon: 'success' })
           this.gameStatus = 'battle'
-          this.currentDuel = res.data.duel
+          this.currentDuel = (res.data && res.data.duel) ? res.data.duel : res.data.duel
           this.syncScoreFromData(res.data, 'user_score')
           this.startCountdown()
         } else {
@@ -489,7 +516,7 @@ export default {
     },
     handleChallengeClick(challenge) {
       // 如果是自己发布的挑战，进入等待页面查看详情（可以取消）
-      if (challenge.challenger_id === this.userInfo.id) {
+      if (challenge?.challenger_id === this.userInfo.id) {
         this.currentDuel = challenge
         this.fromList = true // 标记是从列表进入
         this.gameStatus = 'waiting'
@@ -506,7 +533,7 @@ export default {
     confirmCancel() {
       uni.showModal({
         title: '确认取消',
-        content: `确定要取消挑战吗？取消后将返还您投入的 ${this.currentDuel.bet_amount} 积分`,
+        content: `确定要取消挑战吗？取消后将返还您投入的 ${this.currentDuel?.bet_amount} 积分`,
         confirmText: '确定取消',
         cancelText: '继续等待',
         success: (res) => {
@@ -522,12 +549,12 @@ export default {
         try {
           const res = await request('duel_game.php', {
             action: 'check_duel',
-            duel_id: this.currentDuel.id
+            duel_id: this.currentDuel?.id
           }, 'GET')
 
           if (res.code === 0 && res.data.status === 'battle') {
             clearInterval(checkInterval)
-            this.currentDuel = res.data
+            this.currentDuel = (res.data && res.data.duel) ? res.data.duel : res.data
             this.gameStatus = 'battle'
             this.startCountdown()
           }
@@ -539,7 +566,7 @@ export default {
       try {
         const res = await request('duel_game.php', {
           action: 'cancel_duel',
-          duel_id: this.currentDuel.id,
+          duel_id: this.currentDuel?.id,
           user_id: this.userInfo.id
         }, 'POST')
 
@@ -597,17 +624,17 @@ export default {
           // 倒计时没结束时保留最低血量
           if (template.user === 'challenger') {
             this.defenderHp = Math.max(10, this.defenderHp - damage)
-            log = `⚔️ ${this.currentDuel.challenger_name || '挑战者'} ${template.action} ${template.damage} (造成 ${damage} 伤害)`
+            log = `⚔️ ${this.currentDuel?.challenger_name || '挑战者'} ${template.action} ${template.damage} (造成 ${damage} 伤害)`
           } else {
             this.challengerHp = Math.max(10, this.challengerHp - damage)
-            log = `🛡️ ${this.currentDuel.defender_name || '应战者'} ${template.action} ${template.damage} (造成 ${damage} 伤害)`
+            log = `🛡️ ${this.currentDuel?.defender_name || '应战者'} ${template.action} ${template.damage} (造成 ${damage} 伤害)`
           }
         } else if (template.type === 'defend' || template.type === 'dodge') {
           this.challengerHp = Math.max(10, this.challengerHp - 5)
-          log = `🛡️ ${this.currentDuel.defender_name || '应战者'} ${template.action} ${template.damage}`
+          log = `🛡️ ${this.currentDuel?.defender_name || '应战者'} ${template.action} ${template.damage}`
         } else if (template.type === 'take_damage') {
           this.challengerHp = Math.max(10, this.challengerHp - 15)
-          log = `⚔️ ${this.currentDuel.challenger_name || '挑战者'} ${template.action} ${template.damage}`
+          log = `⚔️ ${this.currentDuel?.challenger_name || '挑战者'} ${template.action} ${template.damage}`
         } else {
           log = `✨ ${template.action}`
         }
@@ -655,22 +682,23 @@ export default {
       
       try {
         const res = await request('duel_game.php', {
-          action: 'end_duel',
-          duel_id: this.currentDuel.id
+          action: 'settle_duel',
+          duel_id: this.currentDuel?.id
         }, 'POST')
 
         if (res.code === 0) {
-          this.isWinner = res.data.duel.winner_id === this.userInfo.id
+          const _d = (res.data && res.data.duel) || {}
+          const _rs = Number((res.data && res.data.result) || 0)
+          const _meChallenger = String(_d.challenger_id || '') === String(this.userInfo.id)
+          /* 后端用 result 表示胜负：1=挑战方胜 2=应战方胜 0=平局 */
+          this.isWinner = (_rs === 1 && _meChallenger) || (_rs === 2 && !_meChallenger)
           
           // 根据当前用户角色更新积分（兼容任一字段名，不再出现展示0）
-          if (this.currentDuel.challenger_id === this.userInfo.id) {
-            this.syncScoreFromData(res.data, 'challenger_score')
-          } else {
-            this.syncScoreFromData(res.data, 'defender_score')
-          }
+          /* 后端不返回积分字段，直接重新拉一次真实积分 */
+          this.loadUserScore()
           
           // 失败方血条置0
-          if (res.data.duel.winner_id === this.currentDuel.challenger_id) {
+          if (Number((res.data && res.data.result) || 0) === 1) {
             // 挑战者胜利，应战者失败
             this.defenderHp = 0
           } else {
@@ -692,20 +720,47 @@ export default {
       this.gameStatus = 'idle'
       this.loadChallenges()
     },
+    _onDuelPush(data) {
+      const d = data || {}
+      const duel = d.duel || null
+      if (!duel) return
+      const ev = d.event || ''
+      this.currentDuel = duel
+      if (ev === 'accepted') {
+        if (String(duel.challenger_id || '') === String(this.userInfo.id)) {
+          this.gameStatus = 'battle'
+          this.startCountdown()
+        }
+      } else if (ev === 'settled') {
+        this.gameStatus = 'result'
+        /* 必须结合"我是不是挑战方"来判断，否则 result=2 时双方都会判失败 */
+        const _rs = Number(d.result || 0)
+        const _meChallenger = String(duel.challenger_id || '') === String(this.userInfo.id)
+        this.isWinner = (_rs === 1 && _meChallenger) || (_rs === 2 && !_meChallenger)
+        this.loadHistory()
+        this.loadUserScore()
+      }
+      this.loadChallenges()
+    },
+
     async loadChallenges() {
       try {
-        const res = await request('duel_game.php', {
-          action: 'get_challenges'
-        }, 'GET')
-
-        if (res.code === 0) {
-          this.challenges = res.data || []
+        const res = await request('duel_game.php', { action: 'get_challenges' }, 'GET')
+        let arr = []
+        if (res && res.code === 0) {
+          if (Array.isArray(res.data)) arr = res.data
+          else if (res.data && Array.isArray(res.data.list)) arr = res.data.list
         }
+        this.challenges = arr.filter((it) => it && typeof it === 'object').map((it) => ({
+          ...it,
+          challenger_id: it.challenger_id || it.uid || '',
+          challenger_name: it.challenger_name || it.nickname || it.username || '未知用户',
+          challenger_avatar: it.challenger_avatar || it.avatar || '',
+          bet_amount: (it.bet_amount !== undefined && it.bet_amount !== null) ? it.bet_amount : it.amount
+        }))
       } catch (e) {
         this.challenges = []
       }
-      // 同时加载对局记录
-      this.loadHistory()
     },
     async loadHistory() {
       try {
@@ -715,7 +770,7 @@ export default {
         }, 'POST')
 
         if (res.code === 0) {
-          this.history = res.data || []
+          this.history = Array.isArray(res.data) ? res.data : ((res.data && res.data.list) || [])
         }
       } catch (e) {
         this.history = []

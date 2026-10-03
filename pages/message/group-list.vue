@@ -137,11 +137,30 @@ export default {
         if (Number(data.sender_id) !== Number(this.myId || 0)) {
           item.unread = Number(item.unread || 0) + 1
         }
-        item.last_msg_preview = data.msg_type === 'image' ? '[图片]' : (data.content || '').slice(0, 60)
+        item.last_msg_preview = this.wsPreview(data)
         item.last_msg_time = data.create_time
         this.$set(this.groupList, idx, item)
         this.syncGlobalUnread()
       }
+    },
+    /* 最后一条消息预览文案：语音/红包/转账等的 content 是 JSON 或地址，
+       直接截 content 会显示一串 JSON/链接，这里按类型转成可读文案 */
+    wsPreview(data) {
+      const type = String((data && (data.msg_type || data.type)) || 'text')
+      const content = String((data && data.content) || '')
+      if (type === 'image') return '[图片]'
+      if (type === 'emoticon') return '[表情]'
+      if (type === 'voice') {
+        let sec = 0
+        try { sec = Number(JSON.parse(content || '{}').duration || 0) } catch (e) { sec = 0 }
+        return '[语音]' + (sec > 0 ? ' ' + sec + '″' : '')
+      }
+      if (type === 'redpacket') return '[红包]'
+      if (type === 'transfer') return '[转账]'
+      if (type === 'card' || type === 'group_card') return '[名片]'
+      if (type === 'group_invite') return '[群邀请]'
+      if (type === 'recalled') return '撤回了一条消息'
+      return content.slice(0, 60)
     },
     _onWsUnreadUpdate(data) {
       if (data.group_unread !== undefined) {
@@ -168,6 +187,8 @@ export default {
             id: Number(item.id || 0),
             member_count: Number(item.member_count || 0),
             unread: Number(item.unread || 0),
+            /* 后端 last_msg 对语音等已是可读文案，缺字段时兜底成空串，别让模板无内容 */
+            last_msg_preview: item.last_msg_preview || item.last_msg || '',
             avatar: this.fixUrl(item.avatar || '/static/logo.png')
           }))
           this.groupList = list

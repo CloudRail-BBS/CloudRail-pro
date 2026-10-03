@@ -335,10 +335,21 @@ export default {
     },
 
     formatMsg(msg) {
-      if (msg.msg_type === 'image') return '[图片] ' + (msg.content || '')
-      if (msg.msg_type === 'video') return '[视频] ' + (msg.content || '')
-      if (msg.msg_type === 'card') return '[名片]'
-      if (msg.msg_type === 'notice') return '[通知] ' + (msg.content || '')
+      const t = msg.msg_type
+      if (t === 'image') return '[图片] ' + (msg.content || '')
+      if (t === 'video') return '[视频] ' + (msg.content || '')
+      if (t === 'card' || t === 'group_card') return '[名片]'
+      if (t === 'notice') return '[通知] ' + (msg.content || '')
+      if (t === 'emoticon') return '[表情] ' + (msg.content || '')
+      /* 语音/红包/转账的 content 是 JSON，直接展示会是一串代码 */
+      if (t === 'voice') {
+        let sec = 0
+        try { sec = Number(JSON.parse(msg.content || '{}').duration || 0) } catch (e) { sec = 0 }
+        return '[语音]' + (sec > 0 ? ' ' + sec + '″' : '')
+      }
+      if (t === 'redpacket') return '[红包]'
+      if (t === 'transfer') return '[转账]'
+      if (t === 'group_invite') return '[群邀请]'
       return msg.content || '-'
     },
 

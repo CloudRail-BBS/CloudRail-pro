@@ -76,6 +76,19 @@
                       @click="previewImage(msg.content)"
                     />
 
+                    <!-- 语音消息：点一下播放，长按弹菜单（可转文字） -->
+                    <view
+                      v-else-if="msg.type === 'voice'"
+                      class="voice-msg"
+                      :class="{ playing: playingVoiceId === msg.id }"
+                      :style="{ width: voiceWidth(msg) + 'rpx' }"
+                      @click.stop="playVoiceMsg(msg)"
+                    >
+                      <view class="voice-wave"><view class="voice-bar"></view><view class="voice-bar"></view><view class="voice-bar"></view><view class="voice-bar"></view></view>
+                      <text class="voice-sec">{{ voiceSec(msg) }}″</text>
+                      <text v-if="msg.voiceText" class="voice-dot">文</text>
+                    </view>
+
                     <view v-else-if="msg.type === 'card' && msg.extra" class="card-box" @click="goUser(msg.extra.user_id)">
                       <image class="card-avatar" :src="fixUrl(msg.extra.avatar)" mode="aspectFill" />
                       <view class="card-info">
@@ -116,10 +129,24 @@
       <view class="input-wrapper" :style="inputWrapperStyle">
         <view class="chat-disabled-tip" v-if="!canChat">{{ chatDisabledReason }}</view>
         <view class="input-inner">
+          <view class="tool-btn voice-switch" @click="toggleVoiceMode">
+            <image :src="voiceMode ? '/static/icon/keyboard-ref.svg' : '/static/icon/mic.svg'" class="tool-icon-img" mode="aspectFit"></image>
+          </view>
           <view class="tool-btn emoji-btn" @click="toggleEmojiPicker">
             <image src="/static/icon/smile.svg" class="tool-icon-img" mode="aspectFit"></image>
           </view>
           <view class="rich-input">
+            <!-- 语音模式：按住说话 -->
+            <view
+              v-if="voiceMode"
+              class="voice-hold"
+              :class="{ active: recording, cancel: recordCancel }"
+              @touchstart.stop.prevent="onVoiceStart"
+              @touchmove.stop.prevent="onVoiceMove"
+              @touchend.stop.prevent="onVoiceEnd"
+              @touchcancel.stop.prevent="onVoiceCancel"
+            >{{ recording ? (recordCancel ? '松开手指，取消发送' : '松开 发送') : '按住 说话' }}</view>
+            <template v-else>
             <!-- #ifdef H5 -->
             <div
               ref="richInput"
@@ -149,6 +176,7 @@
               @confirm="sendText"
             />
             <!-- #endif -->
+            </template>
           </view>
           <view class="tool-btn add-btn" @click="toggleMoreActions">
             <image src="/static/icon/plus-ref.svg" class="tool-icon-img" mode="aspectFit"></image>
@@ -236,10 +264,20 @@
     >
       <view class="action-sheet">
         <view v-if="msgMenu.canCopy" class="action-sheet-item" @click="copyMsg">复制</view>
+        <view v-if="msgMenu.canVoiceText" class="action-sheet-item" @click="voiceToText">转文字</view>
         <view v-if="msgMenu.canRecall" class="action-sheet-item danger" @click="confirmRecall">撤回</view>
-        <view v-if="!msgMenu.canCopy && !msgMenu.canRecall" class="action-sheet-empty">当前消息暂无可用操作</view>
+        <view v-if="!msgMenu.canCopy && !msgMenu.canRecall && !msgMenu.canVoiceText" class="action-sheet-empty">当前消息暂无可用操作</view>
       </view>
     </XhsModal>
+
+    <!-- 录音状态浮层 -->
+    <view v-if="recording" class="rec-mask">
+      <view class="rec-box" :class="{ cancel: recordCancel }">
+        <view class="rec-wave"><view class="rec-bar"></view><view class="rec-bar"></view><view class="rec-bar"></view></view>
+        <text class="rec-sec">{{ recordSec }}″</text>
+        <text class="rec-tip">{{ recordCancel ? '松开手指，取消发送' : '松开发送，上滑取消' }}</text>
+      </view>
+    </view>
 
     <XhsModal
       :show="announcementPopup.visible"
@@ -407,6 +445,7 @@
 
 <script>
 import { request, baseUrl, uploadFile } from '../../common/request.js'
+import { startRecord, stopRecord, abortRecord, uploadVoice, playVoice, stopVoice, voiceSeconds, voiceBubbleWidth } from '../../common/voice.js'
 import ws from '../../common/ws.js'
 import XhsConfirm from '../../components/XhsConfirm.vue'
 import XhsModal from '../../components/XhsModal.vue'
@@ -440,7 +479,16 @@ export default {
       isAtBottom: true,
       moreVisible: false,
       msgMenuVisible: false,
-      msgMenu: { msg: null, canCopy: false, canRecall: false },
+      msgMenu: { msg: null, canCopy: false, canRecall: false, canVoiceText: false },
+      /* ---- 语音消息 ---- */
+      voiceMode: false,      // 输入栏是否处于"按住说话"模式
+      recording: false,      // 正在录音
+      recordCancel: false,   // 上滑到取消区
+      recordSec: 0,          // 录音秒数
+      recTimer: null,
+      recordStartY: 0,
+      recordStartAt: 0,      // 按下时的时间戳，用于兜底算录音时长
+      playingVoiceId: null,  // 正在播放的语音消息 id
       confirm: { show: false, title: '', message: '', resolve: null },
       announcementPopup: { visible: false, content: '', storageKey: '' },
       canChat: true,
@@ -594,6 +642,12 @@ export default {
     this._wsUnsubGroupMsg = ws.on('group_msg', this._onWsGroupMsg)
   },
   onUnload() {
+    /* 语音：停掉录音、播放和计时器，避免页面销毁后还在跑 */
+    this.stopRecTimer()
+    if (this.recording) { this.recording = false; stopRecord() }
+    abortRecord()
+    stopVoice()
+    this.playingVoiceId = null
     // 取消 WebSocket 订阅
     if (this._wsUnsubGroupMsg) { this._wsUnsubGroupMsg(); this._wsUnsubGroupMsg = null }
     ws.leaveGroup(this.groupId)
@@ -744,7 +798,9 @@ export default {
       }
     },
     normalizeMsg(msg) {
-      const type = msg.msg_type || 'text'
+      /* 兼容两种字段：后端 chat/messages 返回 msg_type，本地/WS 可能只有 type。
+         只读 msg_type 的话，缺字段时会退化成 text，语音就被当普通文本显示成原始 JSON */
+      const type = msg.msg_type || msg.type || 'text'
       const isMe = String(msg.sender_id || msg.from_uid || '') === String(this.myId || '')
       let redPacket = null
       if (type === 'redpacket') {
@@ -757,11 +813,26 @@ export default {
         redPacket.count = Number(redPacket.count || 0)
         redPacket.left_count = Number(redPacket.left_count || 0)
       }
+      /* 语音消息：content 是 JSON { url, duration(秒), text } */
+      let voiceUrl = ''
+      let voiceDur = 0
+      let voiceText = ''
+      if (type === 'voice') {
+        try {
+          const v = JSON.parse(msg.content || '{}')
+          voiceUrl = v.url || ''
+          voiceDur = Number(v.duration || 0) * 1000
+          voiceText = v.text || ''
+        } catch (e) { voiceUrl = '' }
+      }
       return {
         id: Number(msg.id || 0),
         tempId: msg.tempId || '',
         type,
         content: msg.content || '',
+        voiceUrl,
+        voiceDur,
+        voiceText,
         extra: msg.extra || null,
         redPacket,
         create_time: msg.create_time || '',
@@ -1615,18 +1686,181 @@ export default {
       if (!url) return
       uni.previewImage({ current: url, urls: [url] })
     },
+    /* ---------------- 语音消息 ---------------- */
+    toggleVoiceMode() {
+      if (!this.canChat) return uni.showToast({ title: this.chatDisabledReason || '当前无法发送消息', icon: 'none' })
+      this.voiceMode = !this.voiceMode
+      if (this.voiceMode && this.showEmojiPicker) this.showEmojiPicker = false
+    },
+    onVoiceStart(e) {
+      if (!this.canChat) return uni.showToast({ title: this.chatDisabledReason || '当前无法发送消息', icon: 'none' })
+      if (this.sending) return
+      this.recordCancel = false
+      this.recordSec = 0
+      this.recordStartAt = Date.now()
+      const t = (e && e.touches && e.touches[0]) || {}
+      this.recordStartY = Number(t.clientY || 0)
+      const started = startRecord({
+        maxDuration: 60000,
+        onStop: (res) => this.onRecordDone(res),
+        onError: () => {
+          this.stopRecTimer()
+          this.recording = false
+          uni.showToast({ title: '录音失败，请检查麦克风权限', icon: 'none' })
+        }
+      })
+      if (!started) return
+      this.recording = true
+      this.recTimer = setInterval(() => {
+        this.recordSec++
+        if (this.recordSec >= 60) this.onVoiceEnd()
+      }, 1000)
+    },
+    onVoiceMove(e) {
+      if (!this.recording) return
+      const t = (e && e.touches && e.touches[0]) || {}
+      /* 手指上滑超过 60px 视为取消 */
+      this.recordCancel = (this.recordStartY - Number(t.clientY || 0)) > 60
+    },
+    onVoiceEnd() {
+      if (!this.recording) return
+      this.stopRecTimer()
+      this.recording = false
+      stopRecord()          // 会触发 onStop → onRecordDone
+    },
+    onVoiceCancel() {
+      if (!this.recording) return
+      this.recordCancel = true
+      this.onVoiceEnd()
+    },
+    stopRecTimer() {
+      if (this.recTimer) { clearInterval(this.recTimer); this.recTimer = null }
+    },
+    async onRecordDone(res) {
+      const cancel = this.recordCancel
+      this.recordCancel = false
+      const path = (res && res.tempFilePath) || ''
+      const isH5 = !!(res && res.h5)
+      /* 录音秒数取三个来源的最大值：
+         1) 页面计时器 recordSec
+         2) 录音器回调里的 duration —— 部分安卓机这里返回 0
+         3) 按下到松开的时间戳差 —— 最后的兜底
+         H5 端 MediaRecorder 也根本不提供时长，必须靠 1) 和 3) */
+      const tickSec = Number(this.recordSec || 0)
+      const durSec = Math.round(Number((res && res.duration) || 0) / 1000)
+      const wallSec = this.recordStartAt ? Math.round((Date.now() - this.recordStartAt) / 1000) : 0
+      const sec = Math.max(tickSec, durSec, wallSec)
+      if (cancel) {
+        if (isH5 && path) { try { URL.revokeObjectURL(path) } catch (e) {} }
+        return
+      }
+      if (!path) return uni.showToast({ title: '录音失败', icon: 'none' })
+      if (sec < 1) return uni.showToast({ title: '说话时间太短（' + sec + '″）', icon: 'none' })
+      await this.sendVoice(path, sec, res && res.mime)
+    },
+    async sendVoice(filePath, seconds, mime) {
+      if (this.sending) return
+      this.sending = true
+      const tempId = this.buildClientMsgId('voice')
+      const now = new Date().toISOString()
+      /* 先本地占位（直接播本地文件），再上传 */
+      this.msgList.push({
+        id: 0,
+        tempId,
+        type: 'voice',
+        content: '',
+        voiceUrl: filePath,
+        voiceDur: seconds * 1000,
+        voiceText: '',
+        extra: null,
+        create_time: now,
+        sender_id: this.myId,
+        sender_name: '我',
+        avatar: '/static/default-avatar.png',
+        is_me: true,
+        sending: true
+      })
+      this.$nextTick(() => this.scrollBottom(true))
+      try {
+        const url = await uploadVoice(filePath, mime)
+        if (!url) throw { msg: '语音上传失败' }
+        const payload = JSON.stringify({ url: url, duration: seconds })
+        const res = await request('group.php', {
+          action: 'group_msg_send',
+          group_id: this.groupId,
+          msg_type: 'voice',
+          content: payload,
+          client_msg_id: tempId
+        }, 'POST')
+        if (res.code !== 0) {
+          this.msgList = this.msgList.filter(item => item.tempId !== tempId)
+          uni.showToast({ title: res.msg || '发送失败', icon: 'none' })
+          return
+        }
+        const idx = this.msgList.findIndex(item => item.tempId === tempId)
+        if (idx !== -1) {
+          this.$set(this.msgList, idx, {
+            ...this.msgList[idx],
+            id: Number((res.data && res.data.msg_id) || 0),
+            content: payload,
+            /* 关键：换成服务器地址。否则自己点播的还是本地临时文件路径，
+               被 fixUrl 拼上域名后必然加载失败（表现就是"自己听没声音、别人听有声音"） */
+            voiceUrl: url,
+            voiceDur: seconds * 1000,
+            create_time: (res.data && res.data.time) || now,
+            tempId: '',
+            sending: false
+          })
+        }
+      } catch (e) {
+        this.msgList = this.msgList.filter(item => item.tempId !== tempId)
+        uni.showToast({ title: (e && e.msg) || '语音发送失败', icon: 'none' })
+      } finally {
+        this.sending = false
+      }
+    },
+    voiceSec(msg) { return voiceSeconds(msg.voiceDur) },
+    voiceWidth(msg) { return voiceBubbleWidth(msg.voiceDur) },
+    playVoiceMsg(msg) {
+      const id = msg.id || msg.tempId
+      if (this.playingVoiceId === id) { stopVoice(); this.playingVoiceId = null; return }
+      const raw = msg.voiceUrl || msg.content
+      /* 刚发出还没上传完的语音是本地临时路径（App 的 _doc/... 或 H5 的 blob:...），
+         这种不能过 fixUrl，否则会被拼上域名导致加载失败 */
+      const isLocal = /^(blob:|file:|content:|wxfile:|_doc|_download|_www)/.test(raw) ||
+        raw.indexOf('/storage/') === 0 || raw.indexOf('/data/') === 0
+      const url = (/^https?:/.test(raw) || isLocal) ? raw : this.fixUrl(raw)
+      this.playingVoiceId = id
+      const okPlay = playVoice(url, id, () => {
+        if (this.playingVoiceId === id) this.playingVoiceId = null
+      })
+      if (!okPlay) { this.playingVoiceId = null; uni.showToast({ title: '播放失败', icon: 'none' }) }
+    },
+    /* 长按菜单里的"转文字" */
+    voiceToText() {
+      const msg = this.msgMenu.msg
+      this.closeMsgMenu()
+      if (!msg) return
+      if (msg.voiceText) {
+        uni.showModal({ title: '语音转文字', content: msg.voiceText, showCancel: false, confirmText: '知道了' })
+        return
+      }
+      uni.showToast({ title: '这条语音没有文字内容', icon: 'none' })
+    },
+
     openMsgMenu(msg) {
       if (!msg || !msg.id) return
       this.msgMenu = {
         msg,
         canCopy: msg.type === 'text' && !!msg.content,
+        canVoiceText: msg.type === 'voice',
         canRecall: msg.type !== 'notice' && msg.type !== 'recalled' && (msg.is_me || ['owner', 'admin'].includes(this.myRole))
       }
       this.msgMenuVisible = true
     },
     closeMsgMenu() {
       this.msgMenuVisible = false
-      this.msgMenu = { msg: null, canCopy: false, canRecall: false }
+      this.msgMenu = { msg: null, canCopy: false, canRecall: false, canVoiceText: false }
     },
     copyMsg() {
       const msg = this.msgMenu.msg
@@ -2682,4 +2916,89 @@ export default {
   text-align:center;
 }
 .grp-rp-result-btn text{ font-size:32rpx; font-weight:bold; color:#fff; }
+/* ==================== 语音消息 ==================== */
+.voice-hold {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: 36rpx;
+  background: #fff;
+  color: #333;
+  font-size: 28rpx;
+  border: 2rpx solid transparent;
+  user-select: none;
+}
+.voice-hold.active { background: #d5d5d5; }
+.voice-hold.cancel { background: #ffd6dc; color: #c81e3c; border-color: #ff8fa3; }
+
+.voice-msg {
+  min-height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 0 18rpx;
+}
+/* 声波：纯 CSS 四根圆头柱子，颜色自动跟随气泡文字（不依赖外部文件，任何端都能显示） */
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+}
+.voice-bar {
+  width: 5rpx;
+  border-radius: 3rpx;
+  background: currentColor;
+  opacity: .85;
+}
+.voice-bar:nth-child(1) { height: 12rpx; }
+.voice-bar:nth-child(2) { height: 24rpx; }
+.voice-bar:nth-child(3) { height: 32rpx; }
+.voice-bar:nth-child(4) { height: 18rpx; }
+.voice-msg.playing .voice-bar { animation: voicePulse .7s infinite ease-in-out; }
+.voice-msg.playing .voice-bar:nth-child(2) { animation-delay: .1s; }
+.voice-msg.playing .voice-bar:nth-child(3) { animation-delay: .2s; }
+.voice-msg.playing .voice-bar:nth-child(4) { animation-delay: .3s; }
+@keyframes voicePulse { 0%, 100% { transform: scaleY(.4); } 50% { transform: scaleY(1); } }
+.voice-sec { font-size: 26rpx; }
+.voice-dot {
+  font-size: 20rpx;
+  line-height: 1;
+  padding: 4rpx 8rpx;
+  border-radius: 6rpx;
+  background: rgba(0, 0, 0, .12);
+}
+
+.rec-mask {
+  position: fixed;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, .3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.rec-box {
+  width: 360rpx;
+  padding: 40rpx 0;
+  border-radius: 24rpx;
+  background: rgba(30, 30, 30, .92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18rpx;
+}
+.rec-box.cancel { background: rgba(160, 30, 50, .94); }
+.rec-wave { display: flex; align-items: flex-end; gap: 8rpx; height: 50rpx; }
+.rec-bar { width: 10rpx; border-radius: 5rpx; background: #6ee7a8; animation: recPulse .8s infinite ease-in-out; }
+.rec-bar:nth-child(1) { height: 24rpx; }
+.rec-bar:nth-child(2) { height: 46rpx; animation-delay: .15s; }
+.rec-bar:nth-child(3) { height: 30rpx; animation-delay: .3s; }
+@keyframes recPulse { 0%, 100% { transform: scaleY(.5); } 50% { transform: scaleY(1); } }
+.rec-sec { font-size: 40rpx; font-weight: 700; color: #fff; }
+.rec-tip { font-size: 24rpx; color: rgba(255, 255, 255, .85); }
 </style>

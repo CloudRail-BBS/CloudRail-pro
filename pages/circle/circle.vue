@@ -231,6 +231,11 @@ export default {
     this.loadCategories()
   },
 
+  /* 自定义 TabBar：每次页面显示都压一次原生 TabBar，
+     否则切页后原生 TabBar 会重新露出来，和自定义的重叠成两排 */
+  onShow() {
+    try { uni.hideTabBar({ animation: false, fail: () => {} }) } catch (e) {}
+  },
   onUnload() {
     if (this.toastTimer) clearTimeout(this.toastTimer)
   },

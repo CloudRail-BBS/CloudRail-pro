@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="waterfall-theme">
     <!-- 顶部轮播图（banner） -->
     <view v-if="currentTab !== 2 && safeBannerList.length > 0" class="hero-band">

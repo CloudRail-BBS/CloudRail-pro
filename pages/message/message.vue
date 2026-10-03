@@ -182,8 +182,11 @@ export default {
         let lastMsg = item.last_msg || ''
         if (item.last_message && typeof item.last_message === 'object') {
           lastMsg = this.previewText(item.last_message)
-        } else if (typeof lastMsg === 'string' && lastMsg.indexOf('[群名片]') === 0) {
-          lastMsg = '[群名片]'
+        } else {
+          /* 后端存的 last_msg 对语音/红包这类消息是原始 JSON，
+             这里兜底转成可读文案，否则列表里会直接显示一串代码 */
+          lastMsg = this.cleanPreview(lastMsg)
+          if (lastMsg.indexOf('[群名片]') === 0) lastMsg = '[群名片]'
         }
         return {
           ...item,
@@ -222,6 +225,9 @@ export default {
     })
   },
   onShow() {
+    /* 自定义 TabBar：每次页面显示都压一次原生 TabBar，
+       否则切页后原生 TabBar 会重新露出来，和自定义的重叠成两排 */
+    try { uni.hideTabBar({ animation: false, fail: () => {} }) } catch (e) {}
     // 从子页返回时强制失效缓存，确保拉到最新已读状态
     invalidate(CACHE_KEYS.MESSAGE_LIST)
     this.fetchData(true)
@@ -231,6 +237,7 @@ export default {
     if (!this._onlineTimer) {
       this._onlineTimer = setInterval(() => this.refreshOnlineDots(), 10000)
     }
+    this._startListPoll()
     uni.$off('presence_changed', this._onPresence)
     uni.$on('presence_changed', this._onPresence)
   },
@@ -247,6 +254,7 @@ export default {
       this._onlineTimer = null
     }
     if (this._unsubMsgCache) this._unsubMsgCache()
+    this._stopListPoll()
   },
   onHide() {
     /* 注意：这里不能注销 WebSocket 监听。
@@ -256,6 +264,7 @@ export default {
       clearInterval(this._onlineTimer)
       this._onlineTimer = null
     }
+    this._stopListPoll()
   },
   onPullDownRefresh() {
     // 用户主动下拉刷新：强制失效缓存，立即拉取最新
@@ -304,6 +313,22 @@ export default {
       if (type === 'image') return '[图片]'
       if (type === 'emoticon') return '[表情]'
       if (type === 'recalled') return '撤回了一条消息'
+      if (type === 'voice') {
+        let sec = 0
+        try { sec = Number(JSON.parse(content || '{}').duration || 0) } catch (e) { sec = 0 }
+        return '[语音]' + (sec > 0 ? ' ' + sec + '″' : '')
+      }
+      if (type === 'relation_apply') {
+        let rn = ''
+        let rs = 0
+        try {
+          const rj = JSON.parse(content || '{}')
+          rn = String(rj.type_name || '')
+          rs = Number(rj.status || 0)
+        } catch (e) {}
+        const rtail = rs === 1 ? '（已同意）' : (rs === 2 ? '（已拒绝）' : (rs === 3 ? '（已解除）' : '（等待确认）'))
+        return '[关系申请] ' + (rn || '好友关系') + rtail
+      }
       if (['card', 'group_card', 'transfer', 'redpacket', 'group_invite'].indexOf(type) < 0) return content
 
       let j = null
@@ -324,6 +349,29 @@ export default {
       const n = String(j.name || '').trim()
       if (type === 'group_card') return '[群名片] ' + (n || '群聊')
       return '[名片] ' + (n || '用户')
+    },
+    /* 列表刷新时，后端给的 last_msg 对语音/红包/转账/名片这类消息是原始 JSON，
+       统一转成可读文案，避免列表里直接显示一串代码 */
+    cleanPreview(text) {
+      const s = String(text || '')
+      if (!s || s.charAt(0) !== '{') return s
+      let j = null
+      try { j = JSON.parse(s) } catch (e) { return s }
+      if (!j || typeof j !== 'object') return s
+      if (j.url !== undefined && j.duration !== undefined) {
+        const sec = Number(j.duration || 0)
+        return '[语音]' + (sec > 0 ? ' ' + sec + '″' : '')
+      }
+      if (j.relation_id !== undefined) {
+        const rs = Number(j.status || 0)
+        const tail = rs === 1 ? '（已同意）' : (rs === 2 ? '（已拒绝）' : '（等待确认）')
+        return '[关系申请] ' + (String(j.type_name || '').trim() || '好友关系') + tail
+      }
+      if (j.greeting !== undefined) return '[红包] ' + (String(j.greeting || '').trim() || '恭喜发财，大吉大利')
+      if (j.transfer_id !== undefined) return '[转账] ¥' + Number(j.amount || 0).toFixed(2)
+      if (j.group_name !== undefined) return '[群邀请] ' + (String(j.inviter || '').trim() || '好友') + ' 邀请你加入群聊'
+      if (j.uid !== undefined && j.nickname !== undefined) return '[名片] ' + (String(j.nickname || '').trim() || '用户')
+      return '[消息]'
     },
     onScrollToLower() {
     },
@@ -433,6 +481,20 @@ export default {
     },
     goAddFriend() {
       uni.navigateTo({ url: '/pages/user/fried' })
+    },
+    /* 会话列表轮询兜底：WebSocket 推送一旦掉链子，列表就要等手动刷新才变。
+       这里在页面可见时每 8 秒静默拉一次，保证新消息和预览能自己冒出来 */
+    _startListPoll() {
+      if (this._listTimer) return
+      this._listTimer = setInterval(() => {
+        if (this.isFetchingData) return
+        /* 必须绕过 15 秒缓存，否则轮询拿回来的还是旧数据 */
+        invalidate(CACHE_KEYS.MESSAGE_LIST)
+        this.fetchData(false)
+      }, 8000)
+    },
+    _stopListPoll() {
+      if (this._listTimer) { clearInterval(this._listTimer); this._listTimer = null }
     },
     /* 页面存活期间一直挂着的 WebSocket 监听（onLoad 注册一次） */
     _registerWsCallbacks() {

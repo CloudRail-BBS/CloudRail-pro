@@ -227,8 +227,16 @@ export default {
           label: '用户管理', type: 'users', url: '/pages/admin/users'
         },
         {
+          icon: '/static/icon/admin-users-333.svg',
+          label: '关系建立', type: 'relations', url: '/pages/admin/relations'
+        },
+        {
           icon: '/static/icon/admin-chat-bubble-333.svg',
           label: '聊天管理', type: 'chat', url: '/pages/admin/chat'
+        },
+        {
+          icon: '/static/icon/zb.png',
+          label: '气泡管理', type: 'bubbles', url: '/pages/admin/bubbles'
         },
         {
           icon: '/static/icon/admin-star-333.svg',
@@ -273,6 +281,10 @@ export default {
         {
           icon: '/static/icon/admin-pencil-d68910.svg',
           label: '水印设置', type: 'settings', url: '/pages/admin/settings'
+        },
+        {
+          icon: '/static/icon/admin-smartphone-333.svg',
+          label: '开屏广告', type: 'splash', url: '/pages/admin/splash'
         },
       ],
       hud: { show: false, type: 'loading', text: '' },

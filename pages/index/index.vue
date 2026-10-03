@@ -1,5 +1,6 @@
 <template>
   <view class="index-container">
+    <SplashAd />
     <OnlineNotifyCard />
     <view
       class="custom-app-bar pc-centered-nav"
@@ -257,6 +258,7 @@ import HomeTextFlowTheme from '../../components/HomeTextFlowTheme.vue'
 import MarketShopSection from '../../components/MarketShopSection.vue'
 import SoftwareLibrarySection from '../../components/SoftwareLibrarySection.vue'
 
+import SplashAd from '../../components/SplashAd.vue'
 import RedPacketModal from '../../components/RedPacketModal.vue'
 import OnlineNotifyCard from '../../components/OnlineNotifyCard.vue'
 import { applyH5ViewportHeightVar, getScreenMetrics } from '../../common/screen.js'
@@ -293,6 +295,7 @@ export default {
     SoftwareLibrarySection,
     RedPacketModal,
     OnlineNotifyCard,
+    SplashAd,
   },
 
   data() {
@@ -507,6 +510,9 @@ export default {
   },
 
   onShow() {
+    /* 自定义 TabBar：每次页面显示都压一次原生 TabBar，
+       否则切页后原生 TabBar 会重新露出来，和自定义的重叠成两排 */
+    try { uni.hideTabBar({ animation: false, fail: () => {} }) } catch (e) {}
     this.userInfo = uni.getStorageSync('userInfo') || null
 
     // 检查是否需要强制刷新（登录/发布后设置）

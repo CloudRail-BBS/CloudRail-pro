@@ -28,6 +28,34 @@
       </view>
     </view>
 
+    <!-- 关系选择弹窗：选一个预设关系，或者自己写一个 -->
+    <view v-if="relPickerShow" class="rel-mask" @click="closeRelationPicker">
+      <view class="rel-sheet" @click.stop>
+        <text class="rel-sheet-title">选择你们的关系</text>
+        <view class="rel-grid">
+          <view
+            v-for="t in relTypes"
+            :key="t.key"
+            class="rel-chip"
+            :class="{ picked: relPicked === t.key && relCustomName === '' }"
+            @click="pickRelation(t.key)"
+          >{{ t.name }}</view>
+        </view>
+        <input
+          class="rel-input"
+          v-model="relCustomName"
+          maxlength="8"
+          placeholder="也可以自己写一个（最多 8 个字）"
+          placeholder-class="rel-input-ph"
+          @input="onCustomRelationInput"
+        />
+        <view class="rel-sheet-actions">
+          <view class="rel-sheet-btn cancel" @click="closeRelationPicker">取消</view>
+          <view class="rel-sheet-btn ok" :class="{ disabled: relSending }" @click="submitRelation">{{ relSending ? '发送中...' : '发送申请' }}</view>
+        </view>
+      </view>
+    </view>
+
     <scroll-view
       class="main-scroll"
       scroll-y
@@ -54,8 +82,6 @@
               class="avatar-frame"
               mode="aspectFit"
             ></image>
-            <!-- VIP: 右上角王冠小动图 -->
-            <image v-if="isVip" src="/static/vip/vip.gif" class="avatar-vip-badge" mode="aspectFit"></image>
             <!-- 认证: 右下角 V 标 SVG (来自 phpmailer691/红v.svg 个人认证 / 蓝v.svg 企业认证) -->
             <image
               v-if="userInfo.auth_badge_label"
@@ -65,6 +91,18 @@
             ></image>
             <!-- 在线状态: 左下角小圆点（查看自己主页时不显示） -->
             <view v-if="!isMe" class="avatar-online-dot" :class="{ 'is-on': userOnline }"></view>
+
+            <!-- 头像旁边"抱"着的那位：有多段关系就随机挑一段，点它进对方主页 -->
+            <view v-if="hugPartners.length" class="hug-wrap">
+              <image
+                v-for="(h, hi) in hugPartners"
+                :key="'hug' + hi"
+                class="hug-ava"
+                :src="h.avatar || defaultAvatar"
+                mode="aspectFill"
+                @click.stop="goHugUser(h.uid)"
+              ></image>
+            </view>
           </view>
 
           <view class="action-buttons">
@@ -89,6 +127,9 @@
                 ></image>
                 <text v-else>私信</text>
               </view>
+
+              <!-- 关系入口：只有互相关注、且双方都还没有关系时才出现 -->
+              <view v-if="canApplyRelation" class="btn relation-btn" @click.stop="openRelationPicker">建立关系</view>
             </block>
 
             <view v-else-if="userInfo.status == 0" class="btn disabled">已封禁</view>
@@ -110,6 +151,25 @@
             <view class="level-tag" :class="'lv-tier-' + getLevelTier(levelDisplay)">
               <image class="level-star-img" src="/static/icon/star-white.svg" mode="aspectFit" />
               <text class="lv-text">Lv.{{ levelDisplay }}</text>
+            </view>
+          </view>
+
+          <!-- 关系入口：始终显示。有关系的显示徽章（点了直接进这段关系的详情，看的是对方），
+               没关系的给一条引导，点了进关系页 -->
+          <view class="relation-lines">
+            <view
+              v-for="(r, ri) in displayRelations"
+              :key="'rel' + ri"
+              class="relation-line"
+              @click.stop="goRelationDetail(r)"
+            >
+              <image class="relation-ava" :src="(r.with && r.with.avatar) || defaultAvatar" mode="aspectFill"></image>
+              <text class="relation-type">{{ r.type_name }}</text>
+              <text class="relation-name">{{ (r.with && r.with.name) || '对方' }}</text>
+            </view>
+            <view v-if="!displayRelations.length" class="relation-line ghost" @click.stop="goRelationBoard">
+              <text class="relation-type ghost-type">关系</text>
+              <text class="relation-name">{{ viewingSelf ? '还没有亲密关系，点这里去建立' : '你们之间还没有关系' }}</text>
             </view>
           </view>
 
@@ -463,6 +523,18 @@ export default {
       douyinVideoList: [],
       moderatorCircles: [],
 
+      /* ===== 关系系统（情侣 / 闺蜜 / 死党 / 自定义） ===== */
+      relationsBetween: [],      // 我和主页这个人已建立的关系（可能多段）
+      targetRelations: [],       // 主页这个人自己的全部关系（看别人主页时，头像旁边贴的就是 TA 的关系对象）
+      myRelations: [],           // 我自己的全部关系（看自己主页时显示）
+      relationPending: null,     // 我和他之间待确认的申请
+      canApplyRelation: false,   // 当前是否可以发起关系申请
+      relTypes: [],              // 预设关系类型（后端下发）
+      relPickerShow: false,      // 关系选择弹窗显隐
+      relPicked: '',             // 选中的预设类型 key
+      relCustomName: '',         // 自定义关系名称
+      relSending: false,
+
       userInfo: {
         id: 0,
         username: '',
@@ -543,9 +615,68 @@ export default {
       const map = { 1: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTAiIGN5PSIxNCIgcj0iNSIgc3Ryb2tlPSIjNEE5MEQ5IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8cGF0aCBkPSJNMTQgMTBMMjAgNE0yMCA0SDE1TTIwIDRWOSIgc3Ryb2tlPSIjNEE5MEQ5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=', 2: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSI5IiByPSI1IiBzdHJva2U9IiNFODRBN0YiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQ9Ik0xMiAxNFYyME05IDE3SDE1IiBzdHJva2U9IiNFODRBN0YiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPg==', 3: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTAiIGN5PSIxNCIgcj0iNSIgc3Ryb2tlPSIjOUI1OUI2IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8cGF0aCBkPSJNMTQgMTBMMjAgNE0yMCA0SDE1TTIwIDRWOSIgc3Ryb2tlPSIjOUI1OUI2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0xMCAxOVYyMk03IDIwLjVIMTMiIHN0cm9rZT0iIzlCNTlCNiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+', 4: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSI5IiByPSI1IiBzdHJva2U9IiNFNjdFMjIiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQ9Ik0xMiAxNFYyME05IDE3SDE1IiBzdHJva2U9IiNFNjdFMjIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTE3IDZMMjIgMU0yMiAxSDE3TTIyIDFWNiIgc3Ryb2tlPSIjRTY3RTIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=', 5: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIgc3Ryb2tlPSIjMUFCQzlDIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIiBmaWxsPSIjMUFCQzlDIi8+Cjwvc3ZnPg==' };
       return map[g] || '';
     },
+    /* 是不是在看自己的主页（没传 userId 也算自己）
+       注意：本地存的用户信息里主键字段是 uid（栖屿号），只有部分场景才有 id / user_id，
+       三个都试一遍；否则看自己的主页会被当成看别人，头像旁边会贴上自己的头像。 */
+    viewingSelf() {
+      const uid = String(this.targetUserId || '')
+      const my = uni.getStorageSync('userInfo') || {}
+      const ids = [my.uid, my.id, my.user_id]
+        .filter(v => v !== null && v !== undefined && String(v) !== '')
+        .map(v => String(v))
+      return !uid || ids.indexOf(uid) >= 0
+    },
+    /* 头像旁边"抱"着的那位：只要有一段生效的关系就会贴出来（不限等级）。
+       有多段关系时随机挑一个，每次进这个页面挑到的都可能不一样；
+       只贴一个，避免多个头像叠在一起糊成一团。
+       看自己的主页 -> 从我自己的关系里挑；看别人的主页 -> 从那个人的关系里挑。 */
+    hugPartners() {
+      const me = uni.getStorageSync('userInfo') || {}
+      const myUid = String(me.uid || me.id || me.user_id || '')
+      const targetUid = String(this.targetUserId || '')
+      let cands = []
+
+      if (this.viewingSelf) {
+        /* 看自己的主页：贴我自己的关系对象 */
+        cands = (this.myRelations || [])
+          .filter(r => r && r.with && r.with.uid)
+          .map(r => ({ uid: String(r.with.uid), avatar: r.with.avatar, name: r.with.name }))
+      } else {
+        /* 看别人的主页：贴「那个人的关系对象」（后端 target_relations 给的就是 TA 的关系列表） */
+        cands = (this.targetRelations || [])
+          .filter(r => r && r.with && r.with.uid)
+          .map(r => ({ uid: String(r.with.uid), avatar: r.with.avatar, name: r.with.name }))
+        /* 拿不到 TA 的关系列表时，退一步只贴「我」——我和 TA 有关系，我本来就是 TA 的关系对象之一。
+           千万不能贴 TA 自己的头像，否则会变成「TA 和 TA 拥抱」。 */
+        if (!cands.length && (this.relationsBetween || []).length && myUid && myUid !== targetUid) {
+          cands = [{ uid: myUid, avatar: me.avatar || '', name: me.nickname || me.username || '我' }]
+        }
+      }
+
+      /* 兜底护栏：绝不能把主页主人自己当成"旁边那位"，否则就是自己和自己拥抱 */
+      cands = cands.filter(c => c.uid && c.uid !== targetUid)
+      if (!cands.length) return []
+      return [cands[Math.floor(Math.random() * cands.length)]]
+    },
+    /* 主页上显示的关系：看自己的主页显示「我的全部关系」，看别人的主页显示「我和他的关系」 */
+    displayRelations() {
+      if (this.viewingSelf) return this.myRelations || []
+      const uid = String(this.targetUserId || '')
+      /* 看别人的主页：后端返回的「我和他的关系」只带关系类型、不带对方资料，
+         这里用当前主页用户的信息补上，否则徽章永远显示不出来。
+         注意要保留 id，点了才能直接进这段关系的详情。 */
+      const name = this.userInfo.name || this.userInfo.username || '对方'
+      const avatar = this.userInfo.avatar || ''
+      return (this.relationsBetween || []).filter(r => !!r).map(r => ({
+        id: r.id,
+        type_name: r.type_name,
+        with: r.with || { uid: uid, name: name, avatar: avatar }
+      }))
+    },
+    /* 和 viewingSelf 一个意思，直接复用，避免两处判断标准不一致
+       （以前只看 id / user_id，看自己主页时会被当成看别人） */
     isMe() {
-      const my = uni.getStorageSync('userInfo')
-      return my && String(my.id ?? my.user_id ?? '') !== '' && String(my.id ?? my.user_id ?? '') === String(this.targetUserId ?? '')
+      return this.viewingSelf
     },
 
     isVip() {
@@ -613,8 +744,14 @@ export default {
     const sys = uni.getSystemInfoSync()
     this.statusBarHeight = sys.statusBarHeight || 20
 
+    if (options.userId) this.targetUserId = String(options.userId || "")
+
+    /* 关系：看自己的主页要显示「我的关系对象」，看别人的主页显示「我和他的关系」，
+       所以无论看谁都得查一次，不能只在看别人时查。 */
+    this.loadRelation()
+    this.loadRelationTypes()
+
     if (options.userId) {
-      this.targetUserId = String(options.userId || "")
       this.fetchData()
       this.loadModeratorCircles()
       /* 在线状态: 进入页面查一次(WS 会实时推送, 这里是兜底), 之后每 10 秒兜底刷新 */
@@ -631,6 +768,104 @@ export default {
   },
 
   methods: {
+    /* ==================== 关系系统 ==================== */
+    /* 查我和主页这个人的关系状态：是否互关 / 能否申请 / 已建立的关系 */
+    async loadRelation() {
+      const uid = String(this.targetUserId || '')
+      /* 不传 uid 时后端返回我自己的关系，所以这里不提前 return */
+      try {
+        const res = await request('relation.php', uid ? { action: 'info', uid } : { action: 'info' }, 'GET')
+        if (res && res.code === 0 && res.data) {
+          this.relationsBetween = res.data.relations || []
+          this.targetRelations = res.data.target_relations || []
+          this.myRelations = res.data.my_relations || []
+          this.relationPending = res.data.pending || null
+          this.canApplyRelation = !!res.data.can_apply
+        }
+      } catch (e) {}
+    },
+    /* 打开关系选择弹窗：先把弹窗弹出来，类型再后台补。
+       之前是"先等网络拉类型、成功了才弹窗"，网络一慢就看起来像点了没反应 */
+    openRelationPicker() {
+      if (!this.canApplyRelation) return
+      this.relPicked = ''
+      this.relCustomName = ''
+      this.relPickerShow = true
+      if (!(this.relTypes || []).length) this.loadRelationTypes()
+    },
+    async loadRelationTypes() {
+      try {
+        const res = await request('relation.php', { action: 'types' }, 'GET')
+        if (res && res.code === 0 && res.data && res.data.list && res.data.list.length) {
+          this.relTypes = res.data.list
+          return
+        }
+      } catch (e) {}
+      /* 后端取不到就用本地兜底一份，保证弹窗里一定有可选项 */
+      if (!(this.relTypes || []).length) {
+        this.relTypes = [
+          { key: 'cp', name: '情侣' }, { key: 'cp2', name: 'CP' },
+          { key: 'bestie', name: '闺蜜' }, { key: 'buddy', name: '死党' },
+          { key: 'brother', name: '兄弟' }, { key: 'sister', name: '姐妹' },
+          { key: 'close', name: '挚友' }, { key: 'partner', name: '搭档' },
+          { key: 'master', name: '师徒' }, { key: 'soulmate', name: '灵魂伴侣' }
+        ]
+      }
+    },
+    closeRelationPicker() {
+      if (this.relSending) return
+      this.relPickerShow = false
+    },
+    pickRelation(key) {
+      this.relPicked = key
+      this.relCustomName = ''
+    },
+    /* 一填写自定义名称，就取消预设的选中态 */
+    onCustomRelationInput() {
+      if (String(this.relCustomName || '').trim() !== '') this.relPicked = ''
+    },
+    async submitRelation() {
+      if (this.relSending) return
+      const custom = String(this.relCustomName || '').trim()
+      const typeKey = custom !== '' ? 'custom' : this.relPicked
+      if (typeKey === '') return uni.showToast({ title: '请选择或填写关系', icon: 'none' })
+      const uid = String(this.targetUserId || '')
+      /* 不传 uid 时后端返回我自己的关系，所以这里不提前 return */
+      this.relSending = true
+      try {
+        const res = await request('relation.php', {
+          action: 'apply',
+          uid,
+          type_key: typeKey,
+          type_name: typeKey === 'custom' ? custom : ''
+        }, 'POST')
+        if (res && res.code === 0) {
+          this.relPickerShow = false
+          uni.showToast({ title: '申请已发出，等待对方确认', icon: 'none' })
+          this.loadRelation()
+        } else {
+          uni.showToast({ title: (res && (res.message || res.msg)) || '发送失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '网络错误，请稍后再试', icon: 'none' })
+      }
+      this.relSending = false
+    },
+    /* 点头像旁边"抱"着的那个人，进 TA 的主页 */
+    goHugUser(uid) {
+      if (!uid) return
+      uni.navigateTo({ url: '/pages/user/profile?userId=' + uid })
+    },
+    /* 点关系徽章进「我的关系」页（邀请朋友 / 亲密关系 / 亲密团三个页签），
+       想看某一段的详情，从那页的「亲密关系」里再点进去 */
+    goRelationDetail() {
+      this.goRelationBoard()
+    },
+    /* 进「我的关系」页：可以在里面解除、也可以建立新的 */
+    goRelationBoard() {
+      uni.navigateTo({ url: '/pages/relation/index' })
+    },
+
     /* WS 推来在线变化时立刻改状态, 不走网络 */
     _onPresence() {
       if (!this.targetUserId) return
@@ -1192,6 +1427,137 @@ export default {
 </script>
 
 <style scoped>
+/* ==================== 关系系统（情侣 / 闺蜜 / 死党 / 自定义） ==================== */
+.relation-lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+.relation-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 6rpx 18rpx 6rpx 6rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 90, 140, .12);
+  border: 1rpx solid rgba(255, 90, 140, .3);
+}
+.relation-ava {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: #eee;
+  flex-shrink: 0;
+}
+.relation-type {
+  font-size: 22rpx;
+  font-weight: 800;
+  color: #ff4d79;
+}
+/* 还没有关系时的那条引导 */
+.relation-line.ghost {
+  background: rgba(0, 0, 0, .04);
+  border-color: rgba(0, 0, 0, .06);
+}
+.relation-line.ghost .ghost-type { color: #999; }
+.relation-line.ghost .relation-name { color: #aaa; }
+.relation-name {
+  font-size: 22rpx;
+  color: var(--text-sub, #666);
+  max-width: 220rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.relation-btn {
+  background: linear-gradient(135deg, #ff6f9c, #ff4d79) !important;
+  color: #fff !important;
+}
+/* 关系选择弹窗 */
+.rel-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, .48);
+  z-index: 999999;
+  display: flex;
+  align-items: flex-end;
+}
+.rel-sheet {
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 78vh;
+  overflow-y: auto;
+  background: var(--card-bg, #fff);
+  border-radius: 28rpx 28rpx 0 0;
+  padding: 36rpx 28rpx 44rpx;
+}
+.rel-sheet-title {
+  display: block;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--text-main, #222);
+  margin-bottom: 26rpx;
+}
+.rel-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.rel-chip {
+  padding: 14rpx 26rpx;
+  border-radius: 999rpx;
+  background: rgba(128, 128, 128, .12);
+  color: var(--text-sub, #444);
+  font-size: 26rpx;
+}
+.rel-chip.picked {
+  background: linear-gradient(135deg, #ff6f9c, #ff4d79);
+  color: #fff;
+  font-weight: 700;
+}
+.rel-input {
+  margin-top: 26rpx;
+  height: 84rpx;
+  padding: 0 26rpx;
+  border-radius: 18rpx;
+  background: rgba(128, 128, 128, .12);
+  font-size: 27rpx;
+  color: var(--text-main, #222);
+}
+.rel-input-ph {
+  color: #aaa;
+}
+.rel-sheet-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 30rpx;
+}
+.rel-sheet-btn {
+  flex: 1;
+  height: 86rpx;
+  line-height: 86rpx;
+  text-align: center;
+  border-radius: 18rpx;
+  font-size: 29rpx;
+  font-weight: 700;
+}
+.rel-sheet-btn.cancel {
+  background: rgba(128, 128, 128, .14);
+  color: var(--text-sub, #555);
+}
+.rel-sheet-btn.ok {
+  background: linear-gradient(135deg, #ff6f9c, #ff4d79);
+  color: #fff;
+}
+.rel-sheet-btn.disabled {
+  opacity: .6;
+}
+
 .page-container {
   min-height: 100vh;
   background-color: var(--bg-color);
@@ -1366,6 +1732,26 @@ export default {
   position: relative;
   overflow: visible;
 }
+/* 头像旁边"抱"着的那位：紧贴在我头像右侧、稍微压住一点。
+   位置偏中间，避开右上角 VIP 王冠和右下角认证标；
+   z-index 也压在认证标(5) / 在线点(6) 之下，保证认证小图标不被挡住。 */
+.hug-wrap {
+  position: absolute;
+  left: 118rpx;
+  bottom: 30rpx;
+  display: flex;
+  align-items: center;
+  z-index: 4;
+}
+.hug-ava {
+  width: 98rpx;
+  height: 98rpx;
+  border-radius: 50%;
+  background: #eee;
+  border: 5rpx solid #fff;
+  box-shadow: 0 4rpx 14rpx rgba(0, 0, 0, .14);
+  flex-shrink: 0;
+}
 
 .avatar-img {
   width: 100%;
@@ -1383,20 +1769,6 @@ export default {
   height: 140%;
   z-index: 2;
   pointer-events: none;
-}
-
-.avatar-vip-badge {
-  position: absolute;
-  /* VIP 王冠放在右上角；认证徽标放右下角，两者永不重叠 */
-  top: -2rpx;
-  right: -2rpx;
-  bottom: auto;
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  border: 3rpx solid var(--card-bg);
-  background: var(--card-bg);
-  z-index: 5;
 }
 
 /* 认证图标：头像右下角圆形小徽标 企/实 */

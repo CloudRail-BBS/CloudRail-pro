@@ -106,7 +106,23 @@
                 <text class="enterprise-auth-icon" :class="{ 'text-on-dark': bgIsDark }">企</text>
               </view>
             </view>
-            <view class="dy-user-id" v-if="isLogin">
+            <!-- 关系：一个人可以有多段关系，全列出来；点任意一个进「我的关系」页 -->
+            <view v-if="isLogin" class="mine-relation-wrap">
+              <view
+                v-for="(r, ri) in myRelations"
+                :key="'mr' + ri"
+                class="mine-relation-line"
+                @click.stop="goRelationDetail(r)"
+              >
+                <text class="mine-relation-type">{{ r.type_name }}</text>
+                <image class="mine-relation-ava" :src="(r.with && r.with.avatar) || defaultAvatar" mode="aspectFill"></image>
+                <text class="mine-relation-name">{{ (r.with && r.with.name) || '对方' }}</text>
+              </view>
+              <view v-if="!myRelations.length" class="mine-relation-line" @click.stop="goRelationBoard">
+                <text class="mine-relation-type">关系</text>
+                <text class="mine-relation-name">去建立</text>
+              </view>
+            </view>            <view class="dy-user-id" v-if="isLogin">
               <text class="id-text">栖屿号：{{ userInfo.uid || userInfo.username }}</text>
             </view>
           </view>
@@ -454,6 +470,7 @@ export default {
       navOpacity: 0,
       initialLoading: true,
       isLogin: false,
+      myRelations: [],   // 我自己的全部关系（可以有多段）
 
       userInfo: {
         id: 0, username: '', name: '', avatar: '', background_image: '',
@@ -483,6 +500,7 @@ export default {
 
       sidebarOpen: false,
       sidebarMenus: [
+        { label: 'VIP会员', icon: '/static/icon/crown-gold.svg', type: 'page', url: '/pages/vip/index' },
         { label: '我的设置', icon: '/static/icon/usersz.png', type: 'page', url: '/pages/user/setting' },
         { label: '我的举报', icon: '/static/icon/admin-alert-triangle-e67e22.svg', type: 'page', url: '/pages/user/my-reports' },
 		 { label: '我的二维码', icon: '/static/qewm.png', type: 'page', url: '/pages/user/qrcode' },
@@ -569,10 +587,34 @@ export default {
   },
 
   onShow() {
+    /* 关系：每次显示都刷一次，建立 / 解除后回到本页能立刻看到 */
+    this.loadMyRelation()
+    /* 自定义 TabBar：每次页面显示都压一次原生 TabBar，
+       否则切页后原生 TabBar 会重新露出来，和自定义的重叠成两排 */
+    try { uni.hideTabBar({ animation: false, fail: () => {} }) } catch (e) {}
     this.checkLogin();
   },
 
   methods: {
+    /* 关系：查我自己的全部关系（可以有多段，建立后显示在头像旁边） */
+    async loadMyRelation() {
+      try {
+        const res = await request('relation.php', { action: 'info' }, 'GET')
+        if (res && res.code === 0 && res.data) {
+          this.myRelations = res.data.my_relations || []
+        } else {
+          this.myRelations = []
+        }
+      } catch (e) { /* 未登录或接口异常时不显示，不影响页面其它内容 */ }
+    },
+    /* 点关系进「我的关系」页（邀请朋友 / 亲密关系 / 亲密团三个页签），
+       要看某一段的详情，从那页的「亲密关系」里再点进去 */
+    goRelationDetail() {
+      uni.navigateTo({ url: '/pages/relation/index' })
+    },
+    goRelationBoard() {
+      uni.navigateTo({ url: '/pages/relation/index' })
+    },
     // 等级分层配色（参考B站等级体系）
     getLevelTier(lv) {
       const n = parseInt(lv) || 0
@@ -1234,6 +1276,12 @@ export default {
 </script>
 
 <style scoped>
+/* ===== 关系徽章（我的页面） ===== */
+.mine-relation-wrap{ display:flex; flex-wrap:wrap; gap:10rpx; margin-top:10rpx; }
+.mine-relation-line{ display:inline-flex; align-items:center; gap:8rpx; padding:6rpx 18rpx; border-radius:999rpx; background:rgba(255,90,140,.12); border:1rpx solid rgba(255,90,140,.3); }
+.mine-relation-type{ font-size:22rpx; font-weight:800; color:#ff4d79; }
+.mine-relation-ava{ width:40rpx; height:40rpx; border-radius:50%; background:#eee; flex-shrink:0; }
+.mine-relation-name{ font-size:22rpx; color:#888; max-width:220rpx; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .page-container {
   min-height: var(--tcy-vh, 100vh);
   background-color: #F8F8F8;

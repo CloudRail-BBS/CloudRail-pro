@@ -58,7 +58,8 @@
             <view v-else class="msg-row" :class="{ 'is-me': msg.is_me }" @longpress="openMsgMenu(msg)">
               <image class="msg-avatar" :src="msg.is_me ? myAvatar : targetAvatar" mode="aspectFill" @click="msg.is_me ? null : toUserProfile(targetId)" />
               <view class="msg-bubble">
-                <view class="bubble-content" :class="[msg.bubble_style, { 'no-card': msg.type === 'image' || msg.type === 'emoticon' }]">
+                <view class="bubble-content" :class="[msg.bubble_style, { 'no-card': msg.type === 'image' || msg.type === 'emoticon' }]" :style="skinStyle(msg.bubble_style)">
+                  <text v-if="skinDeco(msg.bubble_style, 'before')" class="bubble-deco" :style="skinDeco(msg.bubble_style, 'before').style">{{ skinDeco(msg.bubble_style, 'before').text }}</text>
                   <template v-if="msg.type === 'card' && msg.card">
                     <text class="card-tip">名片</text>
                     <view class="card-box" @click="toUserProfile(msg.card.uid)">
@@ -110,6 +111,35 @@
                       </view>
                     </template>
                   </template>
+<template v-else-if="msg.type === 'relation_apply' && msg.relationApply">
+                    <text class="card-tip">关系申请</text>
+                    <view class="card-box invite-card rel-card">
+                      <image class="card-ava" :src="fixUrl(msg.relationApply.from_avatar) || '/static/logo.png'" mode="aspectFill" />
+                      <view class="card-meta">
+                        <text class="card-name">{{ msg.relationApply.from_name || '好友' }}</text>
+                        <text class="card-sub">想和你建立「{{ msg.relationApply.type_name || '好友' }}」关系</text>
+                      </view>
+                    </view>
+                    <template v-if="msg.is_me">
+                      <view class="invite-status" :class="Number(msg.relationApply.status || 0) === 1 ? '' : (Number(msg.relationApply.status || 0) > 1 ? 'declined' : 'pending')">
+                        <text v-if="Number(msg.relationApply.status || 0) === 1">对方已同意，关系已建立</text>
+                        <text v-else-if="Number(msg.relationApply.status || 0) === 2">对方已拒绝</text>
+                        <text v-else-if="Number(msg.relationApply.status || 0) === 3">关系已解除</text>
+                        <text v-else>等待对方确认</text>
+                      </view>
+                    </template>
+                    <template v-else>
+                      <view v-if="Number(msg.relationApply.status || 0) === 0" class="invite-actions">
+                        <view class="invite-btn decline" @click.stop="handleRelationApply(msg, 0)">拒绝</view>
+                        <view class="invite-btn accept" @click.stop="handleRelationApply(msg, 1)">同意</view>
+                      </view>
+                      <view v-else class="invite-done" :class="{ declined: Number(msg.relationApply.status || 0) > 1 }">
+                        <text v-if="Number(msg.relationApply.status || 0) === 1">已建立关系</text>
+                        <text v-else-if="Number(msg.relationApply.status || 0) === 3">关系已解除</text>
+                        <text v-else>已拒绝</text>
+                      </view>
+                    </template>
+                  </template>
 <template v-else-if="msg.type === 'transfer' && msg.transfer">
                     <view class="transfer-card" :class="{ received: Number(msg.transfer.status || 0) === 1 }">
                       <view class="transfer-head">
@@ -151,6 +181,22 @@
                     </view>
                   </template>
                   <image v-else-if="msg.type === 'image'" :src="fixUrl(msg.content)" mode="aspectFit" class="msg-image" @click="previewImage(msg.content)" />
+                  <!-- 语音消息：点一下播放，长按弹菜单（可转文字） -->
+                  <view
+                    v-else-if="msg.type === 'voice'"
+                    class="voice-msg"
+                    :class="{ playing: playingVoiceId === msg.id, mine: msg.is_me }"
+                    :style="{ width: voiceWidth(msg) + 'rpx' }"
+                    @click.stop="playVoiceMsg(msg)"
+                  >
+                    <view class="voice-wave"><view class="voice-bar"></view><view class="voice-bar"></view><view class="voice-bar"></view><view class="voice-bar"></view></view>
+                    <text class="voice-sec">{{ voiceSec(msg) }}″</text>
+                    <text v-if="msg.voiceText" class="voice-dot">文</text>
+                  </view>
+                  <!-- 兜底：出现未适配的消息类型时至少显示一条提示。
+                       否则这条消息会因为整条 v-if/v-else-if 链都不匹配而“凭空消失” -->
+                  <text v-else class="msg-unknown">[暂不支持的消息类型]</text>
+                  <text v-if="skinDeco(msg.bubble_style, 'after')" class="bubble-deco" :style="skinDeco(msg.bubble_style, 'after').style">{{ skinDeco(msg.bubble_style, 'after').text }}</text>
                 </view>
                 <view v-if="msg.sending" class="msg-status">
                   <view class="status-loading"></view>
@@ -171,10 +217,24 @@
       <view class="input-wrapper" :style="inputWrapperStyle">
         <view class="chat-disabled-tip" v-if="!canChat">{{ chatDisabledReason }}</view>
         <view class="input-inner">
+          <view class="tool-btn voice-switch" @click="toggleVoiceMode">
+            <image :src="voiceMode ? '/static/icon/keyboard-ref.svg' : '/static/icon/mic.svg'" class="tool-icon-img" mode="aspectFit"></image>
+          </view>
           <view class="tool-btn emoji-btn" @click="toggleEmojiPicker">
             <image src="/static/icon/smile.svg" class="tool-icon-img" mode="aspectFit"></image>
           </view>
           <view class="input-box">
+            <!-- 语音模式：按住说话 -->
+            <view
+              v-if="voiceMode"
+              class="voice-hold"
+              :class="{ active: recording, cancel: recordCancel }"
+              @touchstart.stop.prevent="onVoiceStart"
+              @touchmove.stop.prevent="onVoiceMove"
+              @touchend.stop.prevent="onVoiceEnd"
+              @touchcancel.stop.prevent="onVoiceCancel"
+            >{{ recording ? (recordCancel ? '松开手指，取消发送' : '松开 发送') : '按住 说话' }}</view>
+            <template v-else>
             <!-- #ifdef H5 -->
             <div
               ref="richInput"
@@ -204,6 +264,7 @@
               @confirm="sendText"
             />
             <!-- #endif -->
+            </template>
           </view>
           <view class="tool-btn add-btn" @click="toggleMoreActions">
             <image src="/static/icon/plus-ref.svg" class="tool-icon-img" mode="aspectFit"></image>
@@ -300,8 +361,18 @@
       <view class="mask" v-if="msgMenu.show" @click="closeMsgMenu" catchtouchmove="true">
         <view class="sheet sheet-anim" @click.stop>
           <view class="sheet-item" v-if="msgMenu.canCopy" @click="copyMsg">复制</view>
+          <view class="sheet-item" v-if="msgMenu.canVoiceText" @click="voiceToText">转文字</view>
           <view class="sheet-item danger" v-if="msgMenu.canRecall" @click="recallMsgConfirm">撤回</view>
           <view class="sheet-cancel" @click="closeMsgMenu">取消</view>
+        </view>
+      </view>
+
+      <!-- 录音状态浮层 -->
+      <view v-if="recording" class="rec-mask">
+        <view class="rec-box" :class="{ cancel: recordCancel }">
+          <view class="rec-wave"><view class="rec-bar"></view><view class="rec-bar"></view><view class="rec-bar"></view></view>
+          <text class="rec-sec">{{ recordSec }}″</text>
+          <text class="rec-tip">{{ recordCancel ? '松开手指，取消发送' : '松开发送，上滑取消' }}</text>
         </view>
       </view>
 
@@ -489,10 +560,12 @@
 
 <script>
 import { request, baseUrl, uploadFile, uploadBackgroundImage } from '../../common/request.js'
+import { startRecord, stopRecord, abortRecord, uploadVoice, playVoice, stopVoice, voiceSeconds, voiceBubbleWidth } from '../../common/voice.js'
 import ws from '../../common/ws.js'
 import presence from '../../common/presence.js'
 import XhsConfirm from '../../components/XhsConfirm.vue'
 import OnlineNotifyCard from '../../components/OnlineNotifyCard.vue'
+import { ensureCustomBubbleCss, getBubbleSkins } from '../../common/bubble-style.js'
 
 export default {
   components: {
@@ -517,6 +590,8 @@ export default {
       targetVip: 0,
 
       myBubbleStyle: 'bubble-default',
+      /* 类名 -> {style, before, after}：气泡皮肤不能靠插样式，得用内联样式绑定 */
+      bubbleSkins: {},
 
       msgList: [],
       msgIdSet: {},
@@ -569,7 +644,16 @@ export default {
         senderName: '', senderAvatar: ''
       },
 
-      msgMenu: { show: false, msg: null, canCopy: false, canRecall: false },
+      msgMenu: { show: false, msg: null, canCopy: false, canRecall: false, canVoiceText: false },
+      /* ---- 语音消息 ---- */
+      voiceMode: false,      // 输入栏是否处于"按住说话"模式
+      recording: false,      // 正在录音
+      recordCancel: false,   // 上滑到取消区
+      recordSec: 0,          // 录音秒数
+      recTimer: null,
+      recordStartY: 0,
+      recordStartAt: 0,      // 按下时的时间戳，用于兜底算录音时长
+      playingVoiceId: null,  // 正在播放的语音消息 id
 
       confirm: { show: false, title: '', content: '', resolve: null },
 
@@ -647,6 +731,10 @@ export default {
     }
   },
   async onLoad(opt) {
+    /* 气泡样式(内置 + 后台自定义代码)：拉回来转成内联样式绑到气泡上。
+       App 端往 document 插 <style> 不一定生效，所以外观必须走内联，这里拉完刷新一次。 */
+    ensureCustomBubbleCss(true).then(() => { this.bubbleSkins = getBubbleSkins() })
+
     const sys = uni.getSystemInfoSync()
     this.statusBarHeight = sys.statusBarHeight || 20
     this.safeBottom = sys.safeAreaInsets?.bottom || 0
@@ -738,6 +826,12 @@ export default {
     if (this._wsUnsubChat) { this._wsUnsubChat(); this._wsUnsubChat = null }
     if (this._onlineTimer) { clearInterval(this._onlineTimer); this._onlineTimer = null }
     if (this._olderTimer) { clearTimeout(this._olderTimer); this._olderTimer = null }
+    /* 语音：停掉录音、播放和计时器，避免页面销毁后还在跑 */
+    this.stopRecTimer()
+    if (this.recording) { this.recording = false; stopRecord() }
+    abortRecord()
+    stopVoice()
+    this.playingVoiceId = null
     uni.$off('presence_changed', this._onPresence)
     this.stopBanTimer()
     if (this.toastBox.timer) clearTimeout(this.toastBox.timer)
@@ -1336,6 +1430,8 @@ export default {
         receiver_id: data.sender_id === this.myId ? this.targetId : this.myId,
         type: data.type,
         content: data.content,
+        /* 发送者佩戴的气泡样式: 不带过来的话，实时收到的消息会退回默认气泡，刷新后才变 */
+        bubble_style: data.bubble_style,
         create_time: data.create_time
       })
       if (nm.id && this.msgIdSet[nm.id]) return
@@ -1415,6 +1511,23 @@ export default {
       }
     },
 
+    /* 安全包装：单条消息解析出错（比如未知类型）不应该让整个消息列表挂掉，
+       否则一进会话就什么都看不到 */
+    safeNormalize(m) {
+      try {
+        return this.normalizeMsg(m)
+      } catch (e) {
+        return {
+          id: (m && m.id) ? parseInt(m.id) : null,
+          type: 'text',
+          content: '[消息解析失败]',
+          create_time: (m && m.create_time) || '',
+          is_me: String((m && (m.sender_id || m.from_uid)) || '') === String(this.myId),
+          sending: false,
+          bubble_style: 'bubble-default'
+        }
+      }
+    },
     normalizeMsg(m) {
       let type = m.type || 'text'
       const isMe = String(m.sender_id || m.from_uid) === String(this.myId)
@@ -1463,18 +1576,71 @@ export default {
 
       }
 
+      /* 关系申请卡片：content 是 JSON
+         { relation_id, type_key, type_name, from_uid, from_name, from_avatar, status } */
+      let relationApply = null
+      if (type === 'relation_apply') {
+        try { relationApply = JSON.parse(m.content || '{}') } catch (e) { relationApply = null }
+        if (relationApply) relationApply.status = Number(relationApply.status || 0)
+      }
+
+      /* 语音消息：content 是 JSON { url, duration(秒), text } */
+      let voiceUrl = ''
+      let voiceDur = 0
+      let voiceText = ''
+      if (type === 'voice') {
+        try {
+          const v = JSON.parse(m.content || '{}')
+          voiceUrl = v.url || ''
+          voiceDur = Number(v.duration || 0) * 1000
+          voiceText = v.text || ''
+        } catch (e) { voiceUrl = '' }
+      }
+
       return {
         id, type,
         content: m.content || '',
+        voiceUrl,
+        voiceDur,
+        voiceText,
         card,
         groupCard,
         transfer,
         redPacket,
         invite,
+        relationApply,
         create_time: m.create_time,
         is_me: isMe,
         sending: false,
         bubble_style: m.bubble_style || (isMe ? this.myBubbleStyle : 'bubble-default')
+      }
+    },
+
+    /* 处理关系申请：同意 / 拒绝（只有接收方、且还没处理过才能点） */
+    async handleRelationApply(msg, accept) {
+      if (!msg || !msg.relationApply) return
+      if (Number(msg.relationApply.status || 0) !== 0) return
+      const rid = Number(msg.relationApply.relation_id || 0)
+      if (!rid) return
+      const yes = await this.showConfirm(
+        accept ? '同意关系' : '拒绝关系',
+        accept ? '同意后，你们的关系会显示在双方的主页上' : '确定要拒绝这条关系申请吗？'
+      )
+      if (!yes) return
+      try {
+        const res = await request('relation.php', { action: 'handle', id: rid, accept: accept ? 1 : 0 }, 'POST')
+        if (res && res.code === 0) {
+          /* 本地先把卡片状态改掉，不用等重新拉列表 */
+          const idx = this.msgList.findIndex(m => Number(m.id) === Number(msg.id))
+          if (idx >= 0 && this.msgList[idx].relationApply) {
+            this.msgList[idx].relationApply.status = accept ? 1 : 2
+          }
+          uni.showToast({ title: accept ? '关系已建立' : '已拒绝', icon: 'none' })
+        } else {
+          uni.showToast({ title: (res && (res.message || res.msg)) || '操作失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '网络错误，请稍后再试', icon: 'none' })
       }
     },
 
@@ -1510,7 +1676,7 @@ export default {
       try {
         const res = await request('message.php', { action: 'getChatDetail', targetId: this.targetId }, 'GET')
         if (res.code === 0) {
-          this.msgList = (res.data.list || []).map(this.normalizeMsg)
+          this.msgList = (res.data.list || []).map(this.safeNormalize)
           this.msgIdSet = {}
           for (const m of this.msgList) if (m.id) this.msgIdSet[m.id] = true
           try { uni.setStorageSync('chat_cache_' + this.targetId, JSON.stringify(this.msgList)) } catch(e) {}
@@ -1550,7 +1716,7 @@ export default {
       const list = res.data?.list || []
       if (!list.length) return
 
-      const newMsgs = list.map(this.normalizeMsg)
+      const newMsgs = list.map(this.safeNormalize)
       const unique = newMsgs.filter(nm => !this.msgList.some(lm => Number(lm.id) === Number(nm.id)))
       if (unique.length) {
         this.msgList = [...this.msgList, ...unique]
@@ -1577,7 +1743,7 @@ export default {
         const list = res.data?.list || []
         if (!list.length) { this.noMoreOlder = true; return }
 
-        const older = list.map(this.normalizeMsg).filter(nm => !nm.id || !this.msgIdSet[Number(nm.id)])
+        const older = list.map(this.safeNormalize).filter(nm => !nm.id || !this.msgIdSet[Number(nm.id)])
         older.forEach(nm => { if (nm.id) this.msgIdSet[nm.id] = true })
         this.msgList = [...older, ...this.msgList]
 
@@ -2137,10 +2303,170 @@ export default {
       }
     },
 
+    /* ---------------- 语音消息 ---------------- */
+    toggleVoiceMode() {
+      if (!this.canChat) return this.showToast(this.chatDisabledReason || '当前无法发送消息')
+      this.voiceMode = !this.voiceMode
+      if (this.voiceMode && this.showEmojiPicker) this.showEmojiPicker = false
+    },
+    onVoiceStart(e) {
+      if (!this.canChat) return this.showToast(this.chatDisabledReason || '当前无法发送消息')
+      if (this.blockedMe) return this.showToast('对方已拉黑你，无法发送')
+      if (this.sending) return
+      this.recordCancel = false
+      this.recordSec = 0
+      this.recordStartAt = Date.now()
+      const t = (e && e.touches && e.touches[0]) || {}
+      this.recordStartY = Number(t.clientY || 0)
+      const started = startRecord({
+        maxDuration: 60000,
+        onStop: (res) => this.onRecordDone(res),
+        onError: () => {
+          this.stopRecTimer()
+          this.recording = false
+          this.showToast('录音失败，请检查麦克风权限')
+        }
+      })
+      if (!started) return
+      this.recording = true
+      this.recTimer = setInterval(() => {
+        this.recordSec++
+        if (this.recordSec >= 60) this.onVoiceEnd()
+      }, 1000)
+    },
+    onVoiceMove(e) {
+      if (!this.recording) return
+      const t = (e && e.touches && e.touches[0]) || {}
+      /* 手指上滑超过 60px 视为取消 */
+      this.recordCancel = (this.recordStartY - Number(t.clientY || 0)) > 60
+    },
+    onVoiceEnd() {
+      if (!this.recording) return
+      this.stopRecTimer()
+      this.recording = false
+      stopRecord()          // 会触发 onStop → onRecordDone
+    },
+    onVoiceCancel() {
+      if (!this.recording) return
+      this.recordCancel = true
+      this.onVoiceEnd()
+    },
+    stopRecTimer() {
+      if (this.recTimer) { clearInterval(this.recTimer); this.recTimer = null }
+    },
+    async onRecordDone(res) {
+      const cancel = this.recordCancel
+      this.recordCancel = false
+      const path = (res && res.tempFilePath) || ''
+      const isH5 = !!(res && res.h5)
+      /* 录音秒数取三个来源的最大值：
+         1) 页面计时器 recordSec
+         2) 录音器回调里的 duration —— 部分安卓机这里返回 0
+         3) 按下到松开的时间戳差 —— 最后的兜底
+         H5 端 MediaRecorder 也根本不提供时长，必须靠 1) 和 3) */
+      const tickSec = Number(this.recordSec || 0)
+      const durSec = Math.round(Number((res && res.duration) || 0) / 1000)
+      const wallSec = this.recordStartAt ? Math.round((Date.now() - this.recordStartAt) / 1000) : 0
+      const sec = Math.max(tickSec, durSec, wallSec)
+      if (cancel) {
+        if (isH5 && path) { try { URL.revokeObjectURL(path) } catch (e) {} }
+        return
+      }
+      if (!path) return this.showToast('录音失败')
+      if (sec < 1) return this.showToast('说话时间太短（' + sec + '″）')
+      await this.sendVoice(path, sec, res && res.mime)
+    },
+    async sendVoice(filePath, seconds, mime) {
+      if (this.sending) return
+      this.sending = true
+      const tempId = 't' + Date.now()
+      const now = new Date()
+      /* 先本地占位（直接播本地文件），再上传 */
+      this.msgList.push({
+        id: null, tempId, type: 'voice', content: '',
+        voiceUrl: filePath, voiceDur: seconds * 1000, voiceText: '',
+        is_me: true, create_time: now.toISOString(), sending: true,
+        bubble_style: this.myBubbleStyle
+      })
+      this.$nextTick(() => this.scrollBottom(true))
+      try {
+        const url = await uploadVoice(filePath, mime)
+        if (!url) throw { msg: '语音上传失败' }
+        const payload = JSON.stringify({ url: url, duration: seconds })
+        const res = await request('message.php', {
+          action: 'sendMsg', receiver_id: this.targetId, content: payload, type: 'voice'
+        }, 'POST')
+        if (res.code === 0) {
+          const idx = this.msgList.findIndex(m => m.tempId === tempId)
+          if (idx !== -1) {
+            this.msgList.splice(idx, 1, Object.assign({}, this.msgList[idx], {
+              id: parseInt((res.data && res.data.id) || 0) || null,
+              content: payload,
+              /* 关键：换成服务器地址。否则自己点播的还是本地临时文件路径，
+                 被 fixUrl 拼上域名后必然加载失败（表现就是"自己听没声音、别人听有声音"） */
+              voiceUrl: url,
+              voiceDur: seconds * 1000,
+              sending: false
+            }))
+            this.$nextTick(() => this.scrollBottom(true))
+          }
+          return
+        }
+        this.msgList = this.msgList.filter(m => m.tempId !== tempId)
+        this.showToast(res.msg || '发送失败')
+      } catch (e) {
+        this.msgList = this.msgList.filter(m => m.tempId !== tempId)
+        this.showToast((e && e.msg) || '语音发送失败')
+      } finally {
+        this.sending = false
+      }
+    },
+    voiceSec(msg) { return voiceSeconds(msg.voiceDur) },
+
+    /* 气泡皮肤：内联样式（App 端插 <style> 不一定生效，所以外观走内联） */
+    skinStyle(cls) {
+      const s = this.bubbleSkins[cls]
+      return s && s.style ? s.style : ''
+    },
+    /* 气泡的 ::before / ::after（比如左上角小星星），用额外的小元素还原 */
+    skinDeco(cls, which) {
+      const s = this.bubbleSkins[cls]
+      if (!s || !s[which]) return null
+      return s[which]
+    },
+    voiceWidth(msg) { return voiceBubbleWidth(msg.voiceDur) },
+    playVoiceMsg(msg) {
+      const id = msg.id || msg.tempId
+      if (this.playingVoiceId === id) { stopVoice(); this.playingVoiceId = null; return }
+      const raw = msg.voiceUrl || msg.content
+      /* 刚发出还没上传完的语音是本地临时路径（App 的 _doc/... 或 H5 的 blob:...），
+         这种不能过 fixUrl，否则会被拼上域名导致加载失败 */
+      const isLocal = /^(blob:|file:|content:|wxfile:|_doc|_download|_www)/.test(raw) ||
+        raw.indexOf('/storage/') === 0 || raw.indexOf('/data/') === 0
+      const url = (/^https?:/.test(raw) || isLocal) ? raw : this.fixUrl(raw)
+      this.playingVoiceId = id
+      const okPlay = playVoice(url, id, () => {
+        if (this.playingVoiceId === id) this.playingVoiceId = null
+      })
+      if (!okPlay) { this.playingVoiceId = null; this.showToast('播放失败') }
+    },
+    /* 长按菜单里的"转文字"：显示这条语音附带文字 */
+    voiceToText() {
+      const msg = this.msgMenu.msg
+      this.closeMsgMenu()
+      if (!msg) return
+      if (msg.voiceText) {
+        uni.showModal({ title: '语音转文字', content: msg.voiceText, showCancel: false, confirmText: '知道了' })
+        return
+      }
+      this.showToast('这条语音没有文字内容')
+    },
+
     openMsgMenu(msg) {
       if (!msg || !msg.id) return
       this.msgMenu.msg = msg
       this.msgMenu.canCopy = (msg.type === 'text' && !!msg.content)
+      this.msgMenu.canVoiceText = (msg.type === 'voice')
       this.msgMenu.canRecall = msg.is_me && msg.type !== 'transfer'
       this.msgMenu.show = true
     },
@@ -2433,6 +2759,11 @@ export default {
   border-radius:18rpx;
   box-shadow:none;
 }
+/* 自定义气泡的 ::before / ::after 装饰（内容 + 定位都在内联样式里） */
+.bubble-deco{
+  position:absolute;
+  line-height:1;
+}
 .msg-image{
   width:360rpx;
   height:480rpx;
@@ -2489,6 +2820,11 @@ export default {
 .group-card-box .card-sub{ color:#9ca3af; }
 .group-card-arrow{ font-size:36rpx; color:#d1d5db; font-weight:300; line-height:1; }
 .invite-card{ background:linear-gradient(135deg,#f0f9ff 0%,#fff 100%); border:1rpx solid #dbeafe; padding:18rpx; margin-bottom:12rpx; }
+/* 关系申请卡片：粉色系，和群邀请的蓝色区分开 */
+.rel-card{ background:linear-gradient(135deg,#fff1f5 0%,#fff 100%); border:1rpx solid #ffd6e2; }
+.rel-card .card-name{ color:#ff4d79; }
+/* 未适配消息类型的兜底提示 */
+.msg-unknown{ font-size:24rpx; color:#9ca3af; padding:8rpx 4rpx; }
 .invite-card .card-name{ color:#1e90ff; font-size:28rpx; font-weight:600; }
 .invite-card .card-sub{ color:#9ca3af; }
 .invite-card .card-code{ color:#1e90ff; font-size:24rpx; margin-top:4rpx; }
@@ -3452,4 +3788,92 @@ export default {
   height: 120rpx;
   border-radius: 16rpx;
 }
+/* ==================== 语音消息 ==================== */
+/* 按住说话 */
+.voice-hold {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: 36rpx;
+  background: #fff;
+  color: #333;
+  font-size: 28rpx;
+  border: 2rpx solid transparent;
+  user-select: none;
+}
+.voice-hold.active { background: #d5d5d5; }
+.voice-hold.cancel { background: #ffd6dc; color: #c81e3c; border-color: #ff8fa3; }
+
+/* 语音气泡（宽度由 voiceWidth 按秒数给，颜色随所在气泡） */
+.voice-msg {
+  min-height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 0 18rpx;
+}
+/* 声波：纯 CSS 四根圆头柱子，颜色自动跟随气泡文字（不依赖外部文件，任何端都能显示） */
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+}
+.voice-bar {
+  width: 5rpx;
+  border-radius: 3rpx;
+  background: currentColor;
+  opacity: .85;
+}
+.voice-bar:nth-child(1) { height: 12rpx; }
+.voice-bar:nth-child(2) { height: 24rpx; }
+.voice-bar:nth-child(3) { height: 32rpx; }
+.voice-bar:nth-child(4) { height: 18rpx; }
+.voice-msg.playing .voice-bar { animation: voicePulse .7s infinite ease-in-out; }
+.voice-msg.playing .voice-bar:nth-child(2) { animation-delay: .1s; }
+.voice-msg.playing .voice-bar:nth-child(3) { animation-delay: .2s; }
+.voice-msg.playing .voice-bar:nth-child(4) { animation-delay: .3s; }
+@keyframes voicePulse { 0%, 100% { transform: scaleY(.4); } 50% { transform: scaleY(1); } }
+.voice-sec { font-size: 26rpx; }
+.voice-dot {
+  font-size: 20rpx;
+  line-height: 1;
+  padding: 4rpx 8rpx;
+  border-radius: 6rpx;
+  background: rgba(0, 0, 0, .12);
+}
+
+/* 录音浮层 */
+.rec-mask {
+  position: fixed;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, .3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.rec-box {
+  width: 360rpx;
+  padding: 40rpx 0;
+  border-radius: 24rpx;
+  background: rgba(30, 30, 30, .92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18rpx;
+}
+.rec-box.cancel { background: rgba(160, 30, 50, .94); }
+.rec-wave { display: flex; align-items: flex-end; gap: 8rpx; height: 50rpx; }
+.rec-bar { width: 10rpx; border-radius: 5rpx; background: #6ee7a8; animation: recPulse .8s infinite ease-in-out; }
+.rec-bar:nth-child(1) { height: 24rpx; }
+.rec-bar:nth-child(2) { height: 46rpx; animation-delay: .15s; }
+.rec-bar:nth-child(3) { height: 30rpx; animation-delay: .3s; }
+@keyframes recPulse { 0%, 100% { transform: scaleY(.5); } 50% { transform: scaleY(1); } }
+.rec-sec { font-size: 40rpx; font-weight: 700; color: #fff; }
+.rec-tip { font-size: 24rpx; color: rgba(255, 255, 255, .85); }
 </style>
