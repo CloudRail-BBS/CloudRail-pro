@@ -28,7 +28,7 @@ export function parseOauthCallbackUrl(rawUrl = '') {
   const bindSuccess = extractQueryValue(raw, 'bindSuccess')
   const bindError = extractQueryValue(raw, 'bindError')
 
-  const hasSignal = !!(token || loginSuccess || loginError || bindSuccess || bindError)
+  const hasSignal = !!(token || loginSuccess || loginError || bindSuccess || bindError || code)
   const looksLikeOauthPath =
     raw.indexOf('pages/login/login') !== -1 ||
     raw.indexOf('pages/user/setting') !== -1 ||
@@ -44,10 +44,10 @@ export function parseOauthCallbackUrl(rawUrl = '') {
     loginError,
     bindSuccess: bindSuccess === '1' || bindSuccess.toLowerCase() === 'true',
     bindError,
+    code,
     timestamp: Date.now()
   }
 
-  if (!payload.token && !payload.loginError && !payload.bindSuccess && !payload.bindError && !payload.loginSuccess) {
     return null
   }
 

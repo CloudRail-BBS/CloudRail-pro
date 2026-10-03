@@ -69,7 +69,6 @@ const apiMap = {
     'forget_reset_password': ['auth/forgot/reset', 'POST'],
     'oauthLogin': ['auth/oauth', 'POST'],
     'oauthLoginPinhao': ['auth/pinhao_login', 'POST'],
-    // 资料
     'getUserInfo': ['auth/me', 'GET'],
     'getProfile': ['user/profile', 'GET'],
     'profileHome': ['user/profile', 'GET'],

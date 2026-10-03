@@ -3,7 +3,7 @@
  * 单例模式，自动连接/重连/心跳
  */
 
-import { getToken } from '@/common/auth.js'
+import { getToken, clearAuth } from '@/common/auth.js'
 import { WS_ENABLED, WS_URL } from '@/common/config.js'
 
 // 重连配置
@@ -21,6 +21,55 @@ const HEARTBEAT_INTERVAL = 8000
 // 看上去 connected 还是 true，其实早就断了 —— 在线状态就会一直是错的，
 // 而且永远不会自己重连。靠这个超时把它揪出来强制重连。
 const LIVENESS_TIMEOUT = 25000
+
+/* ---------------- 登录态自检 ----------------
+   只用来读 token 里的 exp，不做签名校验（签名是服务端的事）。
+   之所以要自检：token 默认 7 天有效，超过 7 天没打开 App，
+   本地 token 已经过期，但客户端不知道，会拿着它一直重连，
+   服务端每次握手都回 401「token 无效」，日志被刷满，
+   而 App 这边接口其实也全是失败的，表现就是"一直连不上"。 */
+const B64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+/* 纯 JS 的 base64 解码：App 端没有 atob，不能依赖它 */
+function b64Decode(input) {
+  const s = String(input || '').replace(/-/g, '+').replace(/_/g, '/').replace(/[^A-Za-z0-9+/]/g, '')
+  let out = ''
+  let buf = 0
+  let bits = 0
+  for (let i = 0; i < s.length; i++) {
+    const v = B64_CHARS.indexOf(s[i])
+    if (v < 0) continue
+    buf = (buf << 6) | v
+    bits += 6
+    if (bits >= 8) {
+      bits -= 8
+      out += String.fromCharCode((buf >> bits) & 0xFF)
+    }
+  }
+  try {
+    return decodeURIComponent(out.split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+  } catch (e) {
+    return out
+  }
+}
+
+/* 取出 JWT 的载荷（第二段） */
+function jwtPayload(token) {
+  try {
+    const part = String(token || '').split('.')[1]
+    if (!part) return null
+    return JSON.parse(b64Decode(part))
+  } catch (e) {
+    return null
+  }
+}
+
+/* 登录态是否已过期。留 5 分钟冗余，免得设备时钟稍有偏差就误判。 */
+function tokenExpired(token) {
+  const p = jwtPayload(token)
+  if (!p || !p.exp) return false
+  return Date.now() / 1000 > Number(p.exp) + 300
+}
 
 class WebSocketManager {
   constructor() {
@@ -49,6 +98,16 @@ class WebSocketManager {
     const token = getToken()
     if (!token) {
       console.log('[WS] 未登录，跳过连接')
+      return
+    }
+    /* 登录态已过期就别连了：服务端只会回 401「token 无效」，
+       客户端还会一直重连把日志刷满，而接口其实也全是失败的。
+       直接清掉本地登录信息，让 App 回到"需要重新登录"，而不是一直空转。 */
+    if (tokenExpired(token)) {
+      console.warn('[WS] 登录态已过期，停止连接并清除本地登录信息')
+      try { clearAuth() } catch (e) {}
+      this.manualClose = true
+      try { uni.$emit('ws:auth_expired', {}) } catch (e) {}
       return
     }
     if (!WS_ENABLED) {
@@ -322,13 +381,20 @@ class WebSocketManager {
     if (this.manualClose) return
 
     this.reconnectCount++
-    console.log(`[WS] 第 ${this.reconnectCount} 次重连，${this.reconnectDelay / 1000}s 后...`)
+    /* 连续失败很多次（多半是服务端一直拒绝握手 / token 不对）：
+       拉长到每 60 秒一次，别每 30 秒就去敲一遍、把服务端日志刷爆 */
+    const many = this.reconnectCount > 6
+    const delay = many ? 60000 : this.reconnectDelay
+    if (this.reconnectCount === 7) {
+      console.warn('[WS] 已连续失败 7 次，后续改为每 60 秒重试一次')
+    }
+    console.log(`[WS] 第 ${this.reconnectCount} 次重连，${delay / 1000}s 后...`)
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null
       if (!this.manualClose && !this.connected) {
         this.connect()
       }
-    }, this.reconnectDelay)
+    }, delay)
 
     this.reconnectDelay = Math.min(this.reconnectDelay * 2, MAX_RECONNECT_DELAY)
   }

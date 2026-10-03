@@ -203,7 +203,7 @@ export default {
     },
     goDetail(id) {
       if (!id) return
-      uni.navigateTo({ url: '/pages/software/detail?id=' + id })
+      uni.navigateTo({ url: '/pages/app-detail/app-detail?id=' + id })
     }
   }
 }

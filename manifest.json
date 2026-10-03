@@ -2,8 +2,8 @@
     "name" : "栖屿社区",
     "appid" : "__UNI__380A467",
     "description" : "栖屿社区 - 移动端社区(Uniapp)",
-    "versionName" : "1.0.1",
-    "versionCode" : 101,
+    "versionName" : "1.0.2",
+    "versionCode" : 102,
     "transformPx" : false,
     "app-plus" : {
         "usingComponents" : true,
@@ -19,7 +19,7 @@
         "modules" : {
             "Push" : {},
             "VideoPlayer" : {}
-        },
+        }},
         "distribute" : {
             "android" : {
                 "permissions" : [

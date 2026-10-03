@@ -98,11 +98,11 @@
       </view>
 
       <view class="dd-ctrl">
-        <block v-if="phase === 'bid' && turnSeat === 0">
+        <block v-if="myTurnBid">
           <view class="tbtn ghost" @click="doBid(0)">不叫</view>
           <view v-for="s in [1,2,3]" :key="s" class="tbtn" :class="{ dis: s <= highestBid }" @click="s > highestBid && doBid(s)">{{ s }} 分</view>
         </block>
-        <block v-else-if="phase === 'play' && turnSeat === 0">
+        <block v-else-if="myTurnPlay">
           <view class="tbtn ghost" :class="{ dis: !lastPlay }" @click="userPass">不出</view>
           <view class="tbtn ghost" @click="hint">提示</view>
           <view class="tbtn" @click="userPlay">出牌</view>
@@ -224,7 +224,18 @@ export default {
     isPortrait() { return this.winH > this.winW },
     /* 横屏时状态栏在侧边不占位置；竖屏时给状态栏和底部安全区留出空间 */
     topPad() { return this.isPortrait ? (Number(this.statusBarHeight) || 0) : 0 },
-    bottomPad() { return this.isPortrait ? (Number(this.safeBottom) || 0) : 0 }
+    bottomPad() { return this.isPortrait ? (Number(this.safeBottom) || 0) : 0 },
+    /* 联机时「能不能叫地主 / 能不能出牌」一律以服务端下发的 can_bid / can_play 为准：
+       本地那份可能已经过期（切后台回来、别人先出牌了），照旧显示按钮就会让你一点就报
+       「当前阶段不是…」。单机（AI）对局没有这两个字段，仍沿用「轮到我 0 号位」的旧约定。 */
+    myTurnBid() {
+      if (this.online) return this.phase === 'bid' && !!(this.onlineState && this.onlineState.can_bid)
+      return this.phase === 'bid' && this.turnSeat === 0
+    },
+    myTurnPlay() {
+      if (this.online) return this.phase === 'play' && !!(this.onlineState && this.onlineState.can_play)
+      return this.phase === 'play' && this.turnSeat === 0
+    }
   },
   onLoad(q) {
     const sys = uni.getSystemInfoSync()
@@ -238,6 +249,13 @@ export default {
   },
   onShow() {
     this.syncWindow()
+    /* 切回前台必须立刻和服务端对一次状态。
+       切后台时如果正好有一个 ddz_state 请求在途，它可能再也不会回来，
+       而 _onlinePulling 这把锁会一直卡着 —— 之后所有轮询都被当成"上一次还没回来"
+       直接合并丢掉，界面就永远停在切走前那一帧。
+       表现就是：别人早叫完地主、牌都出几轮了，我这边还显示轮到我叫地主，一点就报
+       "当前阶段不是叫地主阶段"。所以这里先清锁，再强制拉一次。 */
+    if (this.online && !this.done) this.resyncOnline()
   },
   onUnload() {
     /* 先解绑实时推送，避免页面销毁后回调还在跑 */
@@ -523,10 +541,25 @@ export default {
 
       uni.showToast({ title: '真人对局 · 联机同步中', icon: 'none' })
       await this.pullOnline()
-      if (!this.onlineTimer) {
-        this.onlineTimer = setInterval(() => this.pullOnline(), 1200)
-        this._timers.push(this.onlineTimer)
-      }
+      this.ensureOnlineTimer()
+    },
+
+    /* 轮询兜底：没有就补一个（切后台回来时定时器可能已经不在了） */
+    ensureOnlineTimer() {
+      if (!this.online || this.done) return
+      if (this.onlineTimer) return
+      this.onlineTimer = setInterval(() => this.pullOnline(), 1200)
+      this._timers.push(this.onlineTimer)
+    },
+
+    /* 强制重新同步一次：清掉可能卡住的拉取锁，保证这次请求一定发得出去 */
+    resyncOnline() {
+      if (!this.online || this.done) return
+      this._onlinePulling = false
+      this._onlinePending = false
+      this._lastWsAt = 0
+      this.ensureOnlineTimer()
+      this.pullOnline()
     },
 
     /* 串行化的拉取：上一次还没回来就把这次合并掉，避免并发请求乱序返回导致状态倒错。
@@ -535,8 +568,15 @@ export default {
        表现就是「不该我出牌却显示轮到我」、按钮状态乱跳。 */
     async pullOnline() {
       if (!this.online || this.done) return
-      if (this._onlinePulling) { this._onlinePending = true; return }
+      /* 上一次拉取还在路上：正常情况下把这次合并掉就行。
+         但如果它已经卡了 6 秒以上（切后台把请求丢了、网络断了），就必须放行，
+         否则这把锁永远解不开，界面再也同步不上。 */
+      if (this._onlinePulling && Date.now() - (this._onlinePullingAt || 0) < 6000) {
+        this._onlinePending = true
+        return
+      }
       this._onlinePulling = true
+      this._onlinePullingAt = Date.now()
       const beganAt = Date.now()
       try {
         const res = await request('game_center.php', { action: 'ddz_state', session_id: this.cfg.session_id }, 'GET')
@@ -661,15 +701,22 @@ export default {
 
       if (d.phase === 'bid') {
         this.phase = 'bid'
-        if (d.can_bid) this.cmsg = '轮到你叫地主'
+        if (d.can_bid) this.cmsg = '轮到你叫地主' + this.remainText(d)
         else if (!changed) this.cmsg = this.seatInfo(this.turnSeat).name + ' 正在叫地主…'
       } else if (d.phase === 'play') {
         this.phase = 'play'
-        if (d.can_play) this.cmsg = this.lastPlay ? '跟牌或不要' : '该你出牌（主动出牌）'
+        if (d.can_play) this.cmsg = (this.lastPlay ? '跟牌或不要' : '该你出牌（主动出牌）') + this.remainText(d)
         else if (!changed) this.cmsg = this.seatInfo(this.turnSeat).name + ' 思考中…'
       } else if (d.phase === 'over') {
         this.onlineFinish(d)
       }
+    },
+
+    /* 轮到自己时的剩余秒数。服务端 20 秒没动作就会自动托管（叫地主超时视为不叫、
+       出牌超时按不要处理），提示出来，省得你切后台回来看到"怎么自己已经过了"却不知道原因。 */
+    remainText(d) {
+      const n = Number(d && d.remain)
+      return n > 0 ? '（剩 ' + n + 's）' : ''
     },
 
     async onlineBid(call) {
@@ -684,8 +731,11 @@ export default {
           if ((this._lastWsAt || 0) <= beganAt) this.applyOnline(res.data)
         } else if (res) {
           uni.showToast({ title: res.msg || '操作失败', icon: 'none' })
+          /* 服务端说这个阶段不该我做这个操作 —— 说明本地状态过期了，
+             立刻重新同步一次把按钮纠正回来，而不是让你反复点、反复报错 */
+          this.resyncOnline()
         }
-      } catch (e) {}
+      } catch (e) { this.resyncOnline() }
     },
 
     async onlinePlay() {
@@ -715,8 +765,10 @@ export default {
           if ((this._lastWsAt || 0) <= beganAt) this.applyOnline(res.data)
         } else if (res) {
           uni.showToast({ title: res.msg || '出牌失败', icon: 'none' })
+          /* 同上：状态过期就立刻重新同步，避免界面一直停在旧牌面 */
+          this.resyncOnline()
         }
-      } catch (e) {}
+      } catch (e) { this.resyncOnline() }
     },
 
     /* 提示：只在本地帮忙选牌，合法性还是服务端说了算 */
