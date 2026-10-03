@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="waterfall-theme">
     <!-- 顶部轮播图（banner） -->
     <view v-if="currentTab !== 2 && safeBannerList.length > 0" class="hero-band">
@@ -309,7 +309,7 @@ export default {
     quickEntries() {
       return [
         { title: '聚合应用', icon: '/static/icon/quick-apps-white.svg', iconClass: 'quick-icon-hub', url: '/pages/hub/hub' },
-        { title: '积分抽奖', icon: '/static/icon/quick-gift-white.svg', iconClass: 'quick-icon-lottery', url: '/pages/lottery/index' },
+        { title: '积分好礼', icon: '/static/icon/quick-gift-white.svg', iconClass: 'quick-icon-lottery', url: '/pages/lottery/index' },
         { title: '靓号商城', icon: '/static/icon/quick-tag-white.svg', iconClass: 'quick-icon-shop', url: '/pages/fancy/shop' },
         { title: '权益认证', icon: '/static/icon/quick-shield-check-white.svg', iconClass: 'quick-icon-cert', url: '/pages/user/zhuanye' },
         { title: '任务中心', icon: '/static/icon/quick-calendar-check-white.svg', iconClass: 'quick-icon-task', url: '/pages/mission/mission' },

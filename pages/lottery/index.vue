@@ -295,7 +295,7 @@
 
       <!-- 免责声明 -->
       <view class="disclaimer">
-        <text class="disclaimer-text">免责声明：本页面所有积分娱乐活动仅供用户休闲娱乐使用，不涉及任何形式的赌博或现金交易。积分不可兑换现金、仅限平台内使用。请理性参与，切勿沉迷。</text>
+        <text class="disclaimer-text">免责声明：本页面所有积分活动仅供用户休闲娱乐使用，积分不可兑换现金、仅限平台内使用。请理性参与，切勿沉迷。</text>
       </view>
     </scroll-view>
 
@@ -582,7 +582,7 @@ export default {
         { user_id: 1, nickname: '游戏达人', avatar: '/static/user/default.png', score: 5000 },
         { user_id: 2, nickname: '幸运玩家', avatar: '/static/user/default.png', score: 3500 },
         { user_id: 3, nickname: '积分之王', avatar: '/static/user/default.png', score: 2800 },
-        { user_id: 4, nickname: '抽奖高手', avatar: '/static/user/default.png', score: 2200 },
+        { user_id: 4, nickname: '好运达人', avatar: '/static/user/default.png', score: 2200 },
         { user_id: 5, nickname: '欧皇本皇', avatar: '/static/user/default.png', score: 1800 },
       ]
       

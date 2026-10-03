@@ -29,13 +29,13 @@
               </block>
             </view>
           </view>
-          <text class="tb-status">{{ p.folded ? '已弃牌' : ((p.seen ? '看牌' : '闷牌') + ' · ' + p.stack + ' 筹码') }}</text>
+          <text class="tb-status">{{ p.folded ? '已弃牌' : ((p.seen ? '看牌' : '闷牌') + ' · ' + p.stack + ' 积分') }}</text>
         </view>
       </view>
 
-      <!-- 中央奖池 -->
+      <!-- 中央底池 -->
       <view class="tb-center">
-        <text class="tb-pot-label">奖池</text>
+        <text class="tb-pot-label">底池</text>
         <text class="tb-pot">{{ pot }}</text>
         <text class="tb-cmsg">{{ cmsg }}</text>
       </view>
@@ -46,7 +46,7 @@
         <view v-else class="tb-av big tb-av-ph">我</view>
         <view class="tb-me-info">
           <text class="tb-name">我</text>
-          <text class="tb-status">{{ me.folded ? '已弃牌' : ((me.seen ? '看牌' : '闷牌') + ' · ' + me.stack + ' 筹码 · 已下 ' + me.bet) }}</text>
+          <text class="tb-status">{{ me.folded ? '已弃牌' : ((me.seen ? '看牌' : '闷牌') + ' · ' + me.stack + ' 积分 · 已投 ' + me.bet) }}</text>
         </view>
         <view class="tb-cards">
           <view v-for="(c, i) in me.hand" :key="i" class="pc" :class="{ back: !me.seen }">
@@ -88,7 +88,7 @@
     <!-- 比牌选择 -->
     <view v-if="showCompare" class="tb-mask" @click="showCompare = false">
       <view class="tb-sheet" @click.stop>
-        <text class="tb-sheet-t">选择比牌对手（支付 {{ unit * 2 }} 筹码）</text>
+        <text class="tb-sheet-t">选择比牌对手（支付 {{ unit * 2 }} 积分）</text>
         <view v-for="p in compareTargets" :key="p.seat" class="tb-cmp" @click="doCompareChoose(p.seat)">{{ p.name }}</view>
         <view class="tbtn ghost" @click="showCompare = false">取消</view>
       </view>
@@ -558,7 +558,7 @@ export default {
       const ev = this.evalHand(winner.hand)
       const multiplier = Math.max(1, Math.round(this.pot / this.base))
       const rank = winner.seat === 0 ? 1 : (winner.seat === 1 ? 2 : 3)
-      this.cmsg = winner.name + ' 以「' + CAT_NAME[ev.cat] + '」赢走奖池 ' + this.pot
+      this.cmsg = winner.name + ' 以「' + CAT_NAME[ev.cat] + '」赢走底池 ' + this.pot
       this.log('本局赢家：' + winner.name + '（' + CAT_NAME[ev.cat] + '）')
 
       const outcome = { game: 'zhajinhua', rank: rank, winner: winner.seat, multiplier: multiplier, pot: this.pot, ubet: this.players[0].bet }

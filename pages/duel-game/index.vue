@@ -113,7 +113,7 @@
                 <text class="countdown-num">{{ countdown }}</text>
                 <text class="countdown-unit">秒</text>
               </view>
-              <text class="pool-info">奖池: {{ currentDuel?.bet_amount * 2 }} 积分</text>
+              <text class="pool-info">积分池: {{ currentDuel?.bet_amount * 2 }} 积分</text>
             </view>
             <view class="avatar-circle right">
               <image :src="currentDuel?.defender_avatar || '/static/user/default.png'" class="avatar-img" mode="aspectFill"></image>

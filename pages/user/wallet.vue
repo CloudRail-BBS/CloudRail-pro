@@ -227,7 +227,7 @@ export default {
         return ' 元';
       }
       // 包含积分相关关键词的记录显示"积分"单位，否则默认"元"
-      if (memo.includes('打赏') || memo.includes('猜拳') || memo.includes('下注') || memo.includes('中奖') || memo.includes('兑换')) {
+      if (memo.includes('打赏') || memo.includes('猜拳') || memo.includes('参与') || memo.includes('奖励') || memo.includes('兑换')) {
         return ' 积分';
       }
       return ' 元';

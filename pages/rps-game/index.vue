@@ -42,7 +42,7 @@
           >
             <image src="/static/icon/hand-rock-cyan.svg" class="choice-emoji" mode="aspectFit"></image>
             <text class="choice-name">石头</text>
-            <text class="choice-odds">赔率 {{ settings.rock_odds }}x</text>
+            <text class="choice-odds">倍数 {{ settings.rock_odds }}x</text>
           </view>
 
           <view
@@ -52,7 +52,7 @@
           >
             <image src="/static/icon/hand-scissors-purple.svg" class="choice-emoji" mode="aspectFit"></image>
             <text class="choice-name">剪刀</text>
-            <text class="choice-odds">赔率 {{ settings.scissors_odds }}x</text>
+            <text class="choice-odds">倍数 {{ settings.scissors_odds }}x</text>
           </view>
 
           <view
@@ -62,13 +62,13 @@
           >
             <image src="/static/icon/hand-paper-pink.svg" class="choice-emoji" mode="aspectFit"></image>
             <text class="choice-name">布</text>
-            <text class="choice-odds">赔率 {{ settings.paper_odds }}x</text>
+            <text class="choice-odds">倍数 {{ settings.paper_odds }}x</text>
           </view>
         </view>
 
-        <!-- 下注区域 -->
+        <!-- 参与区域 -->
         <view class="bet-area" v-if="selectedChoice && !hasBet && countdown > 0">
-          <text class="bet-label">下注积分</text>
+          <text class="bet-label">参与积分</text>
           <view class="bet-input-wrap">
             <input 
               v-model="betAmount" 
@@ -84,14 +84,14 @@
             <text class="quick-btn" @click="setBet(500)">500</text>
           </view>
           <view class="bet-action">
-            <text class="bet-btn" @click="placeBet">确认下注</text>
+            <text class="bet-btn" @click="placeBet">确认参与</text>
           </view>
         </view>
 
-        <!-- 已下注提示 -->
+        <!-- 已参与提示 -->
         <view class="bet-result" v-if="hasBet">
-          <text class="result-text">你已选择 {{ choiceName }}，下注 {{ betAmount }} 积分</text>
-          <text class="result-wait">等待开奖...</text>
+          <text class="result-text">你已选择 {{ choiceName }}，投入 {{ betAmount }} 积分</text>
+          <text class="result-wait">等待结果...</text>
         </view>
       </view>
 
@@ -118,7 +118,7 @@
       <!-- 历史记录 -->
       <view class="history-section">
         <view class="section-header">
-          <text class="section-title">最近开奖</text>
+          <text class="section-title">最近结果</text>
           <text class="expand-btn" v-if="history.length > 1" @click="showAllHistory = !showAllHistory">
             {{ showAllHistory ? '收起' : '展开' }}
           </text>
@@ -136,14 +136,14 @@
           </view>
         </view>
         <view class="empty-history" v-else>
-          <text class="empty-text">暂无开奖记录</text>
+          <text class="empty-text">暂无记录</text>
         </view>
       </view>
 
-      <!-- 我的下注记录 -->
+      <!-- 我的参与记录 -->
       <view class="my-bets-section">
         <view class="section-header">
-          <text class="section-title">我的下注记录</text>
+          <text class="section-title">我的参与记录</text>
           <text class="expand-btn" v-if="myBets.length > 1" @click="showAllBets = !showAllBets">
             {{ showAllBets ? '收起' : '展开' }}
           </text>
@@ -163,14 +163,14 @@
               <text class="my-bet-amount">{{ item.bet_amount }}积分</text>
               <view class="my-bet-result" :class="{ win: item.win_amount > 0, lose: item.round_result && item.win_amount == 0 }">
                 <text v-if="item.win_amount > 0">+{{ item.win_amount }}积分</text>
-                <text v-else-if="item.round_result && item.win_amount == 0">未中奖</text>
-                <text v-else>等待开奖</text>
+                <text v-else-if="item.round_result && item.win_amount == 0">未命中</text>
+                <text v-else>等待结果</text>
               </view>
             </view>
           </view>
         </view>
         <view class="empty-bets" v-else>
-          <text class="empty-text">暂无下注记录</text>
+          <text class="empty-text">暂无参与记录</text>
         </view>
       </view>
 
@@ -330,7 +330,7 @@ export default {
           this.players = res.data.players || []
           this.settings = res.data.settings
           
-          // 检查用户是否已下注
+          // 检查用户是否已参与
           this.checkUserBet()
           
           // 启动倒计时
@@ -341,7 +341,7 @@ export default {
     },
     checkUserBet() {
       if (!this.userInfo || !this.userInfo.id) return
-      // 检查当前回合是否已下注
+      // 检查当前回合是否已参与
       if (this.currentRound) {
         const userBet = this.myBets.find(b => b.round_id === this.currentRound.id)
         if (userBet) {
@@ -413,7 +413,7 @@ export default {
       
       const amount = parseInt(this.betAmount)
       if (!amount || amount < this.settings.min_bet || amount > this.settings.max_bet) {
-        uni.showToast({ title: `下注金额必须在 ${this.settings.min_bet}-${this.settings.max_bet} 之间`, icon: 'none' })
+        uni.showToast({ title: `参与积分必须在 ${this.settings.min_bet}-${this.settings.max_bet} 之间`, icon: 'none' })
         return
       }
       
@@ -431,7 +431,7 @@ export default {
         }, 'POST')
         
         if (res.code === 0) {
-          uni.showToast({ title: '下注成功', icon: 'success' })
+          uni.showToast({ title: '参与成功', icon: 'success' })
           this.hasBet = true
           this.userScore -= amount
           // 更新本地存储的积分
@@ -440,10 +440,10 @@ export default {
           // 刷新参与者列表
           this.loadCurrentRound()
         } else {
-          uni.showToast({ title: res.msg || '下注失败', icon: 'none' })
+          uni.showToast({ title: res.msg || '参与失败', icon: 'none' })
         }
       } catch (e) {
-        uni.showToast({ title: '下注失败', icon: 'none' })
+        uni.showToast({ title: '参与失败', icon: 'none' })
       }
     }
   }

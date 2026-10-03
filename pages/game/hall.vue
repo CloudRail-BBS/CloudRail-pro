@@ -156,7 +156,7 @@
 
         <text class="gc-create-l">开局人数</text>
         <view class="gc-players">
-          <view class="gc-player" :class="{ active: crPlayers === 2 }" @click="crPlayers = 2"><text>2 人开盘</text><text class="gc-player-s">1 位 AI</text></view>
+          <view class="gc-player" :class="{ active: crPlayers === 2 }" @click="crPlayers = 2"><text>2 人开局</text><text class="gc-player-s">1 位 AI</text></view>
           <view class="gc-player" :class="{ active: crPlayers === 3 }" @click="crPlayers = 3"><text>3 人对局</text><text class="gc-player-s">2 位 AI</text></view>
         </view>
 
@@ -226,7 +226,7 @@ export default {
       return this.gameType === 'zhajinhua' ? '双倍入门费 + 本人已下赌注' : '双倍胜负（赢 +2 倍入门费 / 输 -2 倍）'
     },
     aiDesc() {
-      if (this.curRoom && this.curRoom.room_source === 'user' && Number(this.curRoom.min_players) === 2) return '与 1 位官方 AI 即时开局，2 人即可开盘'
+      if (this.curRoom && this.curRoom.room_source === 'user' && Number(this.curRoom.min_players) === 2) return '与 1 位官方 AI 即时开局，2 人即可开局'
       return '与两位官方 AI 即时开局，无需等待'
     },
     canReal() {

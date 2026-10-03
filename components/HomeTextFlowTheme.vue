@@ -33,8 +33,8 @@
           <view v-if="item.title === '聚合应用'" class="quick-icon-svg">
             <image src="/static/icon/quick-apps-white.svg" class="quick-svg-img" mode="aspectFit"></image>
           </view>
-          <!-- 积分抽奖：礼盒 -->
-          <view v-else-if="item.title === '积分抽奖'" class="quick-icon-svg">
+          <!-- 积分好礼：礼盒 -->
+          <view v-else-if="item.title === '积分好礼'" class="quick-icon-svg">
             <image src="/static/icon/quick-gift-white.svg" class="quick-svg-img" mode="aspectFit"></image>
           </view>
           <!-- 靓号商城：标签价签 -->
@@ -260,7 +260,7 @@ export default {
       brokenBannerIndexes: [],
       quickEntries: [
         { title: '聚合应用', icon: '', iconClass: 'quick-icon-hub', url: '/pages/hub/hub' },
-        { title: '积分抽奖', icon: '', iconClass: 'quick-icon-lottery', url: '/pages/lottery/index' },
+        { title: '积分好礼', icon: '', iconClass: 'quick-icon-lottery', url: '/pages/lottery/index' },
         { title: '靓号商城', icon: '', iconClass: 'quick-icon-shop', url: '/pages/fancy/shop' },
         { title: '权益认证', icon: '', iconClass: 'quick-icon-cert', url: '/pages/user/zhuanye' },
         { title: '任务中心', icon: '', iconClass: 'quick-icon-task', url: '/pages/mission/mission' },
