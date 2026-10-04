@@ -387,7 +387,6 @@
 
 <script>
 import { request } from '../../common/request.js'
-import { GAME_CENTER_URL } from '../../common/config.js'
 
 export default {
   name: 'LotteryPage',
