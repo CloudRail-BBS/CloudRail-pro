@@ -19,7 +19,7 @@
         "modules" : {
             "Push" : {},
             "VideoPlayer" : {}
-        }},
+        },
         "distribute" : {
             "android" : {
                 "permissions" : [

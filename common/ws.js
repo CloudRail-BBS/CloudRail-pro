@@ -85,6 +85,8 @@ class WebSocketManager {
     this.listeners = {}
     this.manualClose = false
     this.pendingGroups = []
+    /* 连接建立前要发的消息先攒在这里，onOpen 后按顺序补发 */
+    this.sendQueue = []
   }
 
   /**
@@ -162,6 +164,8 @@ class WebSocketManager {
       if (this.pendingGroups.length > 0) {
         this.send({ type: 'join_groups', data: { group_ids: this.pendingGroups } })
       }
+      /* 连接建立前攒下的消息在这里补发 */
+      this._flushSendQueue()
     })
 
     task.onMessage((res) => {
@@ -229,14 +233,16 @@ class WebSocketManager {
     this.connected = false
     this.connecting = false
     this.lastRecv = 0
+    /* 手动断开时清空待发队列 */
+    this.sendQueue = []
   }
 
   /**
-   * 发送消息
+   * 发送消息。连接未就绪时先入队，onOpen 后自动补发。
    */
   send(data) {
     if (!this.connected || !this.socketTask) {
-      console.warn('[WS] 未连接，消息发送失败')
+      this._queueSend(data)
       return false
     }
     this.socketTask.send({
@@ -246,6 +252,21 @@ class WebSocketManager {
       }
     })
     return true
+  }
+
+  /* 入队待发。心跳不补发，上限 50 条防堆积 */
+  _queueSend(data) {
+    if (!data || data.type === 'ping') return
+    if (this.sendQueue.length >= 50) this.sendQueue.shift()
+    this.sendQueue.push(data)
+  }
+
+  /* 连接建立后把攒下的消息按顺序补发 */
+  _flushSendQueue() {
+    if (!this.sendQueue.length) return
+    const queue = this.sendQueue
+    this.sendQueue = []
+    queue.forEach(d => { this.send(d) })
   }
 
   on(type, callback) {
