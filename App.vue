@@ -15,6 +15,7 @@ import { applyH5DocumentTitle, setupH5TitleSync } from '@/common/pageTitle.js'
 import { parseOauthCallbackUrl, saveOauthCallback, readOauthCallback, clearOauthCallback } from '@/common/oauthCallback.js'
 import { saveLevelConfig } from '@/common/level.js'
 import { ensureCustomBubbleCss } from '@/common/bubble-style.js'
+import { initCall } from '@/common/call.js'
 
 export default {
   data() {
@@ -37,6 +38,9 @@ export default {
 
     /* 把后台「气泡管理」里写的自定义气泡样式注入到页面(不然自定义气泡不生效) */
     ensureCustomBubbleCss()
+
+    /* 语音通话：全局监听来电（WS 推来的 call_invite），不在聊天页也能收到 */
+    try { initCall() } catch (e) {}
 
     // #ifdef H5
     this.ensureH5DefaultRoute()

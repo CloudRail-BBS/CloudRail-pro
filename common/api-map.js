@@ -43,11 +43,34 @@ const apiMap = {
     'memory_del': ['relation/memory_del', 'POST'],
     /* 亲密团（多人结拜 / 组队） */
     'group_list': ['relation/group_list', 'GET'],
+    'group_chat': ['relation/group_chat', 'POST'],
     'group_create': ['relation/group_create', 'POST'],
     'group_invite': ['relation/group_invite', 'POST'],
     'group_handle': ['relation/group_handle', 'POST'],
     'group_leave': ['relation/group_leave', 'POST'],
     'group_dissolve': ['relation/group_dissolve', 'POST'],
+    /* 新版亲密关系页兼容 action */
+    'mine': ['relation/mine', 'GET'],
+    'get': ['relation/get', 'GET'],
+    'outgoing': ['relation/outgoing', 'GET'],
+    'incoming': ['relation/incoming', 'GET'],
+    'rank': ['relation/rank', 'GET'],
+    'send': ['relation/send', 'POST'],
+    'accept': ['relation/accept', 'POST'],
+    'reject': ['relation/reject', 'POST'],
+    'checkin': ['relation/checkin', 'POST'],
+    'toggleVisible': ['relation/toggleVisible', 'POST'],
+    'cheer': ['relation/cheer', 'POST'],
+  },
+  // ==================== call.php（语音通话：信令 + 记录） ====================
+  'call.php': {
+    'invite': ['call/invite', 'POST'],
+    'answer': ['call/answer', 'POST'],
+    'cancel': ['call/cancel', 'POST'],
+    'end':    ['call/end', 'POST'],
+    'signal': ['call/signal', 'POST'],
+    'poll':   ['call/poll', 'POST'],
+    'logs':   ['call/logs', 'GET'],
   },
   // ==================== user.php ====================
   'user.php': {

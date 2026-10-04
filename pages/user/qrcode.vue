@@ -80,7 +80,7 @@
 import { webBaseUrl } from '../../common/request.js'
 import XhsHUD from '../../components/XhsHUD.vue'
 
-const DEFAULT_AVATAR = 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg'
+const DEFAULT_AVATAR = 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg'
 
 export default {
   components: {

@@ -1,459 +1,332 @@
 <template>
-  <view class="rd-page">
-
-    <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px', height: navBarHeight + 'px' }">
-      <view class="nav-back" @click="goBack" :style="{ top: (statusBarHeight + (navBarHeight - 32) / 2) + 'px' }">
-        <image src="/static/icon/arrow-left-dark.svg" class="back-icon" mode="aspectFit"></image>
-      </view>
-      <view class="nav-title">亲密关系</view>
-    </view>
-
-    <view class="rd-body" :style="{ paddingTop: (navTotalHeight + 20) + 'px' }" v-if="rel">
-
-      <!-- 自检提示：数据表/字段不齐时直接显示出来，方便排查亲密值为什么不涨 -->
-      <view v-if="healthWarning" class="warn-bar">{{ healthWarning }}</view>
-
-      <!-- ============ 顶部：关系 + 亲密值 ============ -->
-      <view class="hero">
-        <view class="hero-avatars">
-          <view class="hero-side">
-            <image class="hero-ava" :src="rel.me.avatar || defaultAvatar" mode="aspectFill" @click="goUser(rel.me.uid)"></image>
-            <text class="hero-role">我</text>
-          </view>
-          <view class="hero-link"></view>
-          <view class="hero-side">
-            <image class="hero-ava" :src="rel.ta.avatar || defaultAvatar" mode="aspectFill" @click="goUser(rel.ta.uid)"></image>
-            <text class="hero-role">{{ rel.ta.name || '对方' }}</text>
-          </view>
+  <view class="page">
+    <view class="header" :style="{ paddingTop: statusBarHeight + 'px' }">
+      <view class="nav">
+        <view class="nav-btn" @click="goBack">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </view>
-
-        <view class="hero-type">{{ rel.type_name }}</view>
-        <view class="hero-days">已相伴 {{ rel.days }} 天</view>
-
-        <view class="hero-stats">
-          <view class="hs">
-            <text class="hs-num">{{ rel.intimacy }}</text>
-            <text class="hs-label">亲密值</text>
-          </view>
-          <view class="hs">
-            <text class="hs-num">Lv.{{ rel.level.level }}</text>
-            <text class="hs-label">{{ rel.level.level_name }}</text>
-          </view>
-          <view class="hs">
-            <text class="hs-num">{{ rel.call_total }}</text>
-            <text class="hs-label">打 call</text>
-          </view>
-        </view>
-
-        <view class="hero-bar">
-          <view class="hero-bar-in" :style="{ width: rel.level.progress + '%' }"></view>
-        </view>
-        <view class="hero-next" v-if="!rel.level.is_max">
-          距离「{{ rel.level.next_name }}」还差 {{ Math.max(0, rel.level.next_need - rel.intimacy) }} 亲密值
-        </view>
-        <view class="hero-next" v-else>已经是最高等级啦</view>
-
-        <view class="hero-call" :class="{ done: rel.called_today }" @click="doCall">
-          {{ rel.called_today ? '今天已为 TA 打过 call' : '为 TA 打 call（亲密值 +5）' }}
+        <text class="nav-title">亲密关系</text>
+        <view class="nav-btn" @click="showLevels = true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </view>
       </view>
 
-      <!-- ============ 互动标识 ============ -->
-      <view class="card">
-        <view class="sec-title">互动标识<text class="sec-tip">已点亮 {{ gotCount }}/{{ rel.marks.length }}</text></view>
-        <view class="marks">
-          <view class="mark" v-for="m in rel.marks" :key="m.key" :class="{ got: m.got }">
-            <view class="mark-ico">{{ m.got ? '★' : '☆' }}</view>
-            <text class="mark-name">{{ m.name }}</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- ============ 今日任务 ============ -->
-      <view class="card">
-        <view class="sec-title">今日任务<text class="sec-tip">完成后可以涨亲密值</text></view>
-        <view class="task" v-for="t in rel.tasks" :key="t.key">
-          <view class="task-info">
-            <text class="task-title">{{ t.title }}</text>
-            <text class="task-desc">{{ t.desc }}</text>
-          </view>
-          <view
-            class="mini-btn"
-            :class="t.claimed ? 'muted' : (t.done ? 'primary' : 'plain')"
-            @click="claimTask(t)"
-          >{{ t.claimed ? '已领取' : (t.done ? ('领取 +' + t.points) : '去完成') }}</view>
-        </view>
-      </view>
-
-      <!-- ============ 专属权益 ============ -->
-      <view class="card">
-        <view class="sec-title">专属权益<text class="sec-tip">按亲密等级解锁</text></view>
-        <view class="ben" v-for="b in rel.benefits" :key="'b' + b.level" :class="{ on: b.unlocked }">
-          <view class="ben-lv">Lv.{{ b.level }}</view>
-          <view class="ben-info">
-            <text class="ben-name">{{ b.name }}</text>
-            <text class="ben-desc">{{ b.desc }}</text>
-          </view>
-          <text class="ben-state">{{ b.unlocked ? '已解锁' : '未解锁' }}</text>
-        </view>
-      </view>
-
-      <!-- ============ 我们的回忆 ============ -->
-      <view class="card">
-        <view class="sec-title">我们的回忆<text class="sec-tip">{{ rel.memories.length }} 条</text></view>
-        <view class="mini-btn primary full-btn" @click="openRec">去记录</view>
-
-        <block v-if="rel.memories.length">
-          <view class="mem" v-for="m in rel.memories" :key="m.source + '-' + m.id">
-            <view class="mem-head">
-              <text class="mem-who">{{ m.is_me ? '我' : rel.ta.name }}</text>
-              <text class="mem-src" v-if="m.source === 'chat'">来自聊天</text>
-              <text class="mem-time">{{ fmtTime(m.time) }}</text>
-              <text class="mem-del" v-if="m.source === 'manual' && m.is_me" @click="delMemory(m)">删除</text>
+      <view class="hero" v-if="info">
+        <view class="pair">
+          <view class="pair-side">
+            <view class="ava-ring">
+              <image class="pair-ava" :src="leftAvatar" mode="aspectFill" />
             </view>
-            <image v-if="m.type === 'image'" class="mem-img" :src="m.url" mode="widthFix" @click="previewImg(m.url)"></image>
-            <view v-else-if="m.type === 'voice'" class="mem-voice" @click="playVoice(m)">
-              <text class="mem-voice-ico">▶</text>
-              <text>语音 {{ m.duration }}″</text>
-            </view>
-            <text v-else class="mem-text">{{ m.content }}</text>
+            <text class="pair-name">{{ leftName }}</text>
           </view>
-        </block>
-        <view v-else class="empty-sub2">还没有回忆，去记一条，或者多聊聊天</view>
-      </view>
-
-    </view>
-
-    <view v-else-if="!loading" class="rd-body" :style="{ paddingTop: (navTotalHeight + 120) + 'px' }">
-      <view class="empty-sub2 center">{{ errMsg || '关系不存在或已解除' }}</view>
-    </view>
-
-    <!-- ============ 去记录 ============ -->
-    <view v-if="recShow" class="rel-mask" @click="closeRec">
-      <view class="rel-sheet" @click.stop>
-        <text class="rel-sheet-title">记录这一刻</text>
-        <text class="rel-sheet-sub">只有你们两个人能看到</text>
-        <textarea
-          class="rec-textarea"
-          v-model="recText"
-          maxlength="200"
-          placeholder="今天发生了什么？"
-          placeholder-class="rel-input-ph"
-        ></textarea>
-        <view class="rec-img-box" v-if="recImg">
-          <image class="rec-img" :src="recImg" mode="aspectFill"></image>
+          <view class="pair-heart">
+            <text class="heart">♥</text>
+            <view class="spark s1"></view>
+            <view class="spark s2"></view>
+            <view class="spark s3"></view>
+            <view class="spark s4"></view>
+          </view>
+          <view class="pair-side">
+            <view class="ava-ring">
+              <image class="pair-ava" :src="rightAvatar" mode="aspectFill" />
+            </view>
+            <text class="pair-name">{{ rightName }}</text>
+          </view>
         </view>
-        <view class="mini-btn plain full-btn" @click="chooseRecImg">{{ recImg ? '换一张图' : '加一张图（可选）' }}</view>
-        <view class="rel-sheet-actions">
-          <view class="rel-sheet-btn cancel" @click="closeRec">取消</view>
-          <view class="rel-sheet-btn ok" :class="{ disabled: recSending }" @click="submitRec">{{ recSending ? '保存中...' : '保存' }}</view>
-        </view>
+        <view class="pair-badge">{{ info.typeLabel || '亲密关系' }}</view>
+        <view class="hero-days" v-if="info.days">已相伴 {{ info.days }} 天</view>
       </view>
     </view>
 
+    <view class="body" v-if="info">
+      <view class="card level-card">
+        <view class="level-row">
+          <view class="level-badge-big">Lv.{{ info.level.level }}</view>
+          <view class="level-right">
+            <text class="level-num">{{ info.intimacy }} 亲密值</text>
+            <text class="level-next" v-if="!info.level.is_max">距离「{{ info.level.next_name }}」还差 {{ Math.max(0, info.level.next_need - info.intimacy) }}</text>
+            <text class="level-next" v-else>已是最高等级</text>
+          </view>
+        </view>
+        <view class="track"><view class="track-fill" :style="{ width: (info.level.progress || 0) + '%' }"></view></view>
+        <text class="level-lvname">{{ info.level.level_name || '' }}</text>
+      </view>
+
+      <!-- 围观别人的关系：只能打 call -->
+      <view class="card checkin" v-if="info.is_guest" :class="{ off: info.called_today }" @click="doCheer">
+        <view class="checkin-icon">♥</view>
+        <view class="checkin-mid">
+          <text class="checkin-title">{{ info.called_today ? '今天已打过 call' : '给他们打 call' }}</text>
+          <text class="checkin-sub">{{ info.called_today ? '明天再来' : '打 call 帮他们涨亲密值' }}</text>
+        </view>
+        <text class="checkin-tag">{{ info.called_today ? '已完成' : '+5' }}</text>
+      </view>
+
+      <view class="card checkin" v-else :class="{ off: !info.canCheckin }" @click="doCheckin">
+        <view class="checkin-icon">{{ info.canCheckin ? '◎' : '✓' }}</view>
+        <view class="checkin-mid">
+          <text class="checkin-title">{{ info.canCheckin ? '每日签到' : '今日已签到' }}</text>
+          <text class="checkin-sub">{{ info.canCheckin ? '连续签到额外 +5' : '明天再来' }}</text>
+        </view>
+        <text class="checkin-tag">{{ info.canCheckin ? '+10' : '已完成' }}</text>
+      </view>
+
+      <template v-if="!info.is_guest">
+        <text class="section">日常任务</text>
+        <view class="card task-card">
+          <view class="task">
+            <view class="task-mid">
+              <text class="task-name">互发消息</text>
+              <text class="task-sub">今天和对方聊聊天</text>
+            </view>
+            <text class="task-coin">+2</text>
+          </view>
+          <view class="task">
+            <view class="task-mid">
+              <text class="task-name">访问主页</text>
+              <text class="task-sub">去对方主页看看</text>
+            </view>
+            <text class="task-coin">+1</text>
+          </view>
+          <view class="task">
+            <view class="task-mid">
+              <text class="task-name">连续签到</text>
+              <text class="task-sub">不间断签到有加成</text>
+            </view>
+            <text class="task-coin">+5</text>
+          </view>
+        </view>
+      </template>
+    </view>
+
+    <view class="body" v-else-if="!loading">
+      <text class="empty-sub center">{{ errMsg || '关系不存在或已解除' }}</text>
+    </view>
+
+    <view v-if="showLevels" class="modal-mask" @click="showLevels = false">
+      <view class="modal" @click.stop>
+        <view class="modal-head">
+          <text class="modal-title">亲密等级</text>
+          <text class="modal-close" @click="showLevels = false">✕</text>
+        </view>
+        <view class="level-item">
+          <view class="level-badge l1">Lv.1</view>
+          <view class="level-info">
+            <text class="level-name">初识</text>
+            <text class="level-desc">个人主页显示关系标签，在VIP标识旁展示你和谁绑定了关系</text>
+          </view>
+        </view>
+        <view class="level-item">
+          <view class="level-badge l2">Lv.2</view>
+          <view class="level-info">
+            <text class="level-name">亲密</text>
+            <text class="level-desc">私聊时触发专属动画特效，聊天更有氛围</text>
+          </view>
+        </view>
+        <view class="level-item">
+          <view class="level-badge l3">Lv.3</view>
+          <view class="level-info">
+            <text class="level-name">羁绊</text>
+            <text class="level-desc">对方点你主页时，头像处展示双人叠影头像卡</text>
+          </view>
+        </view>
+        <view class="level-item" v-for="p in extraLevels" :key="'lv' + p.level">
+          <view class="level-badge l2">Lv.{{ p.level }}</view>
+          <view class="level-info">
+            <text class="level-name">{{ p.level_name }}</text>
+            <text class="level-desc">达到该等级可解锁更多专属标识与权益</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script>
-import { request, uploadFile } from '../../common/request.js'
-import { applyH5ViewportHeightVar, getScreenMetrics } from '../../common/screen.js'
-
+import { request } from '../../common/request.js'
 export default {
   data() {
     return {
-      statusBarHeight: 0,
-      navBarHeight: 44,
-      navTotalHeight: 44,
-      id: 0,
+      statusBarHeight: 20,
+      targetId: '',
+      relationId: '',
+      info: null,
       loading: true,
       errMsg: '',
-      rel: null,
-      recShow: false,
-      recText: '',
-      recImg: '',
-      recSending: false,
-      defaultAvatar: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg'
+      myAvatar: '/static/logo.png',
+      myName: '我',
+      showLevels: false,
+      defaultAvatar: 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg'
     }
   },
   computed: {
-    gotCount() {
-      return ((this.rel && this.rel.marks) || []).filter(m => m.got).length
+    /* 围观别人的关系时展示「A & B」，看自己的关系时展示「我 & TA」 */
+    leftAvatar() {
+      if (this.info && this.info.is_guest) return (this.info.a && this.info.a.avatar) || this.defaultAvatar
+      return this.myAvatar
     },
-    /* 后端自检发现表/字段不全时给一句人话提示，否则亲密值会一直是 0 却看不出原因 */
-    healthWarning() {
-      const h = (this.rel && this.rel.health) || null
-      if (!h) return ''
-      if (!h.intimacy_column) {
-        return '数据表 user_relations 缺少 intimacy 字段，亲密值加不上去。到 install.php 点一次「补齐缺失数据表 / 字段」即可。'
-      }
-      const miss = h.tables_missing || []
-      if (miss.length) return '缺少数据表：' + miss.join('、')
-      return ''
+    leftName() {
+      if (this.info && this.info.is_guest) return (this.info.a && this.info.a.name) || 'TA'
+      return this.myName
+    },
+    rightAvatar() {
+      if (this.info && this.info.is_guest) return (this.info.b && this.info.b.avatar) || this.defaultAvatar
+      return (this.info && this.info.otherUser && this.info.otherUser.avatar) || this.defaultAvatar
+    },
+    rightName() {
+      if (this.info && this.info.is_guest) return (this.info.b && this.info.b.name) || 'TA'
+      return (this.info && this.info.otherUser && (this.info.otherUser.nickname || this.info.otherUser.name)) || '对方'
+    },
+    extraLevels() {
+      const cur = (this.info && this.info.level && this.info.level.level) || 1
+      const list = []
+      for (let i = cur + 1; i <= cur + 3; i++) list.push({ level: i, level_name: '进阶' })
+      return list.slice(0, 2)
     }
   },
   onLoad(opt = {}) {
-    applyH5ViewportHeightVar()
-    const m = getScreenMetrics()
-    this.statusBarHeight = m.statusBarHeight
-    this.navBarHeight = m.navBarHeight
-    this.navTotalHeight = this.statusBarHeight + this.navBarHeight
-    this.id = Number(opt.id || 0)
-    if (!this.id) {
-      this.loading = false
-      this.errMsg = '参数错误'
-      return
-    }
+    const sys = uni.getSystemInfoSync()
+    this.statusBarHeight = sys.statusBarHeight || 20
+    this.targetId = opt.targetId || ''
+    this.relationId = opt.relationId || ''
+    try {
+      const u = uni.getStorageSync('userInfo') || {}
+      this.myAvatar = u.avatar || '/static/logo.png'
+      this.myName = u.nickname || '我'
+    } catch(e) {}
     this.loadDetail()
   },
-  onUnload() {
-    this.stopAudio()
-  },
   methods: {
-    goBack() { uni.navigateBack() },
-    goUser(uid) {
-      if (!uid) return
-      uni.navigateTo({ url: '/pages/user/profile?userId=' + uid })
-    },
-    fmtTime(v) {
-      const s = String(v || '')
-      return s.length >= 16 ? s.substring(5, 16) : s
-    },
-
     async loadDetail() {
       this.loading = true
       try {
-        const res = await request('relation.php', { action: 'detail', id: this.id }, 'GET')
-        if (res && res.code === 0 && res.data) {
-          this.rel = res.data
+        const payload = this.relationId
+          ? { action: 'detail', relationId: this.relationId }
+          : { action: 'detail', targetId: this.targetId }
+        const res = await request('relation.php', payload, 'GET')
+        if (res && res.code === 0 && res.data && (res.data.otherUser || res.data.is_guest)) {
+          this.info = res.data
         } else {
-          this.errMsg = (res && (res.message || res.msg)) || '加载失败'
+          this.errMsg = (res && (res.message || res.msg)) || '关系不存在或已解除'
         }
-      } catch (e) {
+      } catch(e) {
         this.errMsg = '网络错误，请稍后再试'
       }
       this.loading = false
     },
-
-    /* ==================== 打 call ==================== */
-    async doCall() {
-      if (!this.rel || this.rel.called_today) return
+    /* 围观别人的关系：打 call */
+    async doCheer() {
+      if (!this.info || !this.info.is_guest || this.info.called_today) return
+      const rid = this.info.id || this.relationId
+      if (!rid) return
       try {
-        const res = await request('relation.php', { action: 'call', id: this.id }, 'POST')
+        const res = await request('relation.php', { action: 'cheer', id: rid }, 'POST')
         if (res && res.code === 0) {
-          uni.showToast({ title: res.message || '打 call 成功', icon: 'none' })
+          uni.showToast({ title: res.msg || '打 call 成功', icon: 'success' })
           this.loadDetail()
         } else {
-          uni.showToast({ title: (res && (res.message || res.msg)) || '操作失败', icon: 'none' })
+          uni.showToast({ title: (res && (res.msg || res.message)) || '打 call 失败', icon: 'none' })
         }
-      } catch (e) {
+      } catch(e) {
         uni.showToast({ title: '网络错误，请稍后再试', icon: 'none' })
       }
     },
-
-    /* ==================== 领任务奖励 ==================== */
-    async claimTask(t) {
-      if (!t || t.claimed) return
-      if (!t.done) {
-        return uni.showToast({ title: '任务还没完成：' + t.desc, icon: 'none' })
-      }
+    async doCheckin() {
+      if (!this.info || !this.info.canCheckin) return
       try {
-        const res = await request('relation.php', { action: 'task_claim', id: this.id, task_key: t.key }, 'POST')
+        const res = await request('relation.php', { action: 'checkin', targetId: this.targetId }, 'POST')
         if (res && res.code === 0) {
-          uni.showToast({ title: res.message || '已领取', icon: 'none' })
+          uni.showToast({ title: res.msg || '签到成功', icon: 'success' })
           this.loadDetail()
         } else {
-          uni.showToast({ title: (res && (res.message || res.msg)) || '领取失败', icon: 'none' })
+          uni.showToast({ title: (res && (res.msg || res.message)) || '签到失败', icon: 'none' })
         }
-      } catch (e) {
+      } catch(e) {
         uni.showToast({ title: '网络错误，请稍后再试', icon: 'none' })
       }
     },
-
-    /* ==================== 我们的回忆 ==================== */
-    openRec() {
-      this.recText = ''
-      this.recImg = ''
-      this.recShow = true
-    },
-    closeRec() {
-      if (this.recSending) return
-      this.recShow = false
-    },
-    chooseRecImg() {
-      uni.chooseImage({
-        count: 1,
-        sizeType: ['compressed'],
-        success: (r) => {
-          const p = (r.tempFilePaths || [])[0]
-          if (p) this.recImg = p
-        }
-      })
-    },
-    async submitRec() {
-      if (this.recSending) return
-      const text = String(this.recText || '').trim()
-      if (!text && !this.recImg) return uni.showToast({ title: '写点什么或加张图吧', icon: 'none' })
-      this.recSending = true
-      try {
-        if (this.recImg) {
-          const up = await uploadFile(this.recImg, { type: 'post' })
-          const url = (up && (up.url || up.path)) || ''
-          if (!url) throw new Error('upload')
-          await request('relation.php', { action: 'memory_add', id: this.id, type: 'image', content: url }, 'POST')
-        }
-        if (text) {
-          const res = await request('relation.php', { action: 'memory_add', id: this.id, type: 'text', content: text }, 'POST')
-          if (!res || res.code !== 0) {
-            uni.showToast({ title: (res && (res.message || res.msg)) || '保存失败', icon: 'none' })
-            this.recSending = false
-            return
-          }
-        }
-        this.recShow = false
-        uni.showToast({ title: '已记入我们的回忆', icon: 'none' })
-        this.loadDetail()
-      } catch (e) {
-        uni.showToast({ title: '保存失败，请稍后再试', icon: 'none' })
-      }
-      this.recSending = false
-    },
-    delMemory(m) {
-      uni.showModal({
-        title: '删除回忆',
-        content: '确定删除这条记录吗？',
-        success: async (r) => {
-          if (!r.confirm) return
-          try {
-            const res = await request('relation.php', { action: 'memory_del', mid: m.id }, 'POST')
-            if (res && res.code === 0) {
-              uni.showToast({ title: '已删除', icon: 'none' })
-              this.loadDetail()
-            } else {
-              uni.showToast({ title: (res && (res.message || res.msg)) || '删除失败', icon: 'none' })
-            }
-          } catch (e) {
-            uni.showToast({ title: '网络错误，请稍后再试', icon: 'none' })
-          }
-        }
-      })
-    },
-    previewImg(url) {
-      if (!url) return
-      uni.previewImage({ urls: [url] })
-    },
-    playVoice(m) {
-      if (!m || !m.url) return uni.showToast({ title: '语音地址已失效', icon: 'none' })
-      this.stopAudio()
-      try {
-        const a = uni.createInnerAudioContext()
-        a.src = m.url
-        a.play()
-        this._audio = a
-      } catch (e) {}
-    },
-    stopAudio() {
-      if (this._audio) {
-        try { this._audio.stop(); this._audio.destroy() } catch (e) {}
-        this._audio = null
-      }
-    }
+    goBack() { uni.navigateBack() }
   }
 }
 </script>
 
 <style scoped>
-.rd-page { min-height: var(--tcy-vh, 100vh); background: #f6f7f9; }
-.custom-nav-bar { position: fixed; top: 0; left: 0; width: 100%; z-index: 999; display: flex; align-items: center; justify-content: center; background: #fff; border-bottom: 1rpx solid #f2f2f2; }
-.nav-title { font-size: 32rpx; font-weight: bold; color: #333; }
-.nav-back { position: fixed; left: 24rpx; z-index: 1000; width: 60rpx; height: 60rpx; display: flex; align-items: center; justify-content: center; }
-.back-icon { font-size: 36rpx; color: #333; font-weight: bold; padding-bottom: 4rpx; }
+.page { min-height: 100vh; background: #faf9fb; }
+.header { background: linear-gradient(180deg, #ffe4ec 0%, #fff5f8 100%); padding-bottom: 50px; }
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; }
+.nav-btn { width: 38px; height: 38px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(255,94,138,0.12); }
+.nav-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
 
-.rd-body { padding: 0 24rpx 60rpx; }
-/* 自检提示条 */
-.warn-bar { background: #fff7e6; border: 1rpx solid #ffe0a3; color: #b26a00; font-size: 23rpx; line-height: 1.6; padding: 20rpx 24rpx; border-radius: 16rpx; margin-bottom: 22rpx; }
-.card { background: #fff; border-radius: 24rpx; padding: 28rpx 26rpx; margin-bottom: 22rpx; }
-.sec-title { font-size: 28rpx; font-weight: 700; color: #333; margin-bottom: 16rpx; display: flex; align-items: center; justify-content: space-between; }
-.sec-tip { font-size: 22rpx; font-weight: 400; color: #bbb; }
-.empty-sub2 { font-size: 24rpx; color: #bbb; padding: 24rpx 0 6rpx; }
-.empty-sub2.center { text-align: center; }
+.hero { padding: 28px 0 10px; display: flex; flex-direction: column; align-items: center; }
+.pair { display: flex; align-items: center; gap: 20px; }
+.pair-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ava-ring { width: 72px; height: 72px; border-radius: 50%; padding: 3px; background: #fff; box-shadow: 0 4px 16px rgba(255,94,138,0.2); }
+.pair-ava { width: 100%; height: 100%; border-radius: 50%; }
+.pair-name { font-size: 13px; color: #555; font-weight: 500; max-width: 90px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pair-heart { position: relative; display: flex; align-items: center; justify-content: center; }
+.heart { font-size: 28px; color: #ff3b6c; animation: beat 1.2s ease-in-out infinite; filter: drop-shadow(0 2px 8px rgba(255,59,108,0.4)); }
+@keyframes beat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.25); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.15); }
+}
+.spark { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #ff8fb1; opacity: 0; }
+.s1 { top: -10px; left: 50%; animation: spark1 1.2s ease-in-out infinite; }
+.s2 { bottom: -10px; left: 50%; animation: spark2 1.2s ease-in-out infinite; }
+.s3 { left: -12px; top: 50%; animation: spark3 1.2s ease-in-out infinite; }
+.s4 { right: -12px; top: 50%; animation: spark4 1.2s ease-in-out infinite; }
+@keyframes spark1 { 0%,100% {opacity:0; transform:translateY(0) scale(.5);} 50% {opacity:1; transform:translateY(-8px) scale(1);} }
+@keyframes spark2 { 0%,100% {opacity:0; transform:translateY(0) scale(.5);} 50% {opacity:1; transform:translateY(8px) scale(1);} }
+@keyframes spark3 { 0%,100% {opacity:0; transform:translateX(0) scale(.5);} 50% {opacity:1; transform:translateX(-8px) scale(1);} }
+@keyframes spark4 { 0%,100% {opacity:0; transform:translateX(0) scale(.5);} 50% {opacity:1; transform:translateX(8px) scale(1);} }
+.pair-badge { margin-top: 18px; padding: 5px 18px; border-radius: 20px; background: linear-gradient(135deg, #ff3b6c, #ff5e8a); color: #fff; font-size: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(255,59,108,0.3); }
+.hero-days { font-size: 12px; color: #b9b9b9; margin-top: 10px; }
 
-/* ===== 顶部 ===== */
-.hero { background: linear-gradient(160deg, #fff4f7 0%, #ffffff 60%); border-radius: 24rpx; padding: 40rpx 26rpx 30rpx; margin-bottom: 22rpx; border: 1rpx solid #ffe6ee; }
-.hero-avatars { position: relative; display: flex; align-items: flex-start; justify-content: center; }
-.hero-side { display: flex; flex-direction: column; align-items: center; width: 190rpx; }
-.hero-ava { width: 130rpx; height: 130rpx; border-radius: 50%; background: #eee; border: 4rpx solid #fff; box-shadow: 0 4rpx 18rpx rgba(255, 77, 121, .18); }
-.hero-role { font-size: 22rpx; color: #888; margin-top: 12rpx; max-width: 180rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.hero-link { width: 110rpx; height: 130rpx; box-sizing: border-box; }
-.hero-type { text-align: center; font-size: 38rpx; font-weight: 800; color: #ff4d79; margin-top: 24rpx; letter-spacing: 2rpx; }
-.hero-days { text-align: center; font-size: 24rpx; color: #b9b9b9; margin-top: 10rpx; }
-.hero-stats { display: flex; margin-top: 30rpx; }
-.hs { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.hs-num { font-size: 34rpx; font-weight: 800; color: #333; }
-.hs-label { font-size: 21rpx; color: #a8a8a8; margin-top: 8rpx; }
-.hero-bar { height: 14rpx; border-radius: 14rpx; background: #f1f1f1; margin-top: 30rpx; overflow: hidden; }
-.hero-bar-in { height: 100%; border-radius: 14rpx; background: linear-gradient(90deg, #ff9ab5, #ff4d79); }
-.hero-next { text-align: center; font-size: 22rpx; color: #bbb; margin-top: 14rpx; }
-.hero-call { margin-top: 26rpx; height: 84rpx; border-radius: 999rpx; background: linear-gradient(135deg, #ff6f9c, #ff4d79); color: #fff; font-size: 28rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.hero-call.done { background: #f5f5f5; color: #b5b5b5; }
-.hero-call:active { opacity: .8; }
+.body { padding: 0 16px 40px; margin-top: -30px; position: relative; }
+.card { background: #fff; border-radius: 18px; padding: 18px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
 
-/* ===== 互动标识 ===== */
-.marks { display: flex; flex-wrap: wrap; gap: 18rpx; }
-.mark { width: 128rpx; display: flex; flex-direction: column; align-items: center; opacity: .38; }
-.mark.got { opacity: 1; }
-.mark-ico { font-size: 40rpx; color: #ddd; line-height: 1; }
-.mark.got .mark-ico { color: #ffb400; }
-.mark-name { font-size: 20rpx; color: #888; margin-top: 10rpx; text-align: center; }
-.mark.got .mark-name { color: #ff4d79; font-weight: 600; }
+.level-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.level-badge-big { font-size: 20px; font-weight: 800; color: #ff3b6c; background: linear-gradient(135deg, #fff0f3, #ffe4ec); padding: 8px 16px; border-radius: 12px; }
+.level-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.level-num { font-size: 14px; color: #1a1a1a; font-weight: 700; }
+.level-next { font-size: 11px; color: #aaa; }
+.track { height: 8px; background: #fff0f3; border-radius: 4px; overflow: hidden; }
+.track-fill { height: 100%; background: linear-gradient(90deg, #ff3b6c, #ff8fb1); border-radius: 4px; }
+.level-lvname { display: block; font-size: 11px; color: #ff8fb1; text-align: center; margin-top: 10px; }
 
-/* ===== 任务 ===== */
-.task { display: flex; align-items: center; padding: 22rpx 0; border-top: 1rpx solid #f7f7f7; }
-.task-info { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-right: 16rpx; }
-.task-title { font-size: 28rpx; font-weight: 600; color: #333; }
-.task-desc { font-size: 22rpx; color: #a8a8a8; margin-top: 8rpx; }
+.checkin { display: flex; align-items: center; gap: 14px; }
+.checkin-icon { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #ffe4ec, #ffd0dd); color: #ff3b6c; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.checkin-mid { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.checkin-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+.checkin-sub { font-size: 12px; color: #999; }
+.checkin-tag { font-size: 13px; font-weight: 700; color: #fff; padding: 7px 16px; border-radius: 20px; background: linear-gradient(135deg, #ff3b6c, #ff5e8a); box-shadow: 0 2px 8px rgba(255,59,108,0.3); }
+.checkin.off .checkin-tag { color: #bbb; background: #f5f5f5; box-shadow: none; }
 
-/* ===== 权益 ===== */
-.ben { display: flex; align-items: center; padding: 20rpx 0; border-top: 1rpx solid #f7f7f7; opacity: .5; }
-.ben.on { opacity: 1; }
-.ben-lv { width: 96rpx; height: 42rpx; border-radius: 999rpx; background: #f3f3f3; color: #999; font-size: 20rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.ben.on .ben-lv { background: #ffeaf0; color: #ff4d79; font-weight: 700; }
-.ben-info { flex: 1; display: flex; flex-direction: column; margin-left: 20rpx; overflow: hidden; }
-.ben-name { font-size: 27rpx; font-weight: 600; color: #333; }
-.ben-desc { font-size: 21rpx; color: #a8a8a8; margin-top: 6rpx; }
-.ben-state { font-size: 21rpx; color: #c2c2c2; flex-shrink: 0; }
-.ben.on .ben-state { color: #ff4d79; }
+.section { display: block; font-size: 14px; font-weight: 700; color: #1a1a1a; margin: 20px 4px 10px; }
+.task-card { padding: 4px 18px; }
+.task { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f8f8f8; }
+.task:last-child { border-bottom: none; }
+.task-mid { display: flex; flex-direction: column; gap: 3px; }
+.task-name { font-size: 14px; color: #1a1a1a; font-weight: 500; }
+.task-sub { font-size: 12px; color: #999; }
+.task-coin { font-size: 14px; color: #ff3b6c; font-weight: 700; }
 
-/* ===== 回忆 ===== */
-.mem { padding: 22rpx 0; border-top: 1rpx solid #f7f7f7; }
-.mem-head { display: flex; align-items: center; margin-bottom: 12rpx; }
-.mem-who { font-size: 24rpx; font-weight: 700; color: #ff4d79; margin-right: 12rpx; }
-.mem-src { font-size: 19rpx; color: #ff9ab5; background: #fff0f4; padding: 2rpx 12rpx; border-radius: 999rpx; margin-right: 12rpx; }
-.mem-time { flex: 1; font-size: 21rpx; color: #c2c2c2; }
-.mem-del { font-size: 21rpx; color: #c2c2c2; }
-.mem-img { width: 100%; border-radius: 16rpx; background: #f5f5f5; }
-.mem-text { font-size: 26rpx; color: #444; line-height: 1.6; display: block; }
-.mem-voice { display: inline-flex; align-items: center; height: 62rpx; padding: 0 26rpx; border-radius: 999rpx; background: #fff0f4; color: #ff4d79; font-size: 24rpx; }
-.mem-voice-ico { margin-right: 10rpx; }
+.empty-sub { font-size: 13px; color: #bbb; display: block; }
+.empty-sub.center { text-align: center; padding-top: 40px; }
 
-.mini-btn { flex-shrink: 0; padding: 0 26rpx; height: 62rpx; border-radius: 999rpx; display: flex; align-items: center; justify-content: center; font-size: 24rpx; font-weight: 600; }
-.mini-btn.primary { background: #ff2442; color: #fff; }
-.mini-btn.plain { background: #fff; color: #888; border: 1rpx solid #e5e5e5; }
-.mini-btn.muted { background: #f5f5f5; color: #b5b5b5; }
-.mini-btn:active { opacity: .75; }
-.full-btn { width: 100%; margin-bottom: 8rpx; }
-
-/* ===== 弹窗 ===== */
-.rel-mask { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, .45); z-index: 999999; display: flex; align-items: flex-end; }
-.rel-sheet { width: 100%; background: #fff; border-radius: 28rpx 28rpx 0 0; padding: 32rpx 30rpx calc(32rpx + env(safe-area-inset-bottom)); max-height: 78vh; overflow-y: auto; }
-.rel-sheet-title { font-size: 30rpx; font-weight: 700; color: #333; display: block; text-align: center; }
-.rel-sheet-sub { font-size: 23rpx; color: #aaa; display: block; text-align: center; margin-top: 10rpx; margin-bottom: 26rpx; }
-.rec-textarea { width: 100%; box-sizing: border-box; height: 200rpx; border-radius: 16rpx; background: #f6f7f9; padding: 22rpx 24rpx; font-size: 26rpx; color: #333; }
-.rel-input-ph { color: #bbb; }
-.rec-img-box { margin-top: 20rpx; }
-.rec-img { width: 100%; height: 320rpx; border-radius: 16rpx; background: #f5f5f5; }
-.rel-sheet-actions { display: flex; gap: 20rpx; margin-top: 30rpx; }
-.rel-sheet-btn { flex: 1; height: 84rpx; border-radius: 999rpx; display: flex; align-items: center; justify-content: center; font-size: 28rpx; font-weight: 600; }
-.rel-sheet-btn.cancel { background: #f5f5f5; color: #666; }
-.rel-sheet-btn.ok { background: #ff2442; color: #fff; }
-.rel-sheet-btn.ok.disabled { opacity: .6; }
+.modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 999; display: flex; align-items: flex-end; }
+.modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px 16px 40px; width: 100%; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
+.modal-close { font-size: 18px; color: #999; padding: 4px 8px; }
+.level-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #f5f5f5; }
+.level-item:last-child { border-bottom: none; }
+.level-badge { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.level-badge.l1 { background: linear-gradient(135deg, #ffb3c9, #ff8fb1); }
+.level-badge.l2 { background: linear-gradient(135deg, #ff5e8a, #ff3b6c); }
+.level-badge.l3 { background: linear-gradient(135deg, #ff3b6c, #c9184a); }
+.level-info { flex: 1; }
+.level-name { font-size: 15px; font-weight: 600; color: #1a1a1a; display: block; margin-bottom: 4px; }
+.level-desc { font-size: 12px; color: #888; line-height: 1.5; }
 </style>

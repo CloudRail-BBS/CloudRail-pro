@@ -618,11 +618,11 @@ export default {
         const template = battleLogTemplates[index % battleLogTemplates.length]
         let log = ''
         
-        // 更新血量 - 倒计时没结束时保留最低10%血量
-        if (template.type === 'attack' || template.type === 'counter' || template.type === 'ultimate') {
+        // 每回合随机一方出手，双方机会完全均等（不再固定扣发起方，避免"发起者必输"的错觉）
+        if (template.type === 'attack' || template.type === 'counter' || template.type === 'ultimate' || template.type === 'take_damage') {
           const damage = Math.floor(Math.random() * 15) + 10
-          // 倒计时没结束时保留最低血量
-          if (template.user === 'challenger') {
+          const attacker = Math.random() < 0.5 ? 'challenger' : 'defender'
+          if (attacker === 'challenger') {
             this.defenderHp = Math.max(10, this.defenderHp - damage)
             log = `⚔️ ${this.currentDuel?.challenger_name || '挑战者'} ${template.action} ${template.damage} (造成 ${damage} 伤害)`
           } else {
@@ -630,11 +630,10 @@ export default {
             log = `🛡️ ${this.currentDuel?.defender_name || '应战者'} ${template.action} ${template.damage} (造成 ${damage} 伤害)`
           }
         } else if (template.type === 'defend' || template.type === 'dodge') {
-          this.challengerHp = Math.max(10, this.challengerHp - 5)
-          log = `🛡️ ${this.currentDuel?.defender_name || '应战者'} ${template.action} ${template.damage}`
-        } else if (template.type === 'take_damage') {
-          this.challengerHp = Math.max(10, this.challengerHp - 15)
-          log = `⚔️ ${this.currentDuel?.challenger_name || '挑战者'} ${template.action} ${template.damage}`
+          const who = Math.random() < 0.5 ? 'challenger' : 'defender'
+          if (who === 'challenger') this.defenderHp = Math.max(10, this.defenderHp - 5)
+          else this.challengerHp = Math.max(10, this.challengerHp - 5)
+          log = `🛡️ ${template.action} ${template.damage}`
         } else {
           log = `✨ ${template.action}`
         }
@@ -689,20 +688,28 @@ export default {
         if (res.code === 0) {
           const _d = (res.data && res.data.duel) || {}
           const _rs = Number((res.data && res.data.result) || 0)
-          const _meChallenger = String(_d.challenger_id || '') === String(this.userInfo.id)
-          /* 后端用 result 表示胜负：1=挑战方胜 2=应战方胜 0=平局 */
-          this.isWinner = (_rs === 1 && _meChallenger) || (_rs === 2 && !_meChallenger)
+          const _myUid = String(this.userInfo.id || this.userInfo.uid || '')
+          const _winnerUid = String((res.data && res.data.winner_uid) || '')
+          const _battle = (res.data && res.data.battle) || _d.battle || null
+          /* 优先用后端返回的 winner_uid 判定，彻底避免"发起方永远判负" */
+          if (_winnerUid) {
+            this.isWinner = _winnerUid === _myUid
+          } else {
+            const _meChallenger = String(_d.challenger_id || '') === _myUid
+            this.isWinner = (_rs === 1 && _meChallenger) || (_rs === 2 && !_meChallenger)
+          }
           
           // 根据当前用户角色更新积分（兼容任一字段名，不再出现展示0）
           /* 后端不返回积分字段，直接重新拉一次真实积分 */
           this.loadUserScore()
           
-          // 失败方血条置0
-          if (Number((res.data && res.data.result) || 0) === 1) {
-            // 挑战者胜利，应战者失败
+          // 血条与结果对齐：采用后端随机战斗的最终血量（败方为0，胜方保留随机剩余血量）
+          if (_battle) {
+            this.challengerHp = Number(_battle.challenger_hp || 0)
+            this.defenderHp = Number(_battle.defender_hp || 0)
+          } else if (_rs === 1) {
             this.defenderHp = 0
           } else {
-            // 应战者胜利，挑战者失败
             this.challengerHp = 0
           }
           
@@ -733,10 +740,21 @@ export default {
         }
       } else if (ev === 'settled') {
         this.gameStatus = 'result'
-        /* 必须结合"我是不是挑战方"来判断，否则 result=2 时双方都会判失败 */
+        /* 优先用后端 winner_uid 判定；血条用后端战斗的最终血量，保证双方一致 */
         const _rs = Number(d.result || 0)
-        const _meChallenger = String(duel.challenger_id || '') === String(this.userInfo.id)
-        this.isWinner = (_rs === 1 && _meChallenger) || (_rs === 2 && !_meChallenger)
+        const _myUid = String(this.userInfo.id || this.userInfo.uid || '')
+        const _winnerUid = String(d.winner_uid || '')
+        if (_winnerUid) {
+          this.isWinner = _winnerUid === _myUid
+        } else {
+          const _meChallenger = String(duel.challenger_id || '') === _myUid
+          this.isWinner = (_rs === 1 && _meChallenger) || (_rs === 2 && !_meChallenger)
+        }
+        const _b2 = d.battle || duel.battle || null
+        if (_b2) {
+          this.challengerHp = Number(_b2.challenger_hp || 0)
+          this.defenderHp = Number(_b2.defender_hp || 0)
+        }
         this.loadHistory()
         this.loadUserScore()
       }

@@ -1,4 +1,4 @@
-﻿import { resolveApiPath } from '@/common/api-map.js'
+import { resolveApiPath } from '@/common/api-map.js'
 import { API_BASE, ADMIN_BASE, WEB_BASE } from '@/common/config.js'
 
 // ══════════════════════════════════════════════
@@ -20,7 +20,7 @@ export const webBaseUrl = WEB_BASE
 // 作用：授权码同时作为API访问密钥，Go后端校验密钥一致性+授权码域名绑定
 // 注意：使用别人授权码会因域名不匹配被拒绝，确保填写自己的授权码
 // ═══════════════════════════════════════════════
-export const apiKey = '813E-E779-E4DC-88EF'
+export const apiKey = 'YOUR-API-KEY'
 
 // ═════════════════════════════════════════════
 // 公共配置：CMS 接口地址 + 客服 QQ + 货币名称 + 分享文案 + 站点名称

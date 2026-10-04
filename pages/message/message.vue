@@ -329,6 +329,23 @@ export default {
         const rtail = rs === 1 ? '（已同意）' : (rs === 2 ? '（已拒绝）' : (rs === 3 ? '（已解除）' : '（等待确认）'))
         return '[关系申请] ' + (rn || '好友关系') + rtail
       }
+      if (type === 'relation_cancel') {
+        let rn = ''
+        let ra = ''
+        let rt = ''
+        try {
+          const rc = JSON.parse(content || '{}')
+          rn = String(rc.type_name || '')
+          ra = String(rc.actor_name || '')
+          rt = String(rc.time || '')
+        } catch (e) {}
+        return '[关系解除] ' + (ra ? ra + ' ' : '') + '解除了' + (rn ? '「' + rn + '」' : '好友') + '关系' + (rt ? ' ' + rt : '')
+      }
+      if (type === 'call_record') {
+        let txt = ''
+        try { txt = String(JSON.parse(content || '{}').text || '') } catch (e) {}
+        return '[语音通话] ' + (txt || '通话已结束')
+      }
       if (['card', 'group_card', 'transfer', 'redpacket', 'group_invite'].indexOf(type) < 0) return content
 
       let j = null

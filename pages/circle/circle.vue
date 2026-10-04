@@ -5,7 +5,7 @@
       <view class="header-row">
         <view class="nav-tabs">
           <view class="nav-tab" :class="{ active: currentTab === 0 }" @click="switchTab(0)">
-            <text>关注</text>
+            <text>发现</text>
             <view class="active-line" v-if="currentTab === 0"></view>
           </view>
           <view class="nav-tab" :class="{ active: currentTab === 1 }" @click="switchTab(1)">
@@ -33,7 +33,84 @@
     >
       <view class="page-body">
         <view :key="currentTab" class="tab-panel">
-        <DynamicFeed ref="followFeed" v-if="currentTab === 0" feedType="follow" />
+        <!-- 关注/发现 tab：参考图样式 -->
+        <template v-if="currentTab === 0">
+          <!-- 圈子推荐 -->
+          <view class="rec-section">
+            <view class="rec-head">
+              <text class="rec-title">圈子推荐</text>
+              <view class="rec-more" @click="switchTab(2)">
+                <text class="rec-more-text">全部圈子</text>
+                <text class="rec-more-arrow">›</text>
+              </view>
+            </view>
+            <view class="rec-grid">
+              <view
+                class="rec-item"
+                v-for="item in recommendCircles"
+                :key="item.id"
+                @click="goDetail(item)"
+              >
+                <image :src="item.image" class="rec-icon" mode="aspectFill"></image>
+                <view class="rec-info">
+                  <text class="rec-name">{{ item.name }}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 精选排行榜 -->
+          <view class="rank-section">
+            <view class="rec-head">
+              <text class="rec-title">精选排行榜</text>
+              <view class="rec-more" @click="switchTab(1)">
+                <text class="rec-more-text">完整榜单</text>
+                <text class="rec-more-arrow">›</text>
+              </view>
+            </view>
+            <view class="rank-list">
+              <view
+                class="rank-item"
+                v-for="(item, idx) in hotPosts"
+                :key="item.id"
+                @click="goPostDetail(item)"
+              >
+                <text class="rank-no" :class="{ top: idx < 3 }">{{ idx + 1 }}</text>
+                <image :src="getPostCover(item)" class="rank-cover" mode="aspectFill"></image>
+                <view class="rank-info">
+                  <text class="rank-title">{{ (item.title || item.plain_content || '动态').slice(0, 20) }}</text>
+                  <text class="rank-author">{{ item.name || item.username || '匿名' }}</text>
+                </view>
+                <view class="rank-heat">
+                  <text class="heat-num">{{ formatNum(item.view_count || item.like_count || 0) }}</text>
+                  <text class="heat-icon">♨</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 可能认识的人 -->
+          <view class="user-section" v-if="recommendUsers.length > 0">
+            <view class="rec-head">
+              <text class="rec-title">可能认识的人</text>
+            </view>
+            <view class="user-list">
+              <view class="user-item" v-for="u in recommendUsers" :key="u.uid || u.id">
+                <image :src="u.avatar || u.avatar_url || '/static/logo.png'" class="user-avatar" mode="aspectFill"></image>
+                <view class="user-info">
+                  <text class="user-name">{{ u.nickname || u.name || '用户' }}</text>
+                  <text class="user-bio">{{ u.signature || u.bio || '这个人很懒，什么都没留下' }}</text>
+                </view>
+                <view class="user-btn" :class="{ followed: u.is_following }" @click="toggleFollow(u)">
+                  <text class="user-btn-text">{{ u.is_following ? '已关注' : '关注' }}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view style="height: 40rpx;"></view>
+        </template>
+
         <DynamicFeed ref="dynamicFeed" v-if="currentTab === 1" feedType="all" />
 
         <template v-if="currentTab === 2">
@@ -52,76 +129,56 @@
         </template>
 
         <template v-else>
-          <!-- 推荐圈子（未分类） -->
-          <view class="discover-section" v-if="uncategorizedList.length > 0">
-            <view class="discover-head">
-              <text class="section-title">推荐圈子</text>
-              <view class="sort-tabs">
-                <view class="sort-tab" :class="{ active: sortType === 'hot' }" @click="changeSort('hot')">
-                  <text>最热</text>
-                </view>
-                <view class="sort-tab" :class="{ active: sortType === 'new' }" @click="changeSort('new')">
-                  <text>最新</text>
-                </view>
-              </view>
-            </view>
+          <!-- 顶部广告轮播 -->
+          <swiper class="circle-banner" v-if="bannerList.length > 0" circular autoplay :interval="3500" indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff">
+            <swiper-item v-for="(b, idx) in bannerList" :key="idx" @click="handleBannerClick(b)">
+              <image :src="bannerImg(b.image)" class="circle-banner-img" mode="aspectFill"></image>
+            </swiper-item>
+          </swiper>
 
-            <view class="circle-grid">
+          <!-- 推荐圈子（未分类） -->
+          <view class="cat-block" v-if="uncategorizedList.length > 0">
+            <view class="cat-head">
+              <view class="cat-bar"></view>
+              <text class="cat-title">推荐圈子</text>
+            </view>
+            <view class="cat-grid">
               <view
-                class="circle-card"
+                class="cat-card"
                 v-for="item in uncategorizedList"
                 :key="item.id"
                 @click="goDetail(item)"
               >
-                <view class="card-top-tag" v-if="item.is_top"><text>置顶</text></view>
-                <view class="card-icon-wrap">
-                  <image :src="item.image" class="card-icon" mode="aspectFill" lazy-load></image>
-                </view>
-                <view class="card-content">
-                  <view class="card-name-row">
-                    <text class="card-name">{{ item.name }}</text>
-                    <view class="card-limit-tags" v-if="item.vip > 0">
-                      <view class="limit-tag vip-tag" v-if="item.vip > 0">
-                        <text>VIP</text>
-                      </view>
-                    </view>
-                  </view>
-                  <text class="card-desc">{{ item.description || '欢迎加入，一起交流分享' }}</text>
+                <image :src="item.image" class="cat-card-icon" mode="aspectFill"></image>
+                <view class="cat-card-info">
+                  <text class="cat-card-name">{{ item.name }}</text>
+                  <text class="cat-card-stat">{{ item.post_count }} 帖子 | {{ item.member_count }} 加入</text>
                 </view>
               </view>
             </view>
           </view>
 
-          <!-- 各分类区块：标题即分类名，圈子按分类归集 -->
-            <view class="discover-section cat-section" v-for="group in categoryGroups" :key="'cat-' + group.id">
-              <view class="discover-head">
-                <text class="section-title">{{ group.name }}</text>
-              </view>
-              <view class="circle-grid">
-                <view
-                  class="circle-card"
-                  v-for="item in group.list"
-                  :key="item.id"
-                  @click="goDetail(item)"
-                >
-                  <view class="card-top-tag" v-if="item.is_top"><text>置顶</text></view>
-                  <view class="card-icon-wrap">
-                    <image :src="item.image" class="card-icon" mode="aspectFill" lazy-load></image>
-                  </view>
-                  <view class="card-content">
-                    <view class="card-name-row">
-                      <text class="card-name">{{ item.name }}</text>
-                      <view class="card-limit-tags" v-if="item.vip > 0">
-                        <view class="limit-tag vip-tag" v-if="item.vip > 0">
-                          <text>VIP</text>
-                        </view>
-                      </view>
-                    </view>
-                    <text class="card-desc">{{ item.description || '欢迎加入，一起交流分享' }}</text>
-                  </view>
+          <!-- 各分类区块 -->
+          <view class="cat-block" v-for="group in categoryGroups" :key="'cat-' + group.id">
+            <view class="cat-head">
+              <view class="cat-bar"></view>
+              <text class="cat-title">{{ group.name }}</text>
+            </view>
+            <view class="cat-grid">
+              <view
+                class="cat-card"
+                v-for="item in group.list"
+                :key="item.id"
+                @click="goDetail(item)"
+              >
+                <image :src="item.image" class="cat-card-icon" mode="aspectFill" lazy-load></image>
+                <view class="cat-card-info">
+                  <text class="cat-card-name">{{ item.name }}</text>
+                  <text class="cat-card-stat">{{ item.post_count }} 帖子 | {{ item.member_count }} 加入</text>
                 </view>
               </view>
             </view>
+          </view>
 
             <view class="loading-row" v-if="loading && !firstLoading">
               <view class="loading-dot"></view>
@@ -156,7 +213,7 @@
 </template>
 
 <script>
-import { request } from '../../common/request.js'
+import { request, bmsBaseUrl } from '../../common/request.js'
 import DynamicFeed from '../../components/DynamicFeed.vue'
 import PublishModal from '../../components/PublishModal.vue'
 import CustomTabBar from '../../components/CustomTabBar.vue'
@@ -182,6 +239,9 @@ export default {
       requestLock: false,
       sortType: 'hot',
       categories: [],
+      hotPosts: [],
+      recommendUsers: [],
+      bannerList: [],
       toast: { show: false, msg: '' },
       toastTimer: null,
       showPublishModal: false,
@@ -193,6 +253,9 @@ export default {
   computed: {
     filteredList() {
       return this.filteredCacheList
+    },
+    recommendCircles() {
+      return this.filteredCacheList.slice(0, 6)
     },
     uncategorizedList() {
       return this.filteredCacheList.filter(i => !Number(i.category_id || 0))
@@ -229,6 +292,9 @@ export default {
 
     this.loadData(true)
     this.loadCategories()
+    this.loadHotPosts()
+    this.loadRecommendUsers()
+    this.loadBanner()
   },
 
   /* 自定义 TabBar：每次页面显示都压一次原生 TabBar，
@@ -236,6 +302,7 @@ export default {
   onShow() {
     try { uni.hideTabBar({ animation: false, fail: () => {} }) } catch (e) {}
   },
+
   onUnload() {
     if (this.toastTimer) clearTimeout(this.toastTimer)
   },
@@ -244,9 +311,6 @@ export default {
     switchTab(tab) {
       if (this.currentTab === tab) return
       this.currentTab = tab
-      if (tab === 0 && this.$refs.followFeed) {
-        this.$refs.followFeed.loadData(true)
-      }
       if (tab === 1 && this.$refs.dynamicFeed) {
         this.$refs.dynamicFeed.loadData(true)
       }
@@ -352,29 +416,17 @@ export default {
     },
 
     loadMore() {
-      if (this.currentTab === 0) {
-        if (this.$refs.followFeed) this.$refs.followFeed.loadMore()
-        return
-      }
       if (this.currentTab === 1) {
         if (this.$refs.dynamicFeed) this.$refs.dynamicFeed.loadMore()
         return
       }
+      if (this.currentTab === 0) return
       if (this.loading || !this.hasMore || this.requestLock) return
       this.page += 1
       this.loadData()
     },
 
     async onRefresh() {
-      if (this.currentTab === 0) {
-        this.isRefreshing = true
-        try {
-          if (this.$refs.followFeed) await this.$refs.followFeed.onRefresh()
-        } finally {
-          this.isRefreshing = false
-        }
-        return
-      }
       if (this.currentTab === 1) {
         this.isRefreshing = true
         try {
@@ -386,6 +438,104 @@ export default {
       }
       this.isRefreshing = true
       this.loadData(true)
+      this.loadHotPosts()
+      this.loadRecommendUsers()
+    },
+
+    async loadBanner() {
+      try {
+        const res = await request('banner.php', { action: 'list' }, 'GET')
+        if (res.code === 0) this.bannerList = res.data || []
+      } catch (e) {}
+    },
+
+    bannerImg(url) {
+      if (!url) return '/static/logo.png'
+      if (/^https?:\/\//i.test(url)) return url
+      const base = (bmsBaseUrl || '').replace(/\/+$/, '')
+      return base + (url.startsWith('/') ? url : '/' + url)
+    },
+
+    handleBannerClick(item) {
+      if (!item || !item.link) return
+      if (item.link.indexOf('http') === 0) {
+        uni.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(item.link)}` })
+      } else {
+        uni.navigateTo({ url: item.link })
+      }
+    },
+
+    async loadHotPosts() {
+      try {
+        const res = await request('post.php', {
+          action: 'list',
+          page: 1,
+          pageSize: 5,
+          sort: 'hot'
+        }, 'GET')
+        if (res.code === 0) {
+          const arr = Array.isArray(res.data) ? res.data : (res.data.list || [])
+          this.hotPosts = arr.slice(0, 4)
+        }
+      } catch (e) {}
+    },
+
+    async loadRecommendUsers() {
+      try {
+        const res = await request('user.php', {
+          action: 'getRecommendUsers',
+          page: 1,
+          pageSize: 6
+        }, 'GET')
+        if (res.code === 0) {
+          const arr = Array.isArray(res.data) ? res.data : (res.data.list || [])
+          this.recommendUsers = arr.slice(0, 5)
+        }
+      } catch (e) {}
+    },
+
+    async toggleFollow(u) {
+      if (!this.userInfo) {
+        return uni.navigateTo({ url: '/pages/login/login' })
+      }
+      const prev = !!u.is_following
+      u.is_following = !prev
+      try {
+        const res = await request('user.php', {
+          action: 'toggleFollow',
+          uid: u.uid || u.id
+        }, 'POST')
+        if (res.code === 0) {
+          u.is_following = !!(res.data && res.data.following)
+          this.showToast(u.is_following ? '已关注' : '已取消关注')
+        } else {
+          u.is_following = prev
+          this.showToast(res.msg || '操作失败')
+        }
+      } catch (e) {
+        u.is_following = prev
+        this.showToast('网络异常')
+      }
+    },
+
+    getPostCover(post) {
+      if (!post) return '/static/logo.png'
+      if (post.cover) return post.cover
+      if (post.images) {
+        try {
+          const arr = typeof post.images === 'string' ? JSON.parse(post.images) : post.images
+          if (Array.isArray(arr) && arr.length) return arr[0]
+        } catch (e) {}
+      }
+      return '/static/logo.png'
+    },
+
+    goPostDetail(post) {
+      uni.navigateTo({ url: `/pages/post-detail/post-detail?postId=${post.id}` })
+    },
+
+    goUserProfile(u) {
+      uni.navigateTo({ url: `/pages/user/profile?userId=${u.id}` })
     },
 
     goDetail(item) {
@@ -790,6 +940,274 @@ export default {
 .sk-line.l240 { width: 240rpx; }
 .sk-line.l100 { width: 100rpx; }
 .sk-line.mt12 { margin-top: 12rpx; }
+
+/* ── 关注/发现 tab：参考图样式 ── */
+.rec-section {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 28rpx 24rpx 12rpx;
+  margin-bottom: 20rpx;
+}
+.rec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.rec-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111;
+}
+.rec-more {
+  display: flex;
+  align-items: center;
+}
+.rec-more-text {
+  font-size: 24rpx;
+  color: #999;
+}
+.rec-more-arrow {
+  font-size: 28rpx;
+  color: #ccc;
+  margin-left: 4rpx;
+}
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8rpx 24rpx;
+}
+.rec-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+}
+.rec-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+  background: #f5f5f5;
+}
+.rec-info {
+  flex: 1;
+  min-width: 0;
+}
+.rec-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #111;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 排行榜 */
+.rank-section {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 28rpx 24rpx 12rpx;
+  margin-bottom: 20rpx;
+}
+.rank-list {
+  padding: 0;
+}
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.rank-item:last-child { border-bottom: none; }
+.rank-no {
+  width: 48rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #ccc;
+  text-align: center;
+  flex-shrink: 0;
+  font-style: italic;
+}
+.rank-no.top { color: #111; }
+.rank-cover {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  margin: 0 20rpx;
+  background: #f5f5f5;
+}
+.rank-info {
+  flex: 1;
+  min-width: 0;
+}
+.rank-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #111;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-bottom: 8rpx;
+}
+.rank-author {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+}
+.rank-heat {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+.heat-num {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-right: 6rpx;
+}
+.heat-icon {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 推荐用户 */
+.user-section {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 28rpx 24rpx 12rpx;
+  margin-bottom: 20rpx;
+}
+.user-list { padding: 0; }
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.user-item:last-child { border-bottom: none; }
+.user-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 20rpx;
+  background: #f5f5f5;
+}
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+.user-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #ff2442;
+  margin-bottom: 8rpx;
+}
+.user-bio {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.user-btn {
+  flex-shrink: 0;
+  padding: 12rpx 36rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid #ddd;
+}
+.user-btn.followed {
+  border-color: #eee;
+  background: #f5f5f5;
+}
+.user-btn.followed .user-btn-text { color: #999; }
+.user-btn-text {
+  font-size: 24rpx;
+  color: #333;
+}
+
+/* 圈子 tab：参考图样式 */
+.circle-banner {
+  width: 100%;
+  height: 320rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  margin-bottom: 30rpx;
+  background: #eee;
+}
+.circle-banner-img {
+  width: 100%;
+  height: 100%;
+}.cat-block {
+  margin-bottom: 28rpx;
+}
+.cat-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-left: 4rpx;
+}
+.cat-bar {
+  width: 8rpx;
+  height: 32rpx;
+  background: #111;
+  border-radius: 4rpx;
+  margin-right: 14rpx;
+}
+.cat-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111;
+}
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+.cat-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx 20rpx;
+}
+.cat-card-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  margin-right: 18rpx;
+  background: #f5f5f5;
+}
+.cat-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.cat-card-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cat-card-stat {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 
 @keyframes spin { to { transform: rotate(360deg); } }
 

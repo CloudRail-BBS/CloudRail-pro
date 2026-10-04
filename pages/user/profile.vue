@@ -115,7 +115,7 @@
                 :class="[isFollowing ? 'secondary' : 'primary', { 'btn-loading': actionLock }]"
                 @click="handleFollow"
               >
-                {{ isFollowing ? (userInfo.is_follower ? '互相关注' : '已关注') : '关注' }}
+                {{ isFollowing ? (isFollower ? '互相关注' : '已关注') : (isFollower ? '回关' : '关注') }}
               </view>
 
               <view class="btn secondary" :class="{ 'icon-btn': isVip }" @click="handleChat">
@@ -167,9 +167,9 @@
               <text class="relation-type">{{ r.type_name }}</text>
               <text class="relation-name">{{ (r.with && r.with.name) || '对方' }}</text>
             </view>
-            <view v-if="!displayRelations.length" class="relation-line ghost" @click.stop="goRelationBoard">
+            <view v-if="!displayRelations.length" class="relation-line ghost" @click.stop="onGhostRelationClick">
               <text class="relation-type ghost-type">关系</text>
-              <text class="relation-name">{{ viewingSelf ? '还没有亲密关系，点这里去建立' : '你们之间还没有关系' }}</text>
+              <text class="relation-name">{{ viewingSelf ? '还没有亲密关系，点这里去建立' : 'TA 还没有公开的亲密关系' }}</text>
             </view>
           </view>
 
@@ -572,8 +572,8 @@ export default {
       actionLock: false,
       userOnline: false,
 
-      defaultAvatar: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg',
-      defaultBg: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg',
+      defaultAvatar: 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg',
+      defaultBg: 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg',
 
       list: [],
       page: 1,
@@ -626,6 +626,12 @@ export default {
         .map(v => String(v))
       return !uid || ids.indexOf(uid) >= 0
     },
+    /* 对方有没有关注我（后端 is_follower 可能是 true/'true'/1/'1'，统一成布尔） */
+    isFollower() {
+      const v = this.userInfo ? this.userInfo.is_follower : 0
+      if (v === true || v === 'true') return true
+      return parseInt(v || 0, 10) === 1
+    },
     /* 头像旁边"抱"着的那位：只要有一段生效的关系就会贴出来（不限等级）。
        有多段关系时随机挑一个，每次进这个页面挑到的都可能不一样；
        只贴一个，避免多个头像叠在一起糊成一团。
@@ -658,19 +664,14 @@ export default {
       if (!cands.length) return []
       return [cands[Math.floor(Math.random() * cands.length)]]
     },
-    /* 主页上显示的关系：看自己的主页显示「我的全部关系」，看别人的主页显示「我和他的关系」 */
+    /* 主页上显示的关系：看自己的主页显示「我的全部关系」，
+       看别人的主页显示「TA 公开的亲密关系」（后端只返回双方同意展示的 visible=1 段） */
     displayRelations() {
       if (this.viewingSelf) return this.myRelations || []
-      const uid = String(this.targetUserId || '')
-      /* 看别人的主页：后端返回的「我和他的关系」只带关系类型、不带对方资料，
-         这里用当前主页用户的信息补上，否则徽章永远显示不出来。
-         注意要保留 id，点了才能直接进这段关系的详情。 */
-      const name = this.userInfo.name || this.userInfo.username || '对方'
-      const avatar = this.userInfo.avatar || ''
-      return (this.relationsBetween || []).filter(r => !!r).map(r => ({
+      return (this.targetRelations || []).filter(r => !!r).map(r => ({
         id: r.id,
         type_name: r.type_name,
-        with: r.with || { uid: uid, name: name, avatar: avatar }
+        with: r.with || {}
       }))
     },
     /* 和 viewingSelf 一个意思，直接复用，避免两处判断标准不一致
@@ -856,13 +857,35 @@ export default {
       if (!uid) return
       uni.navigateTo({ url: '/pages/user/profile?userId=' + uid })
     },
-    /* 点关系徽章进「我的关系」页（邀请朋友 / 亲密关系 / 亲密团三个页签），
-       想看某一段的详情，从那页的「亲密关系」里再点进去 */
-    goRelationDetail() {
+    /* 点关系徽章：自己主页 → 我的关系页；别人主页 → 围观「他们两个」的这段关系 */
+    goRelationDetail(r) {
+      if (!this.viewingSelf) {
+        const rid = r && r.id
+        if (rid) {
+          uni.navigateTo({ url: '/pages/relation/detail?relationId=' + rid })
+        }
+        return
+      }
       this.goRelationBoard()
     },
-    /* 进「我的关系」页：可以在里面解除、也可以建立新的 */
+    /* 关系区空着时的引导条：自己主页去建立，别人主页只提示 */
+    onGhostRelationClick() {
+      if (this.viewingSelf) {
+        this.goRelationBoard()
+      } else {
+        uni.showToast({ title: 'TA 还没有公开的亲密关系', icon: 'none' })
+      }
+    },
+    /* 进「我的关系」页：可以在里面解除、也可以建立新的；
+       看别人主页时带上 viewUid，进去展示的是 TA 的亲密关系，并且可以给 TA 打 call */
     goRelationBoard() {
+      if (!this.viewingSelf && this.targetUserId) {
+        const nm = this.userInfo.name || this.userInfo.nickname || this.userInfo.username || ''
+        uni.navigateTo({
+          url: '/pages/relation/index?viewUid=' + this.targetUserId + '&viewName=' + encodeURIComponent(nm)
+        })
+        return
+      }
       uni.navigateTo({ url: '/pages/relation/index' })
     },
 

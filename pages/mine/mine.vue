@@ -106,17 +106,32 @@
                 <text class="enterprise-auth-icon" :class="{ 'text-on-dark': bgIsDark }">企</text>
               </view>
             </view>
-            <!-- 关系：一个人可以有多段关系，全列出来；点任意一个进「我的关系」页 -->
+            <!-- 关系：同一种关系只占一个徽章，点任一徽章直接进「我的关系」页看全部 -->
             <view v-if="isLogin" class="mine-relation-wrap">
               <view
-                v-for="(r, ri) in myRelations"
-                :key="'mr' + ri"
+                v-for="g in relationGroups"
+                :key="'rg' + g.type_key"
                 class="mine-relation-line"
-                @click.stop="goRelationDetail(r)"
+                @click.stop="goRelationBoard"
               >
-                <text class="mine-relation-type">{{ r.type_name }}</text>
-                <image class="mine-relation-ava" :src="(r.with && r.with.avatar) || defaultAvatar" mode="aspectFill"></image>
-                <text class="mine-relation-name">{{ (r.with && r.with.name) || '对方' }}</text>
+                <text class="mine-relation-type">{{ g.type_name }}</text>
+                <template v-if="g.items.length === 1">
+                  <image class="mine-relation-ava" :src="g.items[0].otherUser.avatar" mode="aspectFill"></image>
+                  <text class="mine-relation-name">{{ g.items[0].otherUser.name }}</text>
+                </template>
+                <template v-else>
+                  <view class="mine-relation-stack">
+                    <image
+                      v-for="(it, i) in g.items.slice(0, 2)"
+                      :key="'sa' + it.id"
+                      class="mine-relation-stack-ava"
+                      :src="it.otherUser.avatar"
+                      mode="aspectFill"
+                      :style="{ left: (i * 18) + 'rpx', zIndex: 10 - i }"
+                    ></image>
+                  </view>
+                  <text class="mine-relation-name">{{ g.items.length }} 人</text>
+                </template>
               </view>
               <view v-if="!myRelations.length" class="mine-relation-line" @click.stop="goRelationBoard">
                 <text class="mine-relation-type">关系</text>
@@ -438,6 +453,7 @@
         <text>{{ hud.text }}</text>
       </view>
     </view>
+
     <CustomTabBar :current="3" @publish="goPublish" />
     <PublishModal
       :visible="showPublishModal"
@@ -567,6 +583,37 @@ export default {
     },
     currentList() { return this.lists[this.curTab] || []; },
     levelDisplay() { return calcLevelDisplay(this.userInfo.lv); },
+    /* 关系统一成 { id, type_key, type_name, days, otherUser }，兼容 otherUser / with 两种字段 */
+    normalizedRelations() {
+      return (this.myRelations || []).map(r => {
+        const o = r.otherUser || r.with || {};
+        return {
+          id: r.id,
+          type_key: r.type || r.type_key || r.type_name || 'other',
+          type_name: r.type_name,
+          days: r.days || 1,
+          otherUser: {
+            uid: o.uid || o.id || r.other_uid || '',
+            name: o.name || o.nickname || o.username || '好友',
+            avatar: o.avatar || this.defaultAvatar || ''
+          }
+        };
+      });
+    },
+    /* 同一种关系只占一个徽章 */
+    relationGroups() {
+      const map = {};
+      const order = [];
+      this.normalizedRelations.forEach(rel => {
+        const k = rel.type_key;
+        if (!map[k]) {
+          map[k] = { type_key: k, type_name: rel.type_name || '好友', items: [] };
+          order.push(k);
+        }
+        map[k].items.push(rel);
+      });
+      return order.map(k => map[k]);
+    },
   },
 
   onLoad() {
@@ -607,11 +654,8 @@ export default {
         }
       } catch (e) { /* 未登录或接口异常时不显示，不影响页面其它内容 */ }
     },
-    /* 点关系进「我的关系」页（邀请朋友 / 亲密关系 / 亲密团三个页签），
-       要看某一段的详情，从那页的「亲密关系」里再点进去 */
-    goRelationDetail() {
-      uni.navigateTo({ url: '/pages/relation/index' })
-    },
+    /* 点关系徽章：直接进「我的关系」页（邀请朋友 / 亲密关系 / 亲密团三个页签），
+       不管是几段关系，都在那里统一查看 / 建立 / 解除 */
     goRelationBoard() {
       uni.navigateTo({ url: '/pages/relation/index' })
     },
@@ -1282,6 +1326,10 @@ export default {
 .mine-relation-type{ font-size:22rpx; font-weight:800; color:#ff4d79; }
 .mine-relation-ava{ width:40rpx; height:40rpx; border-radius:50%; background:#eee; flex-shrink:0; }
 .mine-relation-name{ font-size:22rpx; color:#888; max-width:220rpx; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* 同类型多个：叠头像 */
+.mine-relation-stack{ position:relative; width:76rpx; height:40rpx; flex-shrink:0; }
+.mine-relation-stack-ava{ position:absolute; top:0; width:40rpx; height:40rpx; border-radius:50%; background:#eee; border:2rpx solid #fff; box-sizing:border-box; }
+
 .page-container {
   min-height: var(--tcy-vh, 100vh);
   background-color: #F8F8F8;

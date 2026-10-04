@@ -26,8 +26,13 @@
           </view>
         </view>
 
-        <view class="nav-right" @click.stop="openMore">
-          <text class="more-icon">⋯</text>
+        <view class="nav-right">
+          <view class="nav-call" @click.stop="onVoiceCall">
+            <image class="nav-call-icon" src="/static/icon/phone.png" mode="aspectFit"></image>
+          </view>
+          <view class="nav-more" @click.stop="openMore">
+            <text class="more-icon">⋯</text>
+          </view>
         </view>
       </view>
     </view>
@@ -139,6 +144,28 @@
                         <text v-else>已拒绝</text>
                       </view>
                     </template>
+                  </template>
+<template v-else-if="msg.type === 'relation_cancel' && msg.relationCancel">
+                    <text class="card-tip">关系解除</text>
+                    <view class="card-box invite-card rel-card">
+                      <image class="card-ava" :src="fixUrl(msg.relationCancel.actor_avatar) || '/static/logo.png'" mode="aspectFill" />
+                      <view class="card-meta">
+                        <text class="card-name">{{ msg.relationCancel.actor_name || '对方' }}</text>
+                        <text class="card-sub">解除了与 {{ msg.relationCancel.target_name || '好友' }} 的「{{ msg.relationCancel.type_name || '好友' }}」关系</text>
+                      </view>
+                    </view>
+                    <view class="invite-status declined">
+                      <text>{{ msg.relationCancel.actor_name || '对方' }} 在 {{ msg.relationCancel.time || '' }} 解除了「{{ msg.relationCancel.type_name || '好友' }}」关系</text>
+                    </view>
+                  </template>
+<template v-else-if="msg.type === 'call_record' && msg.callRecord">
+                    <view class="call-card">
+                      <image class="call-card-icon" src="/static/icon/phone.png" mode="aspectFit"></image>
+                      <view class="call-card-mid">
+                        <text class="call-card-title">语音通话</text>
+                        <text class="call-card-sub">{{ msg.callRecord.text || '通话已结束' }}</text>
+                      </view>
+                    </view>
                   </template>
 <template v-else-if="msg.type === 'transfer' && msg.transfer">
                     <view class="transfer-card" :class="{ received: Number(msg.transfer.status || 0) === 1 }">
@@ -566,6 +593,7 @@ import presence from '../../common/presence.js'
 import XhsConfirm from '../../components/XhsConfirm.vue'
 import OnlineNotifyCard from '../../components/OnlineNotifyCard.vue'
 import { ensureCustomBubbleCss, getBubbleSkins } from '../../common/bubble-style.js'
+import { startVoiceCall } from '../../common/call.js'
 
 export default {
   components: {
@@ -730,6 +758,16 @@ export default {
       }
     }
   },
+  /* 回到本页时补一次新消息。
+     通话记录卡片是"只推送给对方"的（wsPushChatMessage 会跳过发送者本人），
+     所以通话结束回到聊天页时，自己这边得主动刷一下才看得到那张记录卡。 */
+  onShow() {
+    if (!this.targetId || !this.msgList || !this.msgList.length) return
+    setTimeout(() => {
+      try { this.pollMsg(true) } catch (e) {}
+    }, 350)
+  },
+
   async onLoad(opt) {
     /* 气泡样式(内置 + 后台自定义代码)：拉回来转成内联样式绑到气泡上。
        App 端往 document 插 <style> 不一定生效，所以外观必须走内联，这里拉完刷新一次。 */
@@ -1584,6 +1622,21 @@ export default {
         if (relationApply) relationApply.status = Number(relationApply.status || 0)
       }
 
+      /* 关系解除卡片：content 是 JSON
+         { relation_id, type_key, type_name, actor_uid, actor_name, actor_avatar,
+           target_uid, target_name, target_avatar, date, time, timestamp } */
+      let relationCancel = null
+      if (type === 'relation_cancel') {
+        try { relationCancel = JSON.parse(m.content || '{}') } catch (e) { relationCancel = null }
+      }
+
+      /* 语音通话记录卡片：content 是 JSON
+         { call_id, media, state, status, duration, text, from_uid, to_uid } */
+      let callRecord = null
+      if (type === 'call_record') {
+        try { callRecord = JSON.parse(m.content || '{}') } catch (e) { callRecord = null }
+      }
+
       /* 语音消息：content 是 JSON { url, duration(秒), text } */
       let voiceUrl = ''
       let voiceDur = 0
@@ -1609,6 +1662,8 @@ export default {
         redPacket,
         invite,
         relationApply,
+        relationCancel,
+        callRecord,
         create_time: m.create_time,
         is_me: isMe,
         sending: false,
@@ -1882,9 +1937,16 @@ export default {
     closeMore() { this.more.show = false },
     goTargetProfile() { this.closeMore(); this.toUserProfile(this.targetId) },
 
+    /* 右上角语音通话按钮 */
+    onVoiceCall() {
+      if (!this.targetId) return
+      if (!this.canChat) return this.showToast(this.chatDisabledReason || '当前无法通话')
+      startVoiceCall({ uid: this.targetId, name: this.targetName, avatar: this.targetAvatar })
+    },
+
     showVideoCall() {
       this.showMoreActions = false
-      uni.showToast({ title: '视频通话功能开发中', icon: 'none' })
+      this.onVoiceCall()
     },
     sendLocation() {
       this.showMoreActions = false
@@ -2566,6 +2628,31 @@ export default {
   align-items:center;
   justify-content:center;
 }
+/* 右上角：语音通话 + 更多。放两个所以单独放开宽度，避免挤在一起 */
+.nav-right{
+  width:auto;
+  min-width:110rpx;
+  justify-content:flex-end;
+  gap:4rpx;
+}
+.nav-call{
+  width:64rpx;
+  height:64rpx;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.nav-call-icon{
+  width:42rpx;
+  height:42rpx;
+}
+.nav-more{
+  width:56rpx;
+  height:64rpx;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 .back-icon-img{
   width:44rpx;
   height:44rpx;
@@ -2823,6 +2910,21 @@ export default {
 /* 关系申请卡片：粉色系，和群邀请的蓝色区分开 */
 .rel-card{ background:linear-gradient(135deg,#fff1f5 0%,#fff 100%); border:1rpx solid #ffd6e2; }
 .rel-card .card-name{ color:#ff4d79; }
+/* 语音通话记录卡片 */
+.call-card{
+  display:flex;
+  align-items:center;
+  gap:16rpx;
+  min-width:320rpx;
+  padding:20rpx 26rpx;
+  border-radius:20rpx;
+  background:#f4f5f7;
+  border:1rpx solid #e6e8ec;
+}
+.call-card-icon{ width:48rpx; height:48rpx; flex-shrink:0; }
+.call-card-mid{ display:flex; flex-direction:column; gap:4rpx; min-width:0; }
+.call-card-title{ font-size:26rpx; font-weight:600; color:#1f2430; }
+.call-card-sub{ font-size:24rpx; color:#8b93a5; }
 /* 未适配消息类型的兜底提示 */
 .msg-unknown{ font-size:24rpx; color:#9ca3af; padding:8rpx 4rpx; }
 .invite-card .card-name{ color:#1e90ff; font-size:28rpx; font-weight:600; }

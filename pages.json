@@ -11,6 +11,7 @@
     {"path":"pages/circle/circle","style":{"navigationStyle":"custom"}},
     {"path":"pages/message/message","style":{"navigationStyle":"custom"}},
     {"path":"pages/message/chat","style":{"navigationStyle":"custom","app-plus":{"softinputMode":"adjustResize","softinputNavBar":"none"}}},
+    {"path":"pages/message/call","style":{"navigationStyle":"custom"}},
     {"path":"pages/message/details","style":{"navigationStyle":"custom"}},
     {"path":"pages/message/system-notices","style":{"navigationStyle":"custom"}},
     {"path":"pages/message/group-create","style":{"navigationStyle":"custom"}},
