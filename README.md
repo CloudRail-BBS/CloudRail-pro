@@ -1,6 +1,8 @@
-﻿# 栖屿社区 · Qixi Community
+# 栖屿社区 · Qixi Community
 
 > 基于 uni-app + Vue3 的移动端社区平台，支持 APP / 小程序 / H5 多端编译。
+
+> 📖 详细的搭建 / 配置 / 运行说明请看 [开发文档.md](./开发文档.md)。
 
 ---
 
@@ -87,7 +89,7 @@
 ### 1. 克隆项目
 
 ```bash
-git clone https://gitee.com/你的用户名/qixi-community.git
+git clone https://gitee.com/bgkj520/baige.git
 ```
 
 ### 2. 修改后端配置

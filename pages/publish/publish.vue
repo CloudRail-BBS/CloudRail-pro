@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="publish-container">
     <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="handleReset">
@@ -494,6 +494,9 @@
         <text class="ios-hud-text" :class="{ 'text-only': hud.type !== 'loading' }">{{ hud.message }}</text>
       </view>
     </view>
+
+    <!-- 客户端截帧触发器：服务端没生成封面时，由 renderjs 从本地视频抓第一帧兜底 -->
+    <view class="vframe-trigger" :vfd="vframeData" :change:vfd="vframe.capture"></view>
   </view>
 </template>
 
@@ -512,7 +515,7 @@ export default {
       isLogin: !!token,
       loginUser: userInfo || {},
       runtimeConfig: {
-        enable_video_feature: 0,
+        enable_video_feature: 1,
         max_post_images: 9
       },
 
@@ -527,6 +530,8 @@ export default {
       uploadImages: [],
       videoUrl: '',
       videoCoverUrl: '',
+      vframeData: null,
+      vframeReqTs: 0,
 
       tempCircleIndex: -1,
 
@@ -594,7 +599,9 @@ export default {
       return this.loginUser && parseInt(this.loginUser.is_admin) === 1;
     },
     canUploadVideo() {
-      return this.isVideoFeatureEnabled && this.loginUser && parseInt(this.loginUser.vip) === 1;
+      // 登录后即可上传视频（若想改回“仅 VIP 可上传”，用下面注释那行替换掉 return）
+      // return this.isVideoFeatureEnabled && this.loginUser && parseInt(this.loginUser.vip) === 1;
+      return this.isVideoFeatureEnabled && this.isLogin;
     },
     isVideoFeatureEnabled() {
       return parseInt(this.runtimeConfig.enable_video_feature ?? 1) === 1;
@@ -758,6 +765,100 @@ export default {
       } catch (e) {}
     },
 
+    /* 把本地临时视频路径转成 webview 可加载的地址（App 下转成 file:// 绝对路径） */
+    clientCoverSource(path) {
+      let p = String(path || '');
+      // #ifdef APP-PLUS
+      try {
+        if (p && !/^(file|content|blob|http|https):/i.test(p) && typeof plus !== 'undefined' && plus.io) {
+          p = 'file://' + plus.io.convertLocalFileSystemURL(p);
+        }
+      } catch (e) {}
+      // #endif
+      return p;
+    },
+
+    /* 触发 renderjs 从本地视频截取第一帧（不依赖服务端 ffmpeg） */
+    triggerClientCover(path) {
+      if (!path) return;
+      const src = this.clientCoverSource(path);
+      if (!src) return;
+      this.vframeReqTs = Date.now();
+      this.vframeData = { src, ts: this.vframeReqTs };
+    },
+
+    /* renderjs 截帧成功回调：把 base64 落成临时文件后按图片上传，作为视频封面 */
+    async onClientCoverCaptured(payload) {
+      try {
+        const dataUrl = (payload && payload.dataUrl) ? String(payload.dataUrl) : '';
+        if (!dataUrl) return;
+        if (payload && payload.ts && this.vframeReqTs && payload.ts !== this.vframeReqTs) return;
+        if (this.videoCoverUrl) return;
+        const filePath = await this.base64ToLocalFile(dataUrl);
+        if (!filePath) return;
+        const up = await uploadFile(filePath, {
+          type: 'post',
+          current_count: 0,
+          convert_format: 'webp',
+          compress_quality: '80'
+        });
+        const url = (up && typeof up === 'object') ? (up.url || up.cover || '') : String(up || '');
+        if (url && !this.videoCoverUrl) {
+          this.videoCoverUrl = url;
+          this.uploadImages = [url];
+        }
+      } catch (e) {}
+    },
+
+    onClientCoverFail() {
+      /* 客户端截帧失败不影响发布：服务端封面优先，失败则维持默认占位 */
+    },
+
+    /* base64 图片落成本地文件，供 uni.uploadFile 使用 */
+    base64ToLocalFile(dataUrl) {
+      return new Promise((resolve) => {
+        const base64 = String(dataUrl).split(',')[1] || '';
+        if (!base64) return resolve('');
+
+        // #ifdef APP-PLUS
+        try {
+          const fsm = (typeof uni !== 'undefined' && uni.getFileSystemManager) ? uni.getFileSystemManager() : null;
+          if (fsm && fsm.writeFile) {
+            let dir = '_doc/';
+            try {
+              if (typeof plus !== 'undefined' && plus.io) dir = plus.io.convertLocalFileSystemURL('_doc/');
+            } catch (e) {}
+            const filePath = dir + 'vframe_' + Date.now() + '.jpg';
+            fsm.writeFile({
+              filePath,
+              data: base64,
+              encoding: 'base64',
+              success: () => resolve(filePath),
+              fail: () => resolve('')
+            });
+            return;
+          }
+        } catch (e) {}
+        return resolve('');
+        // #endif
+
+        // #ifdef H5
+        try {
+          const bin = atob(base64);
+          const len = bin.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+          const blob = new Blob([bytes], { type: 'image/jpeg' });
+          return resolve(URL.createObjectURL(blob));
+        } catch (e) {
+          return resolve('');
+        }
+        // #endif
+
+        resolve('');
+      });
+    },
+
     async chooseImage() {
       if (!this.isLogin) return this.goLogin();
       if (this.isUploading) return this.showHUD('error', '图片正在上传中');
@@ -837,75 +938,131 @@ export default {
       this.loadRuntimeConfig().catch(() => {});
       if (!this.isVideoFeatureEnabled) return this.showHUD('error', '视频发布功能已关闭');
 
-      uni.chooseVideo({
-        sourceType: ['camera', 'album'],
-        compressed: true,
-        maxDuration: 60,
-        success: async (res) => {
-          if (res.size > 150 * 1024 * 1024) {
-            this.showHUD('error', '视频不能超过 150MB');
-            return;
-          }
+      const picked = await this.pickVideoFile();
+      if (!picked || !picked.tempFilePath) return;
+      if (picked.size > 150 * 1024 * 1024) {
+        this.showHUD('error', '视频不能超过 150MB');
+        return;
+      }
 
-          this.isUploading = true;
-          this.uploadProgress = 0;
+      this.isUploading = true;
+      this.uploadProgress = 0;
 
-          const simulateTimer = setInterval(() => {
-            if (this.uploadProgress < 90) this.uploadProgress += 5;
-          }, 500);
+      const simulateTimer = setInterval(() => {
+        if (this.uploadProgress < 90) this.uploadProgress += 5;
+      }, 500);
 
-          try {
-            const up = await uploadFile(res.tempFilePath, { type: 'video' });
+      try {
+        const up = await uploadFile(picked.tempFilePath, { type: 'video' });
 
-            clearInterval(simulateTimer);
-            this.uploadProgress = 100;
+        clearInterval(simulateTimer);
+        this.uploadProgress = 100;
 
-            const videoUrl = (up && typeof up === 'object') ? (up.url || '') : String(up || '');
-            let coverUrl = (up && typeof up === 'object')
-              ? (up.cover || up.cover_url || up.poster || '')
-              : '';
+        const videoUrl = (up && typeof up === 'object') ? (up.url || '') : String(up || '');
+        let coverUrl = (up && typeof up === 'object')
+          ? (up.cover || up.cover_url || up.poster || '')
+          : '';
+        const coverErr = (up && typeof up === 'object') ? (up.cover_err || '') : '';
 
-            if (!videoUrl) {
-              throw { msg: '视频上传返回为空' };
-            }
-
-            if (!coverUrl) {
-              const thumbPath = res.thumbTempFilePath || res.tempThumbPath || res.poster || '';
-              if (thumbPath) {
-                try {
-                  const thumbUp = await uploadFile(thumbPath, {
-                    type: 'post',
-                    current_count: 0,
-                    convert_format: 'webp',
-                    compress_quality: '80'
-                  });
-                  coverUrl = (thumbUp && typeof thumbUp === 'object')
-                    ? (thumbUp.url || thumbUp.cover || '')
-                    : String(thumbUp || '');
-                } catch (e) {}
-              }
-            }
-
-            this.videoUrl = videoUrl;
-            this.videoCoverUrl = coverUrl;
-
-            if (this.videoCoverUrl) this.uploadImages = [this.videoCoverUrl];
-            else this.uploadImages = [];
-
-            this.isPlayingVideo = false;
-          } catch (e) {
-            clearInterval(simulateTimer);
-            this.isUploading = false;
-            if (e.code === -2) this.handleBan(e.msg);
-            else this.showHUD('error', e.msg || '上传失败');
-          } finally {
-            if (this.isUploading) {
-              setTimeout(() => {
-                this.isUploading = false;
-              }, 500);
-            }
-          }
+        if (!videoUrl) {
+          throw { msg: '视频上传返回为空' };
         }
+
+        /* 封面优先级：
+           1) 服务端 ffmpeg 抽帧（若服务器可用则最优先）
+           2) 系统原生缩略图 thumbTempFilePath（chooseMedia 返回，是视频里的真实画面，完全不依赖 ffmpeg）
+           3) 客户端 renderjs 截帧兜底（不依赖 ffmpeg / shell 函数） */
+        if (!coverUrl && picked.thumbPath) {
+          try {
+            const thumbUp = await uploadFile(picked.thumbPath, {
+              type: 'post',
+              current_count: 0,
+              convert_format: 'webp',
+              compress_quality: '80'
+            });
+            coverUrl = (thumbUp && typeof thumbUp === 'object')
+              ? (thumbUp.url || thumbUp.cover || '')
+              : String(thumbUp || '');
+          } catch (e) {}
+        }
+
+        this.videoUrl = videoUrl;
+
+        if (coverUrl) {
+          this.videoCoverUrl = coverUrl;
+          this.uploadImages = [coverUrl];
+        } else {
+          this.videoCoverUrl = '';
+          this.uploadImages = [];
+          this.triggerClientCover(picked.tempFilePath);
+        }
+
+        if (coverErr && !coverUrl) {
+          setTimeout(() => {
+            if (!this.videoCoverUrl) {
+              uni.showToast({ title: '视频封面未生成：' + coverErr, icon: 'none', duration: 4000 });
+            }
+          }, 6000);
+        }
+
+        this.isPlayingVideo = false;
+      } catch (e) {
+        clearInterval(simulateTimer);
+        this.isUploading = false;
+        if (e.code === -2) this.handleBan(e.msg);
+        else this.showHUD('error', e.msg || '上传失败');
+      } finally {
+        if (this.isUploading) {
+          setTimeout(() => {
+            this.isUploading = false;
+          }, 500);
+        }
+      }
+    },
+
+    /* 选择视频。优先 chooseMedia：App/H5 下它返回系统原生缩略图 thumbTempFilePath（视频里的真实画面），
+       不依赖服务器 ffmpeg；旧版本/不支持的平台再回退 chooseVideo。
+       统一返回 { tempFilePath, size, duration, thumbPath } */
+    pickVideoFile() {
+      return new Promise((resolve) => {
+        const normalize = (res) => {
+          const f = (res && res.tempFiles && res.tempFiles[0]) || {};
+          resolve({
+            tempFilePath: f.tempFilePath || (res && res.tempFilePath) || '',
+            size: Number(f.size || (res && res.size) || 0),
+            duration: Number(f.duration || (res && res.duration) || 0),
+            thumbPath: f.thumbTempFilePath || (res && res.thumbTempFilePath) || (res && res.tempThumbPath) || ''
+          });
+        };
+        /* 回退：用 chooseVideo（老 API，没缩略图，但至少能选到视频） */
+        const viaChooseVideo = () => {
+          uni.chooseVideo({
+            sourceType: ['camera', 'album'],
+            compressed: false,
+            maxDuration: 60,
+            success: normalize,
+            fail: () => resolve(null)
+          });
+        };
+
+        if (typeof uni.chooseMedia === 'function') {
+          uni.chooseMedia({
+            count: 1,
+            mediaType: ['video'],
+            sourceType: ['album', 'camera'],
+            maxDuration: 30,
+            camera: 'back',
+            success: normalize,
+            fail: (err) => {
+              const msg = (err && err.errMsg) ? String(err.errMsg) : '';
+              /* 用户主动取消 → 直接结束；其余失败（如未勾选 Camera&Gallery 模块）→ 回退 chooseVideo */
+              if (/cancel/i.test(msg)) return resolve(null);
+              viaChooseVideo();
+            }
+          });
+          return;
+        }
+        viaChooseVideo();
       });
     },
 
@@ -1312,7 +1469,7 @@ export default {
       this.showHUD('loading', '解析中...');
 
       try {
-        const apiUrl = `https://api.xiaotuo.net/api/jiexi/?apikey=08af8a42-7511-83e1-17e8-10b71a207912afef78be&url=${encodeURIComponent(url)}`;
+        const apiUrl = `https://api.xiaotuo.net/api/jiexi/?apikey=YOUR-XIAOTUO-APIKEY&url=${encodeURIComponent(url)}`;
         const res = await uni.request({
           url: apiUrl,
           method: 'GET',
@@ -1765,7 +1922,104 @@ export default {
 };
 </script>
 
+<script module="vframe" lang="renderjs">
+export default {
+  methods: {
+    capture(newValue, oldValue, ownerInstance, instance) {
+      if (!newValue || !newValue.src) return;
+      const src = String(newValue.src);
+      const ts = newValue.ts || 0;
+      let done = false;
+      let video = null;
+
+      const finish = (cb) => {
+        if (done) return;
+        done = true;
+        try {
+          if (video) {
+            try { video.pause(); } catch (e) {}
+            try { video.removeAttribute('src'); } catch (e) {}
+            try { video.load(); } catch (e) {}
+            if (video.parentNode) video.parentNode.removeChild(video);
+          }
+        } catch (e) {}
+        if (typeof cb === 'function') cb();
+      };
+
+      const fail = (reason) => finish(() => {
+        try { ownerInstance.callMethod('onClientCoverFail', { ts, reason }); } catch (e) {}
+      });
+
+      try {
+        video = document.createElement('video');
+        video.setAttribute('webkit-playsinline', 'true');
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('crossorigin', 'anonymous');
+        video.muted = true;
+        video.preload = 'auto';
+        video.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
+
+        const grab = () => {
+          if (done) return;
+          try {
+            const vw = video.videoWidth || 0;
+            const vh = video.videoHeight || 0;
+            if (!vw || !vh) return;
+            const maxW = 720;
+            const scale = vw > maxW ? (maxW / vw) : 1;
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(vw * scale));
+            canvas.height = Math.max(1, Math.round(vh * scale));
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+            finish(() => {
+              try { ownerInstance.callMethod('onClientCoverCaptured', { ts, dataUrl }); } catch (e) {}
+            });
+          } catch (e) {
+            fail('canvas_error');
+          }
+        };
+
+        video.addEventListener('error', () => fail('video_error'));
+        video.addEventListener('loadeddata', () => {
+          try {
+            let t = 0.1;
+            const d = video.duration;
+            if (d && isFinite(d) && d > 0.2) t = Math.min(1, d * 0.1);
+            video.currentTime = t;
+          } catch (e) {
+            grab();
+          }
+        });
+        video.addEventListener('seeked', grab);
+        video.addEventListener('timeupdate', () => { if (video.currentTime > 0) grab(); });
+
+        setTimeout(() => { if (!done && video.videoWidth) grab(); }, 800);
+        setTimeout(() => { if (!done) { if (video.videoWidth) grab(); else fail('timeout'); } }, 8000);
+
+        document.body.appendChild(video);
+        video.src = src;
+        try { video.load(); } catch (e) {}
+      } catch (e) {
+        fail('init_error');
+      }
+    }
+  }
+};
+</script>
+
 <style scoped>
+.vframe-trigger {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
 .publish-container {
   --bg-color: #f7f7f9;
   --card-bg: #ffffff;

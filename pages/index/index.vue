@@ -316,6 +316,8 @@ export default {
       defaultAvatar: '/static/logo.png',
 
       currentTab: 0,
+      /* 抖音式视频播放器是否开着（给 onBackPress 用） */
+      douyinPlayerOpen: false,
       backendHomeTheme: 'text_flow',
       userThemePreference: '',
       currentFilter: 'all',
@@ -457,6 +459,9 @@ export default {
     applyH5ViewportHeightVar()
     const metrics = getScreenMetrics()
     this.statusBarHeight = metrics.statusBarHeight
+    /* 抖音式视频播放器开着时，系统返回键先关播放器，而不是直接退出应用 */
+    this._onDouyinOpen = (open) => { this.douyinPlayerOpen = !!open }
+    uni.$on('qixi_douyin_open', this._onDouyinOpen)
     this.loadThemePreference()
     this.loadBackendThemeCache()
 
@@ -555,6 +560,17 @@ export default {
       clearTimeout(this._imageCachePersistTimer)
       this._imageCachePersistTimer = null
     }
+    try { uni.$off('qixi_douyin_open', this._onDouyinOpen) } catch (e) {}
+  },
+
+  /* 返回键：抖音式播放器开着就先关播放器（返回 true = 我处理了，别退出页面/应用） */
+  onBackPress() {
+    if (this.douyinPlayerOpen) {
+      try { uni.$emit('qixi_douyin_close') } catch (e) {}
+      this.douyinPlayerOpen = false
+      return true
+    }
+    return false
   },
 
   methods: {

@@ -572,8 +572,8 @@ export default {
       actionLock: false,
       userOnline: false,
 
-      defaultAvatar: 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg',
-      defaultBg: 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg',
+      defaultAvatar: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg',
+      defaultBg: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg',
 
       list: [],
       page: 1,

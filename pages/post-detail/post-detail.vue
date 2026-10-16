@@ -784,6 +784,12 @@
           @focus="onCommentFocus"
           @blur="onCommentBlur"
         />
+        <!-- 有内容时出现发送按钮，不用再按手机键盘上的发送键 -->
+        <view
+          v-if="commentContent && commentContent.trim()"
+          class="bottom-send"
+          @tap="publishComment"
+        >发送</view>
       </template>
 
       <text v-else class="comment-disabled-text">{{ computedPlaceholder }}</text>
@@ -2516,7 +2522,7 @@ export default {
       try {
         uni.showLoading({ title: '解析中...' })
         
-        const parseApiUrl = 'https://api.xiaotuo.net/api/jiexi/?apikey=08af8a42-7511-83e1-17e8-10b71a207912afef78be&url=' + encodeURIComponent(this.postInfo.douyin_url)
+        const parseApiUrl = 'https://api.xiaotuo.net/api/jiexi/?apikey=YOUR-XIAOTUO-APIKEY&url=' + encodeURIComponent(this.postInfo.douyin_url)
         
         const res = await uni.request({
           url: parseApiUrl,
@@ -5630,6 +5636,20 @@ export default {
 
 
 
+
+/* 评论输入框右侧的发送按钮（有内容时才出现，和输入框同高） */
+.bottom-send {
+  flex-shrink: 0;
+  margin-left: 14rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background: #ff2442;
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 600;
+}
 
 .drawer-open {
   overflow: hidden;

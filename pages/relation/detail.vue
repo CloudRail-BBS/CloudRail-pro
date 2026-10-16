@@ -156,7 +156,7 @@ export default {
       myAvatar: '/static/logo.png',
       myName: '我',
       showLevels: false,
-      defaultAvatar: 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg'
+      defaultAvatar: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg'
     }
   },
   computed: {

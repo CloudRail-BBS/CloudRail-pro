@@ -856,6 +856,10 @@ export default {
     this._onlineTimer = setInterval(() => this.refreshTargetOnline(), 10000)
     uni.$off('presence_changed', this._onPresence)
     uni.$on('presence_changed', this._onPresence)
+    /* 通话浮窗关闭（自己或对方挂断）后补拉一次：通话记录卡片只推给对方，
+       浮窗又不再跳页面，不主动刷一下自己这边就看不到那张记录卡 */
+    uni.$off('call_ended', this._onCallEnded)
+    uni.$on('call_ended', this._onCallEnded)
   },
   onReady() {
     this.measureInputBar()
@@ -871,6 +875,7 @@ export default {
     stopVoice()
     this.playingVoiceId = null
     uni.$off('presence_changed', this._onPresence)
+    uni.$off('call_ended', this._onCallEnded)
     this.stopBanTimer()
     if (this.toastBox.timer) clearTimeout(this.toastBox.timer)
     this._clearKbFallback()
@@ -1449,6 +1454,13 @@ export default {
       if (!this.targetId) return
       const v = presence.getCached(this.targetId)
       if (v !== null) this.targetOnline = v
+    },
+    /* 通话浮窗关了（挂断/对方挂断/未接）→ 补拉一次消息，把通话记录卡片显示出来 */
+    _onCallEnded() {
+      if (!this.targetId) return
+      setTimeout(() => {
+        try { this.pollMsg(true) } catch (e) {}
+      }, 400)
     },
     /* 兜底: 每 10 秒查一次(WS 正常时缓存已是新值, 基本不会发请求) */
     async refreshTargetOnline() {

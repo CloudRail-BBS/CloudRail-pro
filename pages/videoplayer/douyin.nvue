@@ -1,0 +1,879 @@
+<template>
+  <view class="page">
+    <!-- 自己实现的竖向翻页：拖动时跟手、松手后平滑归位 -->
+    <view class="pager">
+      <view class="track" :style="{ transform: 'translateY(' + offsetY + 'px)' }">
+        <view class="page-item" v-for="(v, i) in list" :key="i" :style="{ height: pageH + 'px' }">
+          <video
+            v-if="isNear(i)"
+            class="video"
+            :id="'dyv-' + i"
+            :src="videoSrc(i)"
+            :poster="v.cover"
+            :autoplay="false"
+            :loop="true"
+            :controls="false"
+            :show-center-play-btn="false"
+            :show-play-btn="false"
+            :show-fullscreen-btn="false"
+            :enable-progress-gesture="false"
+            object-fit="contain"
+            preload="auto"
+            x5-playsinline=""
+            playsinline="true"
+            webkit-playsinline="true"
+            x-webkit-airplay="allow"
+            x5-video-player-type="h5"
+            x5-video-player-fullscreen=""
+            x5-video-orientation="portraint"
+            @click="togglePlay(i)"
+            @play="onVPlay"
+            @pause="onVPause"
+          ></video>
+          <image v-else class="video" :src="v.cover" mode="aspectFill"></image>
+        </view>
+      </view>
+    </view>
+
+    <!-- 暂停时中间显示播放按钮（用文字三角：nvue 的 image 对 SVG 支持不稳；点击由手势层处理） -->
+    <view class="center-play" v-if="!isPlaying">
+      <text class="center-play-icon">▶</text>
+    </view>
+
+    <!-- 手势层：App 端原生 video 会吞掉触摸事件，所以盖一层透明 view 接管
+         “轻点暂停/播放、上下轻滑翻页”，这样轻轻滑也能翻 -->
+    <view
+      class="gesture-layer"
+      @touchstart="onTouchStart"
+      @touchmove="onTouchMove"
+      @touchend="onTouchEnd"
+    ></view>
+
+    <!-- 关闭 -->
+    <view class="close" @click="close">
+      <text class="close-x">×</text>
+    </view>
+
+    <!-- 右侧竖排操作栏 -->
+    <view class="side">
+      <view class="avatar-wrap" @click="goUser">
+        <image class="avatar" :src="cur.avatar || '/static/logo.png'" mode="aspectFill"></image>
+      </view>
+      <view class="follow" v-if="showFollowBtn()" @click="onFollow">
+        <text class="follow-plus">+</text>
+      </view>
+
+      <view class="item" @click="onLike">
+        <image class="icon" :src="cur.isLiked ? '/static/post/xih1.png' : '/static/post/xih0.png'" mode="aspectFit"></image>
+        <text class="num">{{ cur.likeCount || 0 }}</text>
+      </view>
+      <view class="item" @click="openComment">
+        <image class="icon" src="/static/post/pl.png" mode="aspectFit"></image>
+        <text class="num">{{ cur.commentCount || 0 }}</text>
+      </view>
+      <view class="item" @click="onCollect">
+        <image class="icon" :src="cur.isCollected ? '/static/post/dy-star-on.png' : '/static/post/dy-star.png'" mode="aspectFit"></image>
+        <text class="num">收藏</text>
+      </view>
+      <view class="item" @click="onShare">
+        <image class="icon" src="/static/post/dy-share.png" mode="aspectFit"></image>
+        <text class="num">分享</text>
+      </view>
+      <view class="item" @click="openReward">
+        <image class="icon" src="/static/post/dy-gift.png" mode="aspectFit"></image>
+        <text class="num">打赏</text>
+      </view>
+    </view>
+
+    <!-- 底部作者信息 -->
+    <view class="info">
+      <text class="name">{{ cur.author || '用户' }}</text>
+      <text class="title">{{ cur.title || '' }}</text>
+    </view>
+
+    <!-- 评论面板 -->
+    <view class="mask" v-if="showComment" @click="showComment = false">
+      <view class="sheet" :style="{ height: sheetH + 'px' }" @click.stop>
+        <text class="sheet-title">共 {{ comments.length }} 条评论</text>
+        <scroll-view class="sheet-list" :style="{ height: listH + 'px' }" scroll-y>
+          <view class="cmt-item" v-for="(c, i) in comments" :key="i">
+            <image class="cmt-avatar" :src="c.avatar || '/static/logo.png'" mode="aspectFill"></image>
+            <view class="cmt-main">
+              <text class="cmt-name">{{ c.name || '匿名' }}</text>
+              <view class="cmt-bubble">
+                <text class="cmt-text">{{ c.content || '' }}</text>
+              </view>
+              <view class="cmt-actions">
+                <text class="cmt-time">{{ c.timeText || '' }}</text>
+                <text class="cmt-reply" @click="setReply(c)">回复</text>
+              </view>
+
+              <!-- 子回复：挂在原评论下面，可展开/收起（和图文帖一样） -->
+              <view class="sub-list" v-if="c.children && c.children.length > 0">
+                <view class="sub-item" v-for="(s, si) in visibleChildren(c)" :key="si">
+                  <view class="sub-head">
+                    <text class="sub-name">{{ s.name || '匿名' }}</text>
+                    <text class="sub-replyto" v-if="s.replyName"> 回复 {{ s.replyName }}</text>
+                  </view>
+                  <view class="sub-bubble">
+                    <text class="sub-text">{{ s.content || '' }}</text>
+                  </view>
+                  <view class="sub-actions">
+                    <text class="sub-time">{{ s.timeText || '' }}</text>
+                    <text class="sub-reply" @click="setReply(s)">回复</text>
+                  </view>
+                </view>
+                <view class="sub-toggle" v-if="c.children.length > 2" @click="toggleReplies(c)">
+                  <text class="sub-toggle-t">{{ replyToggleText(c) }}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view class="c-empty" v-if="comments.length === 0">
+            <text class="c-empty-t">暂无评论，来说两句</text>
+          </view>
+        </scroll-view>
+        <view class="c-input-row">
+          <input class="c-input" v-model="commentInput" :placeholder="replyTo ? ('回复 @' + replyTo.name) : '说点什么...'" placeholder-color="#999999" />
+          <view class="c-send" @click="sendComment">
+            <text class="c-send-t">发送</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 打赏面板 -->
+    <view class="mask" v-if="showReward" @click="showReward = false">
+      <view class="sheet" @click.stop>
+        <text class="sheet-title">打赏作者</text>
+        <view class="amt-row">
+          <view
+            class="amt"
+            :class="rewardAmount === 10 ? 'amt amt-on' : 'amt'"
+            @click="rewardAmount = 10"
+          ><text class="amt-t">10 积分</text></view>
+          <view
+            class="amt"
+            :class="rewardAmount === 50 ? 'amt amt-on' : 'amt'"
+            @click="rewardAmount = 50"
+          ><text class="amt-t">50 积分</text></view>
+          <view
+            class="amt"
+            :class="rewardAmount === 100 ? 'amt amt-on' : 'amt'"
+            @click="rewardAmount = 100"
+          ><text class="amt-t">100 积分</text></view>
+          <view
+            class="amt"
+            :class="rewardAmount === 500 ? 'amt amt-on' : 'amt'"
+            @click="rewardAmount = 500"
+          ><text class="amt-t">500 积分</text></view>
+        </view>
+        <view class="reward-btn" @click="doReward">
+          <text class="reward-btn-t">确认打赏</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import { request, webBaseUrl } from '../../common/request.js'
+
+export default {
+  data() {
+    return {
+      postId: '',
+      list: [],
+      currentIndex: 0,
+      /* 自己实现的翻页：offsetY = 内容整体位移(px)，拖动时跟手 */
+      offsetY: 0,
+      dragging: false,
+      /* 一屏高度(px)，用于位移计算 */
+      pageH: 600,
+      /* 评论弹层高度(px)，按屏幕高度的 66% 自适应 */
+      sheetH: 420,
+      /* 评论列表高度(px)：弹层高度减去标题和输入行。
+         nvue 的 scroll-view 撑不开 flex:1，必须给明确高度，否则列表是 0 高、什么都看不到 */
+      listH: 280,
+      /* 分页：滑到快到底就自动加载下一页 → 无限刷 */
+      page: 1,
+      hasMore: true,
+      loadingMore: false,
+      userInfo: null,
+      playing: -1,
+      /* 是否正在播放：暂停时中间显示播放按钮 */
+      isPlaying: false,
+      showComment: false,
+      comments: [],
+      commentInput: '',
+      /* 正在回复谁（null = 发普通评论） */
+      replyTo: null,
+      showReward: false,
+      rewardAmount: 100,
+      busy: false
+    }
+  },
+  computed: {
+    cur() {
+      return this.list[this.currentIndex] || {}
+    }
+  },
+  onLoad(options) {
+    this.userInfo = uni.getStorageSync('userInfo') || null
+    try {
+      const si = uni.getSystemInfoSync()
+      const wh = si.windowHeight || 600
+      this.pageH = wh
+      /* 评论弹层高度按屏幕高度的 66% 自适应（矮屏兜底 360px） */
+      this.sheetH = Math.max(360, Math.round(wh * 0.66))
+      /* 列表高度 = 弹层高度 - 标题/输入行占位 */
+      this.listH = Math.max(160, this.sheetH - 130)
+    } catch (e) {}
+    this.postId = (options && options.id) || ''
+    if (!this.postId) {
+      uni.showToast({ title: '缺少视频参数', icon: 'none' })
+      return
+    }
+    /* nvue 页和 vue 页不共享模块状态，所以这里自己按 id 去接口取真实数据 */
+    this.loadData()
+  },
+  methods: {
+    /* ---------- 数据（全部走真实接口） ---------- */
+    postVideoUrl(p) {
+      if (!p) return ''
+      const d = String(p.douyin_url || '').trim()
+      if (d && d !== '0' && d !== 'null' && d !== 'undefined') return d
+      const v = String(p.video || '').trim()
+      if (v && v !== '0' && v !== 'null' && v !== 'undefined') return v
+      return ''
+    },
+    buildItem(p) {
+      let cover = p.douyin_cover || ''
+      if (!cover && Array.isArray(p.images) && p.images.length) cover = p.images[0]
+      return {
+        id: p.id,
+        url: this.postVideoUrl(p),
+        cover: cover,
+        title: p.douyin_title || p.title || '视频',
+        author: p.douyin_author || p.name || p.username || '用户',
+        userId: p.user_id || '',
+        avatar: p.avatar || '/static/logo.png',
+        likeCount: Number(p.like_count || 0),
+        commentCount: Number(p.comment_count || 0),
+        isLiked: !!p.is_liked,
+        isCollected: !!p.is_collected,
+        isFollowed: !!p.is_followed
+      }
+    },
+    /* 拉一页视频；reset=true 表示从第一页重来 */
+    async fetchVideos(reset) {
+      if (this.loadingMore) return
+      if (!reset && !this.hasMore) return
+      this.loadingMore = true
+      try {
+        const page = reset ? 1 : this.page
+        const res = await request('post.php', { action: 'list', page: page, pageSize: 20 }, { method: 'GET' })
+        if (!res || res.code !== 0) { this.hasMore = false; return }
+        const d = res.data || {}
+        const raw = Array.isArray(d) ? d : (Array.isArray(d.list) ? d.list : [])
+        const items = raw.filter(p => p && this.postVideoUrl(p)).map(p => this.buildItem(p))
+        if (reset) {
+          this.list = items
+          this.page = 2
+        } else {
+          const have = {}
+          this.list.forEach(it => { have[String(it.id)] = 1 })
+          items.forEach(it => { if (!have[String(it.id)]) this.list.push(it) })
+          this.page = page + 1
+        }
+        this.hasMore = raw.length >= 20
+      } catch (e) {
+        this.hasMore = false
+      } finally {
+        this.loadingMore = false
+      }
+    },
+    /* 滑到快到底时自动续下一页 */
+    loadMore() {
+      if (this.hasMore && !this.loadingMore) this.fetchVideos(false)
+    },
+    async loadData() {
+      uni.showLoading({ title: '加载中' })
+      try {
+        /* 1) 先拉列表：为了能上下滑 */
+        await this.fetchVideos(true)
+        let idx = this.list.findIndex(p => String(p.id) === String(this.postId))
+        let guard = 0
+        while (idx < 0 && this.hasMore && guard < 3) {
+          await this.fetchVideos(false)
+          idx = this.list.findIndex(p => String(p.id) === String(this.postId))
+          guard++
+        }
+
+        if (idx >= 0) {
+          /* 列表里找到了：用它真实的位置，上下都能滑 */
+          this.currentIndex = idx
+        } else {
+          /* 翻了几页都没找到（比如是较早的帖子）：直接问这条帖子的详情，
+             把它放到第一条 —— 保证“点哪条就播哪条”，不会再默认播最上面那条 */
+          let target = null
+          try {
+            const res = await request('post.php', { action: 'detail', postId: this.postId, id: this.postId }, { method: 'GET' })
+            if (res && res.code === 0) target = res.data || null
+          } catch (e) {}
+          if (target) {
+            const i2 = this.list.findIndex(p => String(p.id) === String(target.id))
+            if (i2 >= 0) this.list.splice(i2, 1)
+            this.list.unshift(this.buildItem(target))
+          }
+          this.currentIndex = 0
+        }
+        /* 定位到这一屏（自己实现的翻页靠 offsetY 定位） */
+        this.offsetY = -this.currentIndex * this.pageH
+      } finally {
+        uni.hideLoading()
+      }
+      this.$nextTick(() => { this.playAt(this.currentIndex) })
+    },
+
+    /* 当前 ±2 条算“近”：只有近的才渲染原生 video，其余用封面图顶着。
+       范围放宽到 ±2，是为了往上/往下滑一两条时，元素不会被销毁而重新加载 */
+    isNear(i) {
+      return Math.abs(i - this.currentIndex) <= 2
+    },
+    /* 只给“当前 ±1 条”挂视频地址：远处的先不加载，这样滑动才不卡 */
+    videoSrc(i) {
+      const v = this.list[i]
+      if (!v || !v.url) return ''
+      return this.isNear(i) ? v.url : ''
+    },
+    /* 是否显示“+”关注按钮：自己 或 已关注 都不显示 */
+    showFollowBtn() {
+      const uid = this.cur.userId
+      if (!uid) return false
+      const me = this.myUid()
+      if (me && String(me) === String(uid)) return false
+      return !this.cur.isFollowed
+    },
+    /* 拉取当前作者的关注状态（同一个作者只查一次，避免重复请求） */
+    async refreshFollow() {
+      const uid = this.cur.userId || ''
+      if (!uid || uid === this._followFetchedFor) return
+      this._followFetchedFor = uid
+      const me = this.myUid()
+      if (me && String(me) === String(uid)) {
+        this.list.forEach((it) => {
+          if (it && String(it.userId) === String(uid)) it.isFollowed = true
+        })
+        return
+      }
+      /* 等一下再请求：避免请求回来时正好在滑动，重渲染打断手势 */
+      await new Promise(r => setTimeout(r, 260))
+      try {
+        const res = await request('user.php', { action: 'getOtherUserInfo', targetId: uid }, { method: 'GET' })
+        if (res && res.code === 0) {
+          const d = res.data || {}
+          let f = null
+          if (typeof d.isFollowing !== 'undefined') f = !!d.isFollowing
+          else if (typeof d.is_following !== 'undefined') f = !!d.is_following
+          if (f !== null) {
+            this.list.forEach((it) => {
+              if (it && String(it.userId) === String(uid)) it.isFollowed = f
+            })
+          }
+        }
+      } catch (e) {}
+    },
+
+    /* ---------- 播放控制 ---------- */
+    playAt(i) {
+      if (i < 0 || i >= this.list.length) return
+      /* 只停「附近 ±2」这几条：远处根本没渲染 video 元素，
+         对不存在的 id 调 createVideoContext 会报 "Can not find dyv-x" */
+      const from = Math.max(0, i - 2)
+      const to = Math.min(this.list.length - 1, i + 2)
+      for (let k = from; k <= to; k++) {
+        if (k === i) continue
+        try { uni.createVideoContext('dyv-' + k, this).pause() } catch (e) {}
+      }
+      try { uni.createVideoContext('dyv-' + i, this).play() } catch (e) {}
+      this.playing = i
+      this.isPlaying = true
+      this.refreshFollow()
+    },
+    pauseAt(i) {
+      if (i < 0) return
+      /* 只有还在渲染范围内（±2）才有这个 video 元素，否则会报 Can not find */
+      if (Math.abs(i - this.currentIndex) > 2) return
+      try { uni.createVideoContext('dyv-' + i, this).pause() } catch (e) {}
+    },
+    togglePlay(i) {
+      if (this.playing === i) {
+        this.pauseAt(i)
+        this.playing = -1
+        this.isPlaying = false
+      } else {
+        this.playAt(i)
+      }
+    },
+
+    /* ---------- 手势：原生 video 会吃掉触摸，所以这里自己判断“轻点 / 拖动” ---------- */
+    onTouchStart(e) {
+      const t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]) || null
+      this._startY = t ? t.pageY : 0
+      this._lastY = this._startY
+      this._startT = Date.now()
+      this._baseY = -this.currentIndex * this.pageH
+      this.offsetY = this._baseY
+      this.dragging = true
+    },
+    onTouchMove(e) {
+      const t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]) || null
+      if (!t) return
+      this._lastY = t.pageY
+      let dy = this._lastY - (this._startY || 0)
+      /* 第一屏再往上拖 / 最后一屏再往下拖：加阻尼，避免露出空白 */
+      if (this.currentIndex <= 0 && dy > 0) dy = dy * 0.35
+      if (this.currentIndex >= this.list.length - 1 && dy < 0) dy = dy * 0.35
+      this.offsetY = (this._baseY || 0) + dy
+    },
+    onTouchEnd(e) {
+      const t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]) || null
+      const endY = t ? t.pageY : (this._lastY || this._startY || 0)
+      const dy = endY - (this._startY || 0)
+      const dt = Date.now() - (this._startT || 0)
+      this.dragging = false
+
+      /* 位移很小且很快 → 当成“轻点”，切换暂停 / 播放 */
+      if (Math.abs(dy) < 14 && dt < 320) {
+        this.animateTo(this.offsetY, this._baseY, null)
+        this.togglePlay(this.currentIndex)
+        return
+      }
+
+      /* 位移够 或 甩得够快 → 翻页 */
+      const fast = dt > 0 && Math.abs(dy) / dt > 0.35
+      let target = this.currentIndex
+      if (dy <= -40 || (fast && dy < 0)) target = this.currentIndex + 1
+      else if (dy >= 40 || (fast && dy > 0)) target = this.currentIndex - 1
+      if (target < 0) target = 0
+      if (target > this.list.length - 1) target = this.list.length - 1
+      this.settle(target)
+    },
+    /* 平滑滑到目标位置：JS 逐帧动画，保证一定有过渡效果 */
+    animateTo(from, to, done) {
+      const self = this
+      const steps = 14
+      let k = 0
+      if (this._animTimer) { clearInterval(this._animTimer); this._animTimer = null }
+      this._animTimer = setInterval(function () {
+        k++
+        const p = k / steps
+        const e = 1 - Math.pow(1 - p, 3)   /* easeOutCubic：先快后慢，最像抖音 */
+        self.offsetY = from + (to - from) * e
+        if (k >= steps) {
+          clearInterval(self._animTimer)
+          self._animTimer = null
+          self.offsetY = to
+          if (done) done()
+        }
+      }, 17)
+    },
+    /* 翻到目标页：先把画面滑过去，再切播放，避免两个视频同时动 */
+    settle(target) {
+      const to = -target * this.pageH
+      if (target === this.currentIndex) {
+        this.animateTo(this.offsetY, to, null)
+        return
+      }
+      /* 切页时会主动暂停上一个视频——这个暂停不是“用户暂停”，
+         所以要打标记屏蔽它的 pause 事件，否则滑动过程中会闪出暂停图标 */
+      this._switching = true
+      this.pauseAt(this.currentIndex)
+      this.currentIndex = target          /* 先切索引，让新视频立刻开始加载 */
+      this.animateTo(this.offsetY, to, () => {
+        this.playAt(target)
+        this._switching = false
+      })
+      if (this.hasMore && target >= this.list.length - 3) this.loadMore()
+    },
+    /* 和原生播放器状态同步：这样中间那个暂停图标才准 */
+    onVPlay() { this.isPlaying = true },
+    onVPause() {
+      if (this._switching) return   /* 切页顺手暂停的，不算暂停，别显示图标 */
+      this.isPlaying = false
+    },
+    close() {
+      this.pauseAt(this.playing)
+      uni.navigateBack()
+    },
+
+    /* ---------- 右侧操作 ---------- */
+    goUser() {
+      const uid = this.cur.userId
+      if (!uid) return
+      this.close()
+      uni.navigateTo({ url: '/pages/user/profile?userId=' + uid })
+    },
+    async onFollow() {
+      if (this.busy) return
+      const uid = this.cur.userId
+      if (!uid) return
+      if (!this.needLogin()) return
+      this.busy = true
+      try {
+        /* 后端 follow 是“切换”语义：已关注再调就取关；响应带 following / is_following */
+        const res = await request('user.php', { action: 'toggleFollow', uid: uid }, { method: 'POST' })
+        if (res && res.code === 0) {
+          const d = res.data || {}
+          const following = (typeof d.following !== 'undefined')
+            ? !!d.following
+            : ((typeof d.is_following !== 'undefined') ? !!d.is_following : !this.cur.isFollowed)
+          /* 同一个作者可能有多条视频，状态要一起改 —— 否则滑到他的下一条又冒出 +。
+             只改属性、不替换整个对象：替换对象会让 swiper 整条重渲染，滑动中容易被打断 */
+          this.list.forEach((it) => {
+            if (it && String(it.userId) === String(uid)) it.isFollowed = following
+          })
+          uni.showToast({ title: following ? '已关注' : '已取消关注', icon: 'none' })
+        } else {
+          uni.showToast({ title: (res && res.msg) || '操作失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '网络异常', icon: 'none' })
+      } finally {
+        this.busy = false
+      }
+    },
+    async onLike() {
+      if (this.busy) return
+      const id = this.cur.id
+      if (!id || !this.needLogin()) return
+      this.busy = true
+      try {
+        const res = await request('post.php', { action: 'like', id: id, postId: id }, { method: 'POST' })
+        if (res && res.code === 0) {
+          const d = res.data || {}
+          const liked = typeof d.is_liked !== 'undefined' ? !!d.is_liked : !!d.liked
+          const cnt = typeof d.like_count !== 'undefined' ? Number(d.like_count) : Number(d.likes)
+          this.$set(this.list[this.currentIndex], 'isLiked', liked)
+          if (!isNaN(cnt)) this.$set(this.list[this.currentIndex], 'likeCount', cnt)
+        } else {
+          uni.showToast({ title: (res && res.msg) || '操作失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '网络异常', icon: 'none' })
+      } finally {
+        this.busy = false
+      }
+    },
+    async onCollect() {
+      if (this.busy) return
+      const id = this.cur.id
+      if (!id || !this.needLogin()) return
+      this.busy = true
+      try {
+        const res = await request('post.php', { action: 'collect', id: id, postId: id }, { method: 'POST' })
+        if (res && res.code === 0) {
+          const collected = !!(res.data && res.data.collected)
+          this.$set(this.list[this.currentIndex], 'isCollected', collected)
+          uni.showToast({ title: collected ? '收藏成功' : '已取消收藏', icon: 'none' })
+        } else {
+          uni.showToast({ title: (res && res.msg) || '操作失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '网络异常', icon: 'none' })
+      } finally {
+        this.busy = false
+      }
+    },
+    onShare() {
+      const id = this.cur.id
+      let link = ''
+      try {
+        const base = String(webBaseUrl || '').replace(/\/+$/, '')
+        link = base + '/#/pages/post-detail/post-detail?id=' + (id || '')
+      } catch (e) {}
+      if (!link) return uni.showToast({ title: '暂无可分享的链接', icon: 'none' })
+      uni.setClipboardData({
+        data: link,
+        success: () => { uni.showToast({ title: '链接已复制，去粘贴分享吧', icon: 'none' }) }
+      })
+    },
+
+    /* ---------- 评论 ---------- */
+    async openComment() {
+      this.showComment = true
+      const id = this.cur.id
+      if (!id) return
+      try {
+        /* 列表接口在映射表里叫 getCommentList（→ post/comments） */
+        const res = await request('post.php', { action: 'getCommentList', postId: id, page: 1, pageSize: 50 }, { method: 'GET' })
+        if (res && res.code === 0) {
+          const d = res.data || {}
+          const raw = Array.isArray(d) ? d : (Array.isArray(d.list) ? d.list : (Array.isArray(d.comments) ? d.comments : []))
+          /* 整理成「顶层评论 + 子回复」两层，回复才会挂在原评论下面 */
+          this.comments = this.buildTree(raw.map(c => ({
+            id: c.id,
+            uid: c.uid || '',
+            parentId: c.parent_id || 0,
+            avatar: (c.author && c.author.avatar) || c.avatar || '',
+            name: c.name || (c.author && (c.author.nickname || c.author.username)) || '匿名',
+            content: c.content || '',
+            timeText: this.formatTime(c.create_time || c.created_at || '')
+          })))
+        } else {
+          uni.showToast({ title: (res && res.msg) || '评论加载失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '评论加载失败', icon: 'none' })
+      }
+    },
+    /* 点“回复”：记住回复对象，输入框的提示会变成“回复 @某某” */
+    setReply(c) {
+      if (!c) return
+      this.replyTo = { id: c.id, uid: c.uid || '', name: c.name || '匿名' }
+      this.showComment = true
+      uni.showToast({ title: '回复 @' + (c.name || '匿名'), icon: 'none' })
+    },
+    /* 把平铺的评论整理成两层：顶层评论各自带 children（子回复） */
+    buildTree(flat) {
+      const tops = []
+      const byId = {}
+      flat.forEach(c => { byId[String(c.id)] = c })
+      flat.forEach(c => {
+        if (String(c.parentId || '0') === '0') {
+          c.children = []
+          c.expanded = false
+          tops.push(c)
+        }
+      })
+      flat.forEach(c => {
+        const pid = String(c.parentId || '0')
+        if (pid === '0') return
+        let p = byId[pid]
+        /* 二级以上的回复统一挂到顶层那条下面，和图文帖一致 */
+        if (p && String(p.parentId || '0') !== '0') p = byId[String(p.parentId)] || p
+        const host = p || tops[tops.length - 1]
+        if (!host) return
+        c.replyName = (byId[pid] && byId[pid].name) || ''
+        if (!host.children) host.children = []
+        host.children.push(c)
+      })
+      return tops
+    },
+    /* 默认只显示前 2 条回复，其余折叠起来 */
+    visibleChildren(item) {
+      if (!item || !item.children) return []
+      return item.expanded ? item.children : item.children.slice(0, 2)
+    },
+    toggleReplies(item) {
+      if (!item) return
+      item.expanded = !item.expanded
+    },
+    replyToggleText(item) {
+      if (!item || !item.children) return ''
+      return item.expanded ? '收起回复' : ('查看 ' + item.children.length + ' 条回复')
+    },
+    /* 找到某条评论所属的顶层评论：回复发出去后要挂到它下面 */
+    findHost(id) {
+      const key = String(id)
+      for (let i = 0; i < this.comments.length; i++) {
+        const t = this.comments[i]
+        if (String(t.id) === key) return t
+        const kids = t.children || []
+        for (let j = 0; j < kids.length; j++) {
+          if (String(kids[j].id) === key) return t
+        }
+      }
+      return null
+    },
+    /* 时间文案，和普通文章评论区保持一致：刚刚 / N分钟前 / N小时前 / N天前 / 月日 */
+    formatTime(t) {
+      if (!t) return ''
+      const d = new Date(String(t).replace(/-/g, '/'))
+      if (isNaN(d.getTime())) return String(t)
+      const diff = (Date.now() - d.getTime()) / 1000
+      if (diff < 60) return '刚刚'
+      if (diff < 3600) return Math.floor(diff / 60) + '分钟前'
+      if (diff < 86400) return Math.floor(diff / 3600) + '小时前'
+      if (diff < 2592000) return Math.floor(diff / 86400) + '天前'
+      return (d.getMonth() + 1) + '月' + d.getDate() + '日'
+    },
+    async sendComment() {
+      const txt = String(this.commentInput || '').trim()
+      if (!txt) return uni.showToast({ title: '说点什么吧', icon: 'none' })
+      const id = this.cur.id
+      if (!id || !this.needLogin()) return
+      const reply = this.replyTo
+      this.busy = true
+      try {
+        const res = await request('post.php', {
+          action: 'comment',
+          postId: id,
+          id: id,
+          content: txt,
+          parent_id: reply ? reply.id : 0,
+          reply_uid: reply ? reply.uid : ''
+        }, { method: 'POST' })
+        if (res && res.code === 0) {
+          const item = {
+            avatar: (this.userInfo && this.userInfo.avatar) || '',
+            name: '我',
+            content: txt,
+            timeText: '刚刚'
+          }
+          if (reply) {
+            /* 回复：挂到被回复那条的顶层评论下面，并自动展开 —— 不再变成一条新评论 */
+            item.replyName = reply.name
+            const host = this.findHost(reply.id)
+            if (host) {
+              if (!host.children) host.children = []
+              host.children.push(item)
+              host.expanded = true
+            } else {
+              this.comments.push(item)
+            }
+          } else {
+            this.comments.push(item)
+          }
+          this.commentInput = ''
+          this.replyTo = null
+          const n = Number(this.cur.commentCount || 0) + 1
+          this.$set(this.list[this.currentIndex], 'commentCount', n)
+          uni.showToast({ title: '评论成功', icon: 'none' })
+        } else {
+          uni.showToast({ title: (res && res.msg) || '评论失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '网络异常', icon: 'none' })
+      } finally {
+        this.busy = false
+      }
+    },
+
+    /* ---------- 打赏 ---------- */
+    openReward() {
+      if (!this.needLogin()) return
+      this.showReward = true
+    },
+    async doReward() {
+      if (this.busy) return
+      const id = this.cur.id
+      if (!id) return
+      this.busy = true
+      try {
+        const res = await request('post.php', {
+          action: 'reward_post',
+          post_id: id,
+          id: id,
+          amount: this.rewardAmount,
+          currency: 'points'
+        }, { method: 'POST' })
+        if (res && res.code === 0) {
+          this.showReward = false
+          uni.showToast({ title: '打赏成功', icon: 'none' })
+        } else {
+          uni.showToast({ title: (res && res.msg) || '打赏失败', icon: 'none' })
+        }
+      } catch (e) {
+        uni.showToast({ title: '网络异常', icon: 'none' })
+      } finally {
+        this.busy = false
+      }
+    },
+
+    /* ---------- 工具 ---------- */
+    myUid() {
+      return (this.userInfo && (this.userInfo.id || this.userInfo.uid)) || ''
+    },
+    needLogin() {
+      const t = uni.getStorageSync('token')
+      if (!t) {
+        this.close()
+        uni.navigateTo({ url: '/pages/login/login' })
+        return false
+      }
+      if (!this.userInfo) this.userInfo = uni.getStorageSync('userInfo') || null
+      return true
+    }
+  }
+}
+</script>
+
+<style>
+.page { flex: 1; background-color: #000000; overflow: hidden; }
+/* 自己实现的竖向翻页：外层裁切，内层跟着手指 translateY */
+.pager { flex: 1; overflow: hidden; }
+.track { width: 750rpx; }
+/* 注意：这里必须叫 page-item，不能叫 item —— 右侧竖排的按钮已经占用了 .item */
+.page-item { width: 750rpx; }
+.video { flex: 1; }
+
+/* 手势层只盖住视频区域，z-index 给低一点；上面的按钮层级更高，点击才不会被它吃掉 */
+.gesture-layer { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 5; background-color: rgba(0,0,0,0); }
+.center-play { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 4; align-items: center; justify-content: center; }
+.center-play-icon { color: #ffffff; font-size: 110rpx; opacity: 0.8; }
+
+.close { position: absolute; left: 24rpx; top: 70rpx; width: 64rpx; height: 64rpx; border-radius: 32rpx; background-color: rgba(0,0,0,0.45); align-items: center; justify-content: center; z-index: 10; }
+.close-x { color: #ffffff; font-size: 44rpx; }
+
+.side { position: absolute; right: 20rpx; bottom: 170rpx; align-items: center; z-index: 10; }
+.avatar-wrap { width: 88rpx; height: 88rpx; margin-bottom: 10rpx; }
+.avatar { width: 88rpx; height: 88rpx; border-radius: 44rpx; border-width: 3rpx; border-style: solid; border-color: #ffffff; }
+.follow { width: 36rpx; height: 36rpx; border-radius: 18rpx; background-color: #ff2442; align-items: center; justify-content: center; margin-bottom: 44rpx; }
+.follow-plus { color: #ffffff; font-size: 24rpx; }
+/* 拉开每个按钮的间距：之前太挤，头像和点赞几乎贴在一起 */
+.item { align-items: center; margin-bottom: 44rpx; }
+.icon { width: 56rpx; height: 56rpx; }
+.num { color: #ffffff; font-size: 24rpx; margin-top: 6rpx; }
+
+.info { position: absolute; left: 24rpx; right: 160rpx; bottom: 46rpx; z-index: 10; }
+.name { color: #ffffff; font-size: 30rpx; font-weight: bold; }
+.title { color: #ffffff; font-size: 26rpx; margin-top: 8rpx; }
+
+.mask { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(0,0,0,0.6); justify-content: flex-end; }
+/* 弹层：高度由 sheetH 决定（自适应屏幕）；纵向排布，列表占满，输入行钉在底部 */
+.sheet { width: 750rpx; background-color: #ffffff; border-top-left-radius: 24rpx; border-top-right-radius: 24rpx; padding-top: 24rpx; flex-direction: column; }
+.sheet-title { color: #333333; font-size: 30rpx; font-weight: bold; text-align: center; margin-bottom: 16rpx; }
+/* flex:1 撑满剩余空间，输入行才会一直留在底部可见 */
+.sheet-list { flex: 1; padding-left: 24rpx; padding-right: 24rpx; }
+/* 评论项：照普通文章评论区的样式来（头像在左 / 昵称在上 / 内容装浅灰气泡 / 下面时间和回复） */
+.cmt-item { flex-direction: row; padding-top: 24rpx; padding-bottom: 24rpx; border-bottom-width: 1rpx; border-bottom-style: solid; border-bottom-color: #f0f1f4; }
+.cmt-avatar { width: 72rpx; height: 72rpx; border-radius: 36rpx; background-color: #eeeeee; }
+.cmt-main { flex: 1; margin-left: 16rpx; }
+.cmt-name { color: #555555; font-size: 26rpx; font-weight: bold; }
+/* nvue 下不用多值 padding 简写，避免布局异常 */
+.cmt-bubble { margin-top: 10rpx; border-radius: 18rpx; background-color: #f6f7fb; padding-left: 18rpx; padding-right: 18rpx; padding-top: 16rpx; padding-bottom: 16rpx; }
+/* 注意：nvue 不接受无单位的 line-height（1.8 会被当成 1.8px，正文会被压没），必须带单位 */
+.cmt-text { color: #222222; font-size: 28rpx; line-height: 48rpx; }
+.cmt-actions { flex-direction: row; align-items: center; margin-top: 10rpx; }
+.cmt-time { color: #999999; font-size: 22rpx; margin-right: 24rpx; }
+.cmt-reply { color: #999999; font-size: 22rpx; }
+/* 子回复：和图文帖一样挂在原评论下面，浅灰底 */
+.sub-list { margin-top: 12rpx; background-color: #f7f8fa; border-radius: 14rpx; padding-left: 16rpx; padding-right: 16rpx; padding-top: 6rpx; padding-bottom: 6rpx; }
+.sub-item { padding-top: 12rpx; padding-bottom: 12rpx; }
+.sub-head { flex-direction: row; align-items: center; }
+.sub-name { color: #576b95; font-size: 24rpx; font-weight: bold; }
+.sub-replyto { color: #888888; font-size: 24rpx; }
+.sub-bubble { margin-top: 6rpx; }
+.sub-text { color: #333333; font-size: 26rpx; line-height: 44rpx; }
+.sub-actions { flex-direction: row; align-items: center; margin-top: 6rpx; }
+.sub-time { color: #999999; font-size: 22rpx; margin-right: 24rpx; }
+.sub-reply { color: #999999; font-size: 22rpx; }
+.sub-toggle { padding-top: 10rpx; padding-bottom: 10rpx; }
+.sub-toggle-t { color: #576b95; font-size: 24rpx; }
+.c-empty { align-items: center; padding-top: 60rpx; padding-bottom: 60rpx; }
+.c-empty-t { color: #999999; font-size: 26rpx; }
+/* 输入行：给固定高度，nvue 下不用多值 padding 简写，避免布局塌掉、发送按钮被挤没 */
+.c-input-row { flex-direction: row; align-items: center; height: 124rpx; padding-left: 24rpx; padding-right: 24rpx; border-top-width: 1rpx; border-top-style: solid; border-top-color: #eeeeee; }
+.c-input { flex: 1; height: 76rpx; background-color: #f5f5f5; border-radius: 38rpx; padding-left: 28rpx; padding-right: 20rpx; color: #333333; font-size: 28rpx; }
+.c-send { width: 132rpx; height: 76rpx; border-radius: 38rpx; background-color: #ff2c55; align-items: center; justify-content: center; margin-left: 16rpx; }
+.c-send-t { color: #ffffff; font-size: 28rpx; }
+
+.amt-row { flex-direction: row; flex-wrap: wrap; justify-content: space-between; padding-left: 24rpx; padding-right: 24rpx; margin-top: 16rpx; }
+.amt { width: 330rpx; height: 88rpx; border-radius: 44rpx; border-width: 2rpx; border-style: solid; border-color: #e5e5e5; background-color: #ffffff; align-items: center; justify-content: center; margin-bottom: 20rpx; }
+.amt-on { border-color: #ff2c55; background-color: #fff0f3; }
+.amt-t { color: #333333; font-size: 28rpx; }
+.reward-btn { height: 88rpx; border-radius: 44rpx; background-color: #ff2c55; align-items: center; justify-content: center; margin-left: 24rpx; margin-right: 24rpx; margin-top: 10rpx; margin-bottom: 50rpx; }
+.reward-btn-t { color: #ffffff; font-size: 30rpx; font-weight: bold; }
+</style>

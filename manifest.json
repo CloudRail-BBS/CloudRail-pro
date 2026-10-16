@@ -18,7 +18,9 @@
         },
         "modules" : {
             "Push" : {},
-            "VideoPlayer" : {}
+            "VideoPlayer" : {},
+            "Camera" : {},
+            "Gallery" : {}
         },
         "distribute" : {
             "android" : {

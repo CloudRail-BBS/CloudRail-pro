@@ -69,7 +69,7 @@ export default {
             page: 1,
             hasMore: true,
             loading: false,
-            defaultAvatar: 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg'
+            defaultAvatar: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg'
         }
     },
     onLoad(opt = {}) {

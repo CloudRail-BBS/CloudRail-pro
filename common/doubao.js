@@ -1,4 +1,4 @@
-const SILICONFLOW_API_KEY = 'sk-dzqfcrfmtoxiiktmdgvaxlvjfgahlcmdfeinomdlczliowuo'
+const SILICONFLOW_API_KEY = 'sk-your-siliconflow-api-key'
 const MODEL_NAME = 'Qwen/Qwen3-8B'
 const MIN_RESPONSE_TIME = 1500
 

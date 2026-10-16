@@ -170,7 +170,7 @@
 
         <text v-if="getPostDesc(post)" class="feed-desc">{{ getPostDesc(post) }}</text>
 
-        <view v-if="post.douyin_url && post.douyin_cover" class="feed-douyin-card" @click.stop="goPostDetail(post)">
+        <view v-if="post.douyin_url && post.douyin_cover" class="feed-douyin-card" @click.stop="openDouyin(post)">
           <image :src="post.douyin_cover" class="douyin-cover" mode="aspectFill"></image>
           <view class="douyin-play-btn">
             <view class="douyin-play-icon"></view>
@@ -180,7 +180,7 @@
           </view>
         </view>
 
-        <view v-if="shouldRenderMedia(post)" class="feed-media">
+        <view v-if="shouldRenderMedia(post)" class="feed-media" @click.stop="onMediaClick(post)">
           <view
             class="feed-media-grid"
             :class="`count-${getDisplayMedia(post).length}`"
@@ -234,15 +234,30 @@
     </view>
 
     <view style="height: 128rpx;"></view>
+
+    <!-- 视频帖：点封面/视频直接进抖音式全屏播放（图文/文字帖仍走原来的详情页） -->
+    <DouyinPlayer
+      :show="showDouyinPlayer"
+      :videoList="douyinVideoList"
+      :initialIndex="douyinIndex"
+      :userInfo="userInfo"
+      :postTitle="douyinPostTitle"
+      :postAuthorAvatar="douyinAuthorAvatar"
+      @update:show="showDouyinPlayer = $event"
+      @like="onDouyinLike"
+      @collect="onDouyinCollect"
+    />
   </view>
 </template>
 
 <script>
 import { getLevelDisplay as calcLevelDisplay } from '../common/level.js'
-import { bmsBaseUrl } from '../common/request.js'
+import { bmsBaseUrl, request } from '../common/request.js'
+import DouyinPlayer from './DouyinPlayer.vue'
 
 export default {
   name: 'HomeTextFlowTheme',
+  components: { DouyinPlayer },
   props: {
     userInfo: { type: Object, default: null },
     currentTab: { type: Number, default: 1 },
@@ -258,6 +273,12 @@ export default {
   data() {
     return {
       brokenBannerIndexes: [],
+      /* 抖音式全屏播放器（视频帖专用） */
+      showDouyinPlayer: false,
+      douyinVideoList: [],
+      douyinIndex: 0,
+      douyinPostTitle: '',
+      douyinAuthorAvatar: '',
       quickEntries: [
         { title: '聚合应用', icon: '', iconClass: 'quick-icon-hub', url: '/pages/hub/hub' },
         { title: '积分好礼', icon: '', iconClass: 'quick-icon-lottery', url: '/pages/lottery/index' },
@@ -436,6 +457,114 @@ export default {
     goPostDetail(post) {
       if (!post) return
       this.$emit('goPostDetail', post)
+    },
+
+    /* 取视频帖的播放地址：优先后端解析好的 douyin_url，其次上传视频 video */
+    postVideoUrl(post) {
+      if (!post) return ''
+      const d = String(post.douyin_url || '').trim()
+      if (d && d !== '0' && d !== 'null' && d !== 'undefined') return d
+      const v = String(post.video || '').trim()
+      if (v && v !== '0' && v !== 'null' && v !== 'undefined') return v
+      return ''
+    },
+
+    /* 把一条帖子转成播放器需要的数据 */
+    buildDouyinItem(post) {
+      return {
+        id: post.id,
+        url: this.postVideoUrl(post),
+        cover: post.douyin_cover || post.coverImage || this.getFirstImage(post) || '/static/logo.png',
+        title: post.douyin_title || this.getPostTitle(post) || '视频',
+        author: post.douyin_author || post.name || post.username || '匿名',
+        authorId: post.user_id,
+        userId: post.user_id,
+        avatar: post.avatar || '/static/logo.png',
+        authorAvatar: post.avatar || '/static/logo.png',
+        likeCount: Number(post.like_count) || 0,
+        commentCount: Number(post.comment_count) || 0,
+        isLiked: !!post.is_liked,
+        isCollected: !!post.is_collected,
+        isFollowed: !!post.is_followed,
+        comments: []
+      }
+    },
+
+    /* 视频帖：点封面直接进抖音式全屏播放；图文/文字帖保持原样进详情页。
+       把列表里所有视频帖一起传进去，这样能像抖音那样上下滑刷下一个。 */
+    openDouyin(post) {
+      if (!post) return
+      /* 付费/评论解锁贴不在这里直接放，仍走详情页去解锁 */
+      if (this.isLockedPost(post)) { this.goPostDetail(post); return }
+      if (!this.postVideoUrl(post)) { this.goPostDetail(post); return }
+
+      const all = (this.postList || []).filter(p => p && this.postVideoUrl(p))
+      let idx = all.findIndex(p => String(p.id) === String(post.id))
+      if (idx < 0) { all.unshift(post); idx = 0 }
+      /* 只取一小段窗口，避免一次加载太多原生视频导致卡顿 */
+      const start = Math.max(0, Math.min(idx - 2, all.length - 10))
+      const win = all.slice(start, start + 10)
+      const winIdx = Math.max(0, idx - start)
+
+      // #ifdef APP-PLUS
+      /* App 端原生视频会盖住普通 view，而 cover-view 在 vue3 下点击不通，
+         所以改跳 nvue 原生页面播放：那边普通 view 能正常压在视频上、点得动。
+         只传帖子 id —— nvue 页和 vue 页是两套 JS 运行时、模块状态不共享，
+         全局变量传不过去，让播放器页自己按 id 去接口取真实数据 */
+      uni.navigateTo({ url: '/pages/videoplayer/douyin?id=' + post.id })
+      return
+      // #endif
+
+      this.douyinVideoList = win.map(p => this.buildDouyinItem(p))
+      this.douyinIndex = winIdx
+      this.douyinPostTitle = this.getPostTitle(post) || ''
+      this.douyinAuthorAvatar = post.avatar || ''
+      this.showDouyinPlayer = true
+    },
+
+    /* 媒体区点击：视频帖进播放器，其余照旧进详情页 */
+    onMediaClick(post) {
+      if (this.postVideoUrl(post)) this.openDouyin(post)
+      else this.goPostDetail(post)
+    },
+
+    /* 播放器里点赞：先本地变，再同步后端 */
+    async onDouyinLike(payload) {
+      const v = (payload && payload.video) || {}
+      const id = v.id
+      if (!id) return
+      try {
+        const res = await request('post.php', { action: 'like', id: id, postId: id }, { method: 'POST' })
+        if (!res || res.code !== 0) return
+        const d = res.data || {}
+        const liked = (typeof d.is_liked !== 'undefined') ? !!d.is_liked
+          : (typeof d.liked !== 'undefined' ? !!d.liked : !!(payload && payload.liked))
+        const cnt = (typeof d.like_count !== 'undefined') ? Number(d.like_count)
+          : (typeof d.likes !== 'undefined' ? Number(d.likes) : null)
+        const idx = payload && payload.index
+        if (this.douyinVideoList[idx]) {
+          this.$set(this.douyinVideoList[idx], 'isLiked', liked)
+          if (cnt !== null) this.$set(this.douyinVideoList[idx], 'likeCount', cnt)
+        }
+        const p = (this.postList || []).find(x => x && x.id === id)
+        if (p) { p.is_liked = liked; if (cnt !== null) p.like_count = cnt }
+      } catch (e) {}
+    },
+
+    /* 播放器里收藏：同步后端并回写状态 */
+    async onDouyinCollect(payload) {
+      const v = (payload && payload.video) || {}
+      const id = v.id
+      if (!id) return
+      try {
+        const res = await request('post.php', { action: 'collect', id: id, postId: id }, { method: 'POST' })
+        if (!res || res.code !== 0) return
+        const collected = !!(res.data && res.data.collected)
+        const idx = payload && payload.index
+        if (this.douyinVideoList[idx]) this.$set(this.douyinVideoList[idx], 'isCollected', collected)
+        const p = (this.postList || []).find(x => x && x.id === id)
+        if (p) p.is_collected = collected
+      } catch (e) {}
     },
 
     goUserProfile(uid) {

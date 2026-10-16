@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="index-container">
     <!-- 权限拒绝提示 -->
     <view class="access-denied" v-if="accessDenied">
@@ -108,82 +108,119 @@
       </view>
 
       <!-- 整页滚动容器（含头部与帖子） -->
-        <view class="feed-list" v-if="firstLoading">
-          <view class="feed-card skeleton-card" v-for="i in 4" :key="i">
-            <view class="sk-user"></view>
-            <view class="sk-txt"></view>
-            <view class="sk-img"></view>
+        <view class="waterfall-wrap" v-if="firstLoading">
+          <view class="waterfall-col" v-for="colIdx in [0, 1]" :key="colIdx">
+            <view class="skeleton-card fade-in-up" v-for="i in 2" :key="i">
+              <view class="sk-img"></view>
+              <view class="sk-txt"></view>
+              <view class="sk-user"></view>
+            </view>
           </view>
         </view>
-        <view class="feed-list" v-else-if="postList.length > 0">
-          <view class="feed-card" v-for="post in feedPosts" :key="post.id" @click="goPost(post.id)">
-            <view class="feed-author">
-              <view class="user-avatar-box">
-                <image :src="post.avatar || '/static/logo.png'" class="user-avatar" mode="aspectFill"></image>
-                <image v-if="post.frame_img" :src="post.frame_img" class="user-frame" mode="aspectFit"></image>
+        <view class="waterfall-wrap" v-else-if="postList.length > 0">
+          <view class="waterfall-col" v-for="(col, colIndex) in [colL, colR]" :key="colIndex">
+            <view class="post-card fade-in-up" v-for="post in col" :key="post.id" @click="goPost(post.id)">
+              <view v-if="parseInt(post.status || 1) === 0" class="status-mask">
+                <text class="status-text">已被屏蔽</text>
               </view>
-              <view class="author-meta">
-                <view class="author-name-row">
-                <text class="user-name" :class="{ 'fancy-text': parseInt(post.is_fancy || 0) === 1, 'vip-fancy-text': parseInt(post.vip || 0) === 1 }">{{ post.display_name }}</text>
-                  <view v-if="parseInt(post.vip || 0) === 1" class="author-name-badge">
-                    <view class="vip-badge-inner">
-                      <image class="vip-badge-crown-img" src="/static/icon/crown-white.svg" mode="aspectFit" />
-                      <text class="vip-badge-text">VIP</text>
-                    </view>
-                  </view>
-                  <view class="author-level-tag" :class="'lv-tier-' + getLevelTier(getLevelDisplay(post.lv))">
-                    <image class="level-star-img" src="/static/icon/star-white.svg" mode="aspectFit" />
-                    <text class="author-level-text">Lv.{{ getLevelDisplay(post.lv) }}</text>
-                  </view>
-                  <view v-if="post.user_title" class="author-title-badge">
-                    <image class="author-title-icon-img" src="/static/icon/check-white.svg" mode="aspectFit" />
-                    <text class="author-title-text">{{ post.user_title }}</text>
-                  </view>
-                </view>
-                <text class="post-time">{{ formatTime(post.create_time) }}</text>
+              <view v-else-if="parseInt(post.status || 1) === 2" class="status-mask">
+                <text class="status-text">审核中</text>
               </view>
               <text class="pin-badge" v-if="parseInt(post.zhiding || 0) === 1">置顶</text>
-              <text class="status-badge pending" v-if="parseInt(post.status || 1) === 2">待审</text>
-              <text class="status-badge offline" v-if="parseInt(post.status || 1) === 0">下线</text>
-            </view>
-            <text class="feed-title" :class="{ 'fancy-text': parseInt(post.is_fancy || 0) === 1 }">{{ post.title || '无标题' }}</text>
-            <text class="feed-text" v-if="isLockedPost(post) || post.plainContent">{{ isLockedPost(post) ? getLockedPlaceholderText(post) : post.plainContent }}</text>
-            <!-- 抖音视频预览 -->
-            <view v-if="post.douyin_url && post.douyin_cover" class="feed-douyin-wrap" @click.stop="openPostVideo(post)">
-              <image :src="post.douyin_cover" class="feed-douyin-cover" mode="aspectFill"></image>
-              <view class="feed-douyin-play-btn">
-                <view class="feed-douyin-play-icon"></view>
-              </view>
-              <view class="feed-douyin-info">
-                <text class="feed-douyin-title">{{ post.douyin_title || '抖音视频' }}</text>
-              </view>
-            </view>
-            <view class="feed-cover" v-if="!post.douyin_url && post.coverImage">
-              <image :src="post.coverImage" class="feed-img" mode="aspectFill"></image>
-              <image v-if="post.video" src="/static/icon/video.png" class="video-badge-img"></image>
-              <view class="img-count-badge" v-if="!post.video && post.images && post.images.length > 1"><text>{{ post.images.length }}</text></view>
-              <view v-if="isLockedPost(post)" class="feed-cover-lock-overlay">
-                <image src="/static/icon/lock.png" class="feed-lock-icon" mode="aspectFit"></image>
-              </view>
-            </view>
-            <view class="feed-actions">
-              <view class="feed-actions-left">
-                <view v-if="parseInt(post.is_fancy || 0) === 1 && post.display_number" class="fancy-badge-inline">
-                  <image src="/static/vip/lianghao.webp" class="fbi-icon" mode="aspectFit"></image>
-                  <text class="fbi-num">{{ post.display_number }}</text>
+
+              <!-- 抖音视频 -->
+              <view v-if="post.douyin_url && post.douyin_cover" class="card-douyin-wrap" @click.stop="openPostVideo(post)">
+                <image :src="post.douyin_cover" class="card-douyin-cover" mode="aspectFill"></image>
+                <view class="card-douyin-play-btn">
+                  <view class="card-douyin-play-icon"></view>
                 </view>
-                <text v-else-if="post.display_number" class="ordinary-num-inline">{{ post.display_number }}</text>
+                <view class="card-douyin-info">
+                  <text class="card-douyin-title">{{ post.douyin_title || '抖音视频' }}</text>
+                </view>
+                <view v-if="parseInt(post.is_paid || 0) === 1 && !post.is_unlocked" class="lock-badge paid-lock">
+                  <text class="lock-badge-text">¥{{ post.price || 0 }}</text>
+                </view>
+                <view v-else-if="parseInt(post.is_comment_unlock || 0) === 1 && !post.is_unlocked" class="lock-badge comment-lock">
+                  <text class="lock-badge-text">评论可见</text>
+                </view>
               </view>
-              <view class="feed-actions-right">
-                <text>{{ formatNum(post.view_count || 0) }} 浏览</text>
-                <text>{{ formatNum(post.comment_count || 0) }} 回复</text>
-                <text>{{ formatNum(post.like_count || 0) }} 赞</text>
+
+              <!-- 图文封面 -->
+              <view v-else-if="post.coverImage || (isLockedPost(post) && getFirstImage(post))" class="card-img-wrap">
+                <image :src="post.coverImage || getFirstImage(post)" class="card-img" mode="widthFix" lazy-load></image>
+                <image v-if="post.video" src="/static/icon/video.png" class="video-badge-img"></image>
+                <view v-else-if="post.images && post.images.length > 1" class="img-count-badge">
+                  <text>{{ post.images.length }}</text>
+                </view>
+                <view v-if="parseInt(post.is_paid || 0) === 1 && !post.is_unlocked" class="lock-badge paid-lock">
+                  <text class="lock-badge-text">¥{{ post.price || 0 }}</text>
+                </view>
+                <view v-else-if="parseInt(post.is_comment_unlock || 0) === 1 && !post.is_unlocked" class="lock-badge comment-lock">
+                  <text class="lock-badge-text">评论可见</text>
+                </view>
               </view>
-            </view>
-            <view class="moderator-actions" v-if="isModerator">
-              <view class="mod-btn" @click.stop="moderatePost(post, 2)">设为待审</view>
-              <view class="mod-btn primary" @click.stop="moderatePost(post, 1)">恢复正常</view>
-              <view class="mod-btn danger" @click.stop="deleteManagedPost(post)">删除</view>
+
+              <!-- 纯文字封面 -->
+              <view v-else-if="post.isTextOnly && post.textCoverData" class="card-text-cover" :style="{ background: post.textCoverData.gradient }">
+                <view class="text-cover-content">
+                  <text class="text-cover-title">{{ post.textCoverData.title }}</text>
+                  <text v-if="post.textCoverData.subtitle && post.textCoverData.subtitle !== post.textCoverData.title" class="text-cover-subtitle">{{ post.textCoverData.subtitle }}</text>
+                </view>
+                <view class="text-cover-tag">文字</view>
+                <view v-if="parseInt(post.is_paid || 0) === 1 && !post.is_unlocked" class="lock-badge paid-lock">
+                  <text class="lock-badge-text">¥{{ post.price || 0 }}</text>
+                </view>
+                <view v-else-if="parseInt(post.is_comment_unlock || 0) === 1 && !post.is_unlocked" class="lock-badge comment-lock">
+                  <text class="lock-badge-text">评论可见</text>
+                </view>
+              </view>
+
+              <!-- 纯文字 -->
+              <view v-else class="card-text-only">
+                <text class="text-preview">{{ post.plainContent || '点击查看详情' }}</text>
+                <view v-if="parseInt(post.is_paid || 0) === 1 && !post.is_unlocked" class="lock-badge paid-lock">
+                  <text class="lock-badge-text">¥{{ post.price || 0 }}</text>
+                </view>
+                <view v-else-if="parseInt(post.is_comment_unlock || 0) === 1 && !post.is_unlocked" class="lock-badge comment-lock">
+                  <text class="lock-badge-text">评论可见</text>
+                </view>
+              </view>
+
+              <view class="card-content">
+                <view v-if="post.mark || post.classification_name" class="card-tags">
+                  <text class="card-tag" v-if="post.mark">{{ post.mark }}</text>
+                  <text class="card-tag tag-secondary" v-else-if="post.classification_name">{{ post.classification_name }}</text>
+                </view>
+
+                <text class="card-title" :class="{ 'vip-title': isVipUser(post) }">{{ getPostTitle(post) }}</text>
+
+                <view class="card-footer">
+                  <view class="user-row" @click.stop="goUserProfile(post.user_id)">
+                    <view class="user-avatar-box">
+                      <image :src="post.avatar || '/static/logo.png'" class="user-avatar" mode="aspectFill" lazy-load></image>
+                      <image v-if="getAvatarFrame(post)" :src="getAvatarFrame(post)" class="user-frame" mode="scaleToFill"></image>
+                    </view>
+                    <view class="user-meta">
+                      <scroll-view class="user-name-scroll" scroll-x :show-scrollbar="false">
+                        <text class="user-name" :class="{ 'vip-rainbow-text': isVipUser(post) }">{{ getUserName(post) }}</text>
+                      </scroll-view>
+                    </view>
+                  </view>
+
+                  <view class="action-row">
+                    <view class="like-btn" :class="{ liked: post.is_liked }" @click.stop="toggleLike(post)">
+                      <image :src="post.is_liked ? '/static/post/xih1.png' : '/static/post/xih0.png'" class="action-icon-img" mode="aspectFit"></image>
+                      <text class="action-num">{{ formatNum(post.like_count) }}</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
+
+              <view class="moderator-actions" v-if="isModerator">
+                <view class="mod-btn" @click.stop="moderatePost(post, 2)">设为待审</view>
+                <view class="mod-btn primary" @click.stop="moderatePost(post, 1)">恢复正常</view>
+                <view class="mod-btn danger" @click.stop="deleteManagedPost(post)">删除</view>
+              </view>
             </view>
           </view>
         </view>
@@ -799,6 +836,63 @@ export default {
       return `${y}-${m}-${d}`;
     },
 
+    getAvatarFrame(post) {
+      return (post && (post.current_frame_img || post.frame_img)) || '';
+    },
+
+    getUserName(post) {
+      return (post && (post.name || post.username || post.display_name)) || '匿名';
+    },
+
+    getPostTitle(post) {
+      return (post && post.title) || '无标题';
+    },
+
+    isVipUser(post) {
+      return parseInt((post && post.vip) || 0) === 1;
+    },
+
+    getFirstImage(post) {
+      if (!post) return '';
+      if (post.coverImage) return post.coverImage;
+      let images = [];
+      if (Array.isArray(post.images)) {
+        images = post.images;
+      } else if (typeof post.images === 'string' && post.images.trim()) {
+        try {
+          images = post.images.startsWith('[') ? JSON.parse(post.images) : post.images.split(',');
+        } catch (e) {
+          images = post.images.split(',');
+        }
+      }
+      return images.length > 0 ? images[0] : '';
+    },
+
+    async toggleLike(post) {
+      if (!post) return;
+      const wasLiked = !!post.is_liked;
+      post.is_liked = !wasLiked;
+      post.like_count = Math.max(0, parseInt(post.like_count || 0) + (wasLiked ? -1 : 1));
+
+      try {
+        const res = await request('post.php', { action: 'like', id: post.id, postId: post.id }, { method: 'POST' });
+        if (!res || res.code !== 0) {
+          post.is_liked = wasLiked;
+          post.like_count = Math.max(0, parseInt(post.like_count || 0) + (wasLiked ? 1 : -1));
+          if (res && res.message) uni.showToast({ title: res.message, icon: 'none' });
+          return;
+        }
+        const d = res.data || {};
+        if (typeof d.is_liked !== 'undefined') post.is_liked = !!d.is_liked;
+        else if (typeof d.liked !== 'undefined') post.is_liked = !!d.liked;
+        if (typeof d.like_count !== 'undefined') post.like_count = Number(d.like_count);
+        else if (typeof d.likes !== 'undefined') post.like_count = Number(d.likes);
+      } catch (e) {
+        post.is_liked = wasLiked;
+        post.like_count = Math.max(0, parseInt(post.like_count || 0) + (wasLiked ? 1 : -1));
+      }
+    },
+
     getColumnPosts(colIndex) {
       return this.postList.filter((item, index) => index % 2 === colIndex);
     }
@@ -1029,134 +1123,79 @@ export default {
 /* Scroll */
 .main-scroll { flex: 1; min-height: 0; background-color: #F8F8F8; position: relative; box-sizing: border-box; }
 
-/* Waterfall */
-.waterfall-wrap { display: flex; padding: 0 12rpx; align-items: flex-start; }
-.waterfall-col { flex: 1; display: flex; flex-direction: column; gap: 16rpx; padding: 0 6rpx; }
-.post-card { background: #fff; border-radius: 16rpx; overflow: hidden; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.02); position: relative; cursor: pointer; transition: transform 0.2s; }
-.post-card:active { transform: scale(0.98); }
+/* Waterfall（与首页 WaterfallTheme 保持一致） */
+.waterfall-wrap { display: flex; align-items: flex-start; gap: 12rpx; padding: 0 16rpx; box-sizing: border-box; width: 100%; }
+.waterfall-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12rpx; }
 
-.card-img-wrap { position: relative; width: 100%; background: #f0f0f0; min-height: 200rpx; }
-.card-img { width: 100%; display: block; will-change: transform; }
+.post-card { position: relative; width: 100%; overflow: hidden; border-radius: 20rpx; background: #fff; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06); box-sizing: border-box; transition: all 0.2s ease; }
+.post-card:active { transform: scale(0.985); }
+
+.card-img-wrap { position: relative; width: 100%; min-height: 200rpx; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); overflow: hidden; }
+.card-img { width: 100%; display: block; }
+
+.video-badge-img { position: absolute; top: 16rpx; right: 16rpx; width: 40rpx; height: 40rpx; }
+.img-count-badge { position: absolute; top: 16rpx; right: 16rpx; padding: 4rpx 10rpx; border-radius: 8rpx; background: rgba(0,0,0,0.5); }
+.img-count-badge text { color: #fff; font-size: 20rpx; font-weight: 700; }
 
 /* 纯文字帖子竖屏封面 */
-.card-text-cover {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 3/4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40rpx 30rpx;
-  box-sizing: border-box;
-  overflow: hidden;
-  background: linear-gradient(135deg, #ff6b81 0%, #ff2442 100%);
-}
-
-.text-cover-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-}
-
-.text-cover-title {
-  font-size: 36rpx;
-  color: #fff;
-  font-weight: 600;
-  line-height: 1.4;
-  text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15);
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.text-cover-subtitle {
-  font-size: 26rpx;
-  color: rgba(255,255,255,0.9);
-  line-height: 1.5;
-  text-shadow: 0 2rpx 6rpx rgba(0,0,0,0.12);
-  display: block;
-}
-
-.text-cover-tag {
-  position: absolute;
-  top: 20rpx;
-  right: 20rpx;
-  background: rgba(255,255,255,0.25);
-  backdrop-filter: blur(10rpx);
-  -webkit-backdrop-filter: blur(10rpx);
-  color: #fff;
-  font-size: 20rpx;
-  padding: 6rpx 14rpx;
-  border-radius: 20rpx;
-  font-weight: 500;
-}
+.card-text-cover { position: relative; width: 100%; padding-bottom: 133.33%; overflow: hidden; }
+.text-cover-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40rpx 28rpx; box-sizing: border-box; text-align: center; }
+.text-cover-title { font-size: 36rpx; color: #fff; font-weight: 700; line-height: 1.4; text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.text-cover-subtitle { margin-top: 14rpx; font-size: 26rpx; color: rgba(255,255,255,0.92); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.text-cover-tag { position: absolute; top: 20rpx; right: 20rpx; padding: 6rpx 14rpx; border-radius: 999rpx; background: rgba(255,255,255,0.24); color: #fff; font-size: 20rpx; font-weight: 600; }
 
 /* 纯文字帖子（非封面模式） */
-.card-text-only {
-  min-height: 120rpx;
-  padding: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent !important;
-}
+.card-text-only { position: relative; min-height: 132rpx; padding: 24rpx; display: flex; align-items: center; justify-content: center; }
+.text-preview { font-size: 28rpx; color: #333; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
 
-.text-preview {
-  font-size: 28rpx;
-  color: #333;
-  line-height: 1.5;
-}
+/* 付费/评论解锁角标 */
+.lock-badge { position: absolute; left: 14rpx; bottom: 14rpx; padding: 6rpx 14rpx; border-radius: 10rpx; }
+.paid-lock { background: rgba(255,36,66,0.88); }
+.comment-lock { background: rgba(14,165,233,0.88); }
+.lock-badge-text { color: #fff; font-size: 20rpx; font-weight: 700; }
 
-.video-badge-img { position: absolute; top: 16rpx; right: 16rpx; width: 40rpx; height: 40rpx; opacity: 0.9; }
-.img-count-badge { position: absolute; top: 16rpx; right: 16rpx; background: rgba(0,0,0,0.5); border-radius: 8rpx; padding: 4rpx 10rpx; }
-.img-count-badge text { color: #fff; font-size: 20rpx; font-weight: bold; }
+/* 状态遮罩 */
+.status-mask { position: absolute; inset: 0; z-index: 5; background: rgba(255,255,255,0.82); display: flex; align-items: center; justify-content: center; }
+.status-text { color: #ff2442; font-size: 24rpx; font-weight: 700; padding: 6rpx 16rpx; border-radius: 999rpx; border: 1rpx solid #ff2442; }
 
-.card-content { padding: 16rpx; }
-.card-title-row { display: flex; align-items: flex-start; gap: 8rpx; margin-bottom: 12rpx; }
-.pin-badge { flex-shrink: 0; padding: 2rpx 8rpx; border-radius: 6rpx; background: #fff0f3; color: #c2415b; font-size: 18rpx; font-weight: 800; line-height: 24rpx; }
-.status-badge {
-  flex-shrink: 0;
-  padding: 4rpx 10rpx;
-  border-radius: 6rpx;
-  font-size: 20rpx;
-  font-weight: 800;
-}
-.status-badge.pending { background: #fff7e6; color: #d48806; }
-.status-badge.offline { background: #f1f2f4; color: #68707c; }
-.card-title { flex: 1; min-width: 0; font-size: 28rpx; color: #333; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
-.card-footer { display: flex; align-items: center; justify-content: space-between; }
-.user-row { display: flex; align-items: center; max-width: 65%; }
-.user-avatar-box {
-  position: relative;
-  display: inline-block;
-  margin-right: 8rpx;
-}
+/* 置顶角标 */
+.pin-badge { position: absolute; top: 14rpx; left: 14rpx; z-index: 6; padding: 4rpx 12rpx; border-radius: 8rpx; background: rgba(255,36,66,0.9); color: #fff; font-size: 20rpx; font-weight: 700; }
 
-.user-avatar {
-  width: 32rpx;
-  height: 32rpx;
-  border-radius: 50%;
-  border: 1rpx solid #eee;
-}
+.card-content { padding: 18rpx 16rpx 14rpx; min-width: 0; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 8rpx; margin-bottom: 10rpx; }
+.card-tag { display: inline-block; padding: 4rpx 12rpx; font-size: 20rpx; color: #ff2442; background: rgba(255,36,66,0.08); border-radius: 6rpx; font-weight: 500; }
+.card-tag.tag-secondary { color: #666; background: #f5f5f5; }
+.card-title { font-size: 28rpx; color: #333; font-weight: 600; line-height: 1.42; margin-bottom: 12rpx; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
 
-.user-frame {
-  position: absolute;
-  top: -30%;
-  left: -30%;
-  width: 160%;
-  height: 160%;
-  pointer-events: none;
-}
+.card-footer { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+.user-row { display: flex; align-items: center; min-width: 0; flex: 1; }
+.user-avatar-box { position: relative; width: 36rpx; height: 36rpx; margin-right: 8rpx; overflow: visible; flex-shrink: 0; }
+.user-avatar { width: 100%; height: 100%; border-radius: 50%; border: 1rpx solid #f0f0f0; }
+.user-frame { position: absolute; top: -4rpx; left: -4rpx; width: 44rpx; height: 44rpx; pointer-events: none; }
+.user-meta { min-width: 0; flex: 1; }
+.user-name-scroll { width: 100%; white-space: nowrap; }
+.user-name { display: inline-block; font-size: 22rpx; color: #666; }
 
-.user-name { font-size: 22rpx; color: #666; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.action-row { display: flex; align-items: center; }
+.action-row { display: flex; align-items: center; flex-shrink: 0; gap: 4rpx; }
+.like-btn { display: flex; align-items: center; gap: 4rpx; padding: 4rpx 8rpx; border-radius: 20rpx; transition: all 0.2s ease; }
+.like-btn:active { transform: scale(0.9); }
+.like-btn.liked .action-num { color: #ff2442; }
 .action-icon-img { width: 28rpx; height: 28rpx; margin-right: 6rpx; }
 .action-num { font-size: 24rpx; color: #666; }
-.action-sep { font-size: 20rpx; color: #ccc; margin: 0 6rpx; }
+
+/* VIP / 靓号文字 */
+.fancy-text { color: #ff2442 !important; font-weight: 800 !important; }
+.vip-title { color: #ff2442 !important; font-weight: 800 !important; }
+.vip-rainbow-text { background: linear-gradient(90deg, #ff2442, #ff7a00, #ffd400, #00c853, #00b0ff, #aa00ff, #ff2442); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: vipRainbowMove 4s linear infinite; font-weight: 900 !important; }
+@keyframes vipRainbowMove { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+
+/* 抖音视频卡片 */
+.card-douyin-wrap { position: relative; width: 100%; background: #000; }
+.card-douyin-cover { width: 100%; height: 560rpx; }
+.card-douyin-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100rpx; height: 100rpx; border-radius: 50%; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 2rpx solid rgba(255, 255, 255, 0.2); }
+.card-douyin-play-icon { width: 0; height: 0; border-top: 20rpx solid transparent; border-bottom: 20rpx solid transparent; border-left: 32rpx solid #fff; border-radius: 4rpx; margin-left: 8rpx; }
+.card-douyin-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 12rpx 16rpx; background: linear-gradient(transparent, rgba(0, 0, 0, 0.85)); }
+.card-douyin-title { display: block; color: #fff; font-size: 24rpx; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Skeleton */
 .skeleton-card { background: #fff; border-radius: 16rpx; overflow: hidden; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.02); margin-bottom: 16rpx; }
@@ -1677,7 +1716,8 @@ export default {
 }
 .mod-btn.primary { background: #111; color: #fff; }
 .mod-btn.danger { background: #fff1f3; color: #ff2442; }
-.feed-list .skeleton-card { min-height: 300rpx; }
+.waterfall-col .moderator-actions { margin-top: 14rpx; padding-top: 12rpx; flex-wrap: wrap; }
+.waterfall-col .mod-btn { flex: 1 1 40%; height: 52rpx; font-size: 21rpx; }
 
 /* 抖音视频预览样式 */
 .feed-douyin-wrap {

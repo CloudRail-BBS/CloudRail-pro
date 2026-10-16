@@ -35,7 +35,7 @@ var PLATFORMS = {
     name: '林屿社区',
     scheme: 'linyu://',
     icon: '林',
-    apiBase: 'https://wwww.wancikeji.cn',
+    apiBase: 'https://oauth.example.com',
     createSession: '/api.php?s=api/qr_login_create',
     checkSession: '/api.php?s=api/qr_login_check',
     exchangeCode: '/api.php?s=api/oauth_code',

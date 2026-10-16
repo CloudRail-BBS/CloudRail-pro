@@ -68,6 +68,7 @@
     {"path":"pages/user/phone","style":{"navigationStyle":"custom"}},
     {"path":"pages/user/pay-password","style":{"navigationStyle":"custom"}},
     {"path":"pages/post-detail/post-detail","style":{"navigationStyle":"custom"}},
+    {"path":"pages/videoplayer/douyin","style":{"navigationStyle":"custom","app-plus":{"titleNView":false}}},
     {"path":"pages/app-detail/app-detail","style":{"navigationStyle":"custom"}},
     {"path":"pages/mission/mission","style":{"navigationStyle":"custom"}},
     {"path":"pages/user/fried","style":{"navigationStyle":"custom"}},

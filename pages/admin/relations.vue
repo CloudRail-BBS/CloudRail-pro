@@ -221,7 +221,7 @@ export default {
       showCreate: false,
       createForm: { uid_a: '', uid_b: '', type_key: 'cp', type_name: '' },
       hud: { show: false, type: 'loading', text: '' },
-      defaultAvatar: 'https://your-domain.com/f/6eXTL/IMG_5336.jpeg'
+      defaultAvatar: 'https://y.sgyunp.cn/f/6eXTL/IMG_5336.jpeg'
     };
   },
   computed: {

@@ -32,7 +32,7 @@ export const WEB_BASE = 'https://your-domain.com/'
 // （后端 system/settings 有配置时以后端为准）
 // ══════════════════════════════════════════════
 // WS 开关
-export const WS_ENABLED = true
+export const WS_ENABLED = false
 export const WS_URL = 'wss://your-domain.com/ws'
 
 export const SITE_NAME = '栖屿社区'

@@ -20,14 +20,14 @@ export const webBaseUrl = WEB_BASE
 // 作用：授权码同时作为API访问密钥，Go后端校验密钥一致性+授权码域名绑定
 // 注意：使用别人授权码会因域名不匹配被拒绝，确保填写自己的授权码
 // ═══════════════════════════════════════════════
-export const apiKey = 'YOUR-API-KEY'
+export const apiKey = 'YOUR-CALL-API-KEY'
 
 // ═════════════════════════════════════════════
 // 公共配置：CMS 接口地址 + 客服 QQ + 货币名称 + 分享文案 + 站点名称
 // 后台在「扩展功能 → 常用系统配置」修改后，前端下次启动即可生效，无需重新打包
 // 接口：GET /api/public/video/config → { cms_api_url, kefu_qq, currency_name, share_text, site_name }
 // ═════════════════════════════════════════════
-const _DEFAULT_CMS_URL = 'https://cms.wanjisq.cn'
+const _DEFAULT_CMS_URL = 'https://your-domain.com'
 const _DEFAULT_CURRENCY_NAME = '星域豆'
 const _DEFAULT_SHARE_TEXT = '我在星域社区发现一个不错的帖子，快来看看：\n{title}\n{link}'
 const _DEFAULT_SITE_NAME = '星域社区'
@@ -194,7 +194,7 @@ const _log = {
 }
 
 // PHP 原地址（备用，可切换）
-// export const baseUrl = 'https://bbs.wanjisq.cn/API/'
+// export const baseUrl = 'https://your-domain.com/API/'
 
 // 优化：添加请求队列和并发控制
 const requestQueue = []
@@ -318,8 +318,8 @@ export function appendFileVersion(url, version = '') {
 }
 
 // 把 /uploads/ 开头的相对路径转成完整 URL
-// 上传文件存放在 PHP 后台站点（ht.aiu6.cn），通过该域名访问
-// bmsBaseUrl = 'https://ht.aiu6.cn/'
+// 上传文件存放在 PHP 后台站点（your-domain.com），通过该域名访问
+// bmsBaseUrl = 'https://your-domain.com/'
 const _uploadOrigin = (() => {
   try {
     return String(bmsBaseUrl).replace(/\/+$/, '') || ''
@@ -524,26 +524,31 @@ export const request = async (url, data = {}, options = {}) => {
 }
 
 function resolveAppFilePath(filePath) {
-  return new Promise((resolve, reject) => {
-    try {
-      if (!filePath) return reject(new Error('empty filePath'))
+  return new Promise((resolve) => {
+    const finalPath = String(filePath || '')
+    if (!finalPath) return resolve('')
 
-      const finalPath = String(filePath)
+    if (finalPath.startsWith('file://')) return resolve(finalPath)
 
-      if (finalPath.startsWith('file://')) return resolve(finalPath)
-
-      if (finalPath.startsWith('content://')) {
+    if (finalPath.startsWith('content://')) {
+      try {
         plus.io.resolveLocalFileSystemURL(
           finalPath,
           entry => resolve(entry.toLocalURL()),
-          err => reject(err)
+          () => resolve(finalPath)
         )
-        return
+      } catch (e) {
+        resolve(finalPath)
       }
+      return
+    }
 
+    if (finalPath.startsWith('/')) return resolve(finalPath)
+
+    try {
       resolve(plus.io.convertLocalFileSystemURL(finalPath))
     } catch (e) {
-      reject(e)
+      resolve(finalPath)
     }
   })
 }
@@ -584,7 +589,7 @@ export const uploadSigned = async ({
   // #endif
 
   return new Promise((resolve, reject) => {
-    const _typeMap = { post: 'post_img', avatar: 'avatar', background: 'background', chat: 'chat_img', software: 'software_img', software_file: 'software_file', disk: 'disk' }
+    const _typeMap = { post: 'post_img', avatar: 'avatar', background: 'background', chat: 'chat_img', software: 'software_img', software_file: 'software_file', disk: 'disk', video: 'video' }
     const uploadUrl = baseUrl + 'upload/' + (_typeMap[type] || 'image')
     console.log('%c[Upload]', 'color:#FF5722;font-weight:bold', 'URL:', uploadUrl, 'Type:', type)
 
