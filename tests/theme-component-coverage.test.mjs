@@ -57,3 +57,12 @@ test('shared neutral theme layer defines both required palettes', async () => {
     assert.ok(source.includes(pair[1]), `missing dark token: ${pair[1]}`)
   }
 })
+test('fixed tab bar keeps its own height while receiving theme colors', async () => {
+  const app = await readRepoFile('App.vue')
+  const tabBar = await readRepoFile('components/CustomTabBar.vue')
+  assert.doesNotMatch(app, /\.theme-light\s*,\s*\.theme-dark\s*\{\s*min-height:\s*100vh/)
+  assert.match(app, /\.theme-light\.app-container[\s\S]*?min-height:\s*100vh/)
+  assert.match(tabBar, /\.custom-tab-bar\s*\{[\s\S]*?position:\s*(?:fixed|absolute);[\s\S]*?bottom:\s*0;/)
+  assert.match(tabBar, /\.custom-tab-bar\s*\{[\s\S]*?min-height:\s*auto;/)
+  assert.match(tabBar, /\.tab-bar-content\s*\{[\s\S]*?height:\s*100rpx;/)
+})

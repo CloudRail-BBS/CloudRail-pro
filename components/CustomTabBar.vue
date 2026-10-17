@@ -176,9 +176,15 @@ export default {
 <style scoped>
 .custom-tab-bar {
   position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
+  width: 100%;
+  min-height: auto;
+  max-height: none;
+  box-sizing: border-box;
+  transform: none;
   z-index: 999;
 }
 .tab-bar-wrapper {

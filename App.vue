@@ -783,8 +783,12 @@ page {
 
 .theme-light,
 .theme-dark {
-  min-height: 100vh;
   color: var(--cr-text);
+}
+
+.theme-light.app-container,
+.theme-dark.app-container {
+  min-height: 100vh;
   background-color: var(--cr-canvas);
 }
 
