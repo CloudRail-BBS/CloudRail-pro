@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-inner">
         <view class="nav-side left" @click="goBack">
@@ -259,7 +259,7 @@ export default {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--cr-surface);
 }
 
 .nav-bar {
@@ -269,7 +269,7 @@ export default {
   right: 0;
   z-index: 100;
   background: rgba(255, 255, 255, 0.98);
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 
 .nav-inner {
@@ -343,7 +343,7 @@ export default {
   height: 120rpx;
   border-radius: 50%;
   display: block;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   z-index: 1;
 }
 
@@ -369,7 +369,7 @@ export default {
   max-width: 92%;
   font-size: 32rpx;
   line-height: 1.7;
-  color: #666666;
+  color: var(--cr-text-muted);
   text-align: center;
   word-break: break-all;
 }
@@ -390,7 +390,7 @@ export default {
   align-items: center;
   justify-content: center;
   margin-bottom: 28rpx;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .qrcode {
@@ -409,7 +409,7 @@ export default {
 }
 
 .qrcode-placeholder-text {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
 }
 
@@ -418,7 +418,7 @@ export default {
   width: 108rpx;
   height: 108rpx;
   border-radius: 22rpx;
-  background: #ffffff;
+  background: var(--cr-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -451,7 +451,7 @@ export default {
   flex: 1;
   height: 88rpx;
   border-radius: 44rpx;
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -463,7 +463,7 @@ export default {
 
 .action-btn-text {
   font-size: 30rpx;
-  color: #333333;
+  color: var(--cr-text);
   font-weight: 500;
 }
 

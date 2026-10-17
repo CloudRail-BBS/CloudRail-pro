@@ -2,7 +2,7 @@
   <view
     v-if="mounted"
     class="online-notify"
-    :class="{ show: visible }"
+    :class="[themeClass, { show: visible }]"
     :style="{ top: topPx }"
     @click="goChat"
   >
@@ -137,7 +137,7 @@ export default {
   align-items: center;
   box-sizing: border-box;
   padding: 20rpx 22rpx;
-  background: #ffffff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   box-shadow: 0 10rpx 34rpx rgba(0, 0, 0, 0.14);
   transform: translateY(-200%);
@@ -160,7 +160,7 @@ export default {
   width: 76rpx;
   height: 76rpx;
   border-radius: 50%;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
 }
 .on-dot {
   position: absolute;
@@ -183,7 +183,7 @@ export default {
 .on-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #222222;
+  color: var(--cr-text);
   line-height: 38rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -192,7 +192,7 @@ export default {
 .on-desc {
   margin-top: 2rpx;
   font-size: 24rpx;
-  color: #999999;
+  color: var(--cr-text-muted);
   line-height: 34rpx;
   overflow: hidden;
   text-overflow: ellipsis;

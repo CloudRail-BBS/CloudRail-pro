@@ -1,5 +1,5 @@
 <template>
-  <view class="game-fullscreen-page">
+  <view class="game-fullscreen-page" :class="themeClass">
     <!-- #ifdef APP-PLUS -->
     <web-view :src="gameUrl" class="game-webview" allow-file-access="true" allow-pull-down-refresh="false"></web-view>
     <!-- #endif -->

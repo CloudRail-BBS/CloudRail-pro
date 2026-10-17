@@ -1,5 +1,5 @@
 <template>
-  <view v-if="show" class="mask" :class="{ 'is-center': placement === 'center' }" @tap="onMask">
+  <view v-if="show" class="mask" :class="[themeClass, { 'is-center': placement === 'center' }]" @tap="onMask">
     <view class="panel" :class="{ 'is-center': placement === 'center' }" @tap.stop>
       <view class="hd">
         <text class="title">{{ title }}</text>
@@ -18,6 +18,7 @@
 </template>
 
 <script setup>
+import { themeClass } from '../common/theme.js'
 const props = defineProps({
   show: { type: Boolean, default: false },
   title: { type: String, default: '提示' },
@@ -61,7 +62,7 @@ function onMask() {
 }
 .panel{
   width:100%;
-  background:#fff;
+  background: var(--cr-surface);
   border-top-left-radius:18px;
   border-top-right-radius:18px;
   padding:14px;
@@ -110,5 +111,5 @@ function onMask() {
 .ft{ display:flex; gap:10px; padding-top:12px; }
 .btn{ flex:1; border-radius:12px; font-size:15px; font-weight:600; }
 .btn.primary{ background:#ff2442; color:#fff; border: none; }
-.btn.ghost{ background:#fff; color:#333; border: 1rpx solid #e5e7eb; }
+.btn.ghost{ background: var(--cr-surface); color:#333; border: 1rpx solid var(--cr-border); }
 </style>

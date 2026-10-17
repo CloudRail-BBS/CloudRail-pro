@@ -1,5 +1,5 @@
 <template>
-  <view class="fancy-page">
+  <view class="fancy-page" :class="themeClass">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
     <scroll-view class="main-scroll" scroll-y>
 
@@ -314,13 +314,13 @@ export default {
 .fancy-page { min-height: 100vh; background: linear-gradient(180deg, #fafafa 0%, #f0f1f6 100%); }
 
 /* 状态栏占位 */
-.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #fafafa; }
+.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--cr-canvas); }
 
 .main-scroll { height: 100vh; padding-top: 44px; }
 
 /* 搜索栏 */
 .search-bar { display: flex; margin: 24rpx; gap: 16rpx; align-items: center; }
-.search-input { flex: 1; height: 80rpx; background: #fff; border-radius: 40rpx; padding: 0 32rpx; font-size: 28rpx; box-shadow: 0 4rpx 24rpx rgba(102,126,234,0.06); border: 2rpx solid transparent; }
+.search-input { flex: 1; height: 80rpx; background: var(--cr-surface); border-radius: 40rpx; padding: 0 32rpx; font-size: 28rpx; box-shadow: 0 4rpx 24rpx rgba(102,126,234,0.06); border: 2rpx solid transparent; }
 .search-input:focus { border-color: #667eea; }
 .search-action { width: 120rpx; height: 80rpx; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 40rpx; display: flex; align-items: center; justify-content: center; font-size: 28rpx; font-weight: 600; box-shadow: 0 4rpx 16rpx rgba(102,126,234,0.25); }
 .search-action:active { opacity: 0.85; }
@@ -332,17 +332,17 @@ export default {
 .add-btn:active { opacity: 0.85; }
 
 /* ===== Tab栏 ===== */
-.tab-bar { display: flex; margin: 0 24rpx 20rpx; background: #fff; border-radius: 16rpx; padding: 8rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.05); }
-.tab-item { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8rpx; padding: 16rpx 0; border-radius: 12rpx; font-size: 26rpx; color: #666; font-weight: 500; position: relative; }
+.tab-bar { display: flex; margin: 0 24rpx 20rpx; background: var(--cr-surface); border-radius: 16rpx; padding: 8rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.05); }
+.tab-item { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8rpx; padding: 16rpx 0; border-radius: 12rpx; font-size: 26rpx; color: var(--cr-text-muted); font-weight: 500; position: relative; }
 .tab-item.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; box-shadow: 0 4rpx 12rpx rgba(102,126,234,0.2); }
 .tab-count { font-size: 20rpx; background: rgba(255, 255, 255, 0.25); color: inherit; padding: 2rpx 10rpx; border-radius: 12rpx; }
 .tab-item.active .tab-count { background: rgba(255, 255, 255, 0.3); }
 
 /* ===== 列表 ===== */
 .list { margin: 0 24rpx; }
-.list-item { 
-  background: #fff; border-radius: 26rpx; margin-bottom: 22rpx; 
-  box-shadow: 0 8rpx 32rpx rgba(102,126,234,0.08); display: flex; overflow: hidden; 
+.list-item {
+  background: var(--cr-surface); border-radius: 26rpx; margin-bottom: 22rpx;
+  box-shadow: 0 8rpx 32rpx rgba(102,126,234,0.08); display: flex; overflow: hidden;
   position: relative; border: 1rpx solid #f5f6fa;
   transition: all 0.3s ease;
 }
@@ -362,7 +362,7 @@ export default {
 /* 头部 */
 .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16rpx; }
 .number-box { display: flex; flex-direction: column; min-width: 0; }
-.number-label { font-size: 20rpx; color: #888; margin-bottom: 4rpx; letter-spacing: 1rpx; }
+.number-label { font-size: 20rpx; color: var(--cr-text-muted); margin-bottom: 4rpx; letter-spacing: 1rpx; }
 .number-value { font-size: 40rpx; font-weight: 800; color: #1a1a1a; letter-spacing: 2rpx; font-family: 'SF Mono', 'DIN Alternate', 'Helvetica Neue', sans-serif; text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.05); }
 
 .item-status { display: flex; align-items: center; gap: 8rpx; font-size: 21rpx; padding: 6rpx 16rpx; border-radius: 20rpx; font-weight: 600; flex-shrink: 0; }
@@ -379,7 +379,7 @@ export default {
 .price-box { display: flex; align-items: baseline; flex-shrink: 0; }
 .price-symbol { font-size: 24rpx; color: #e74c3c; font-weight: 700; }
 .price-value { font-size: 36rpx; color: #e74c3c; font-weight: 800; margin-left: 4rpx; }
-.owner-box { display: flex; align-items: center; gap: 8rpx; background: #f5f6fa; padding: 6rpx 16rpx; border-radius: 16rpx; flex-shrink: 0; }
+.owner-box { display: flex; align-items: center; gap: 8rpx; background: var(--cr-surface-alt); padding: 6rpx 16rpx; border-radius: 16rpx; flex-shrink: 0; }
 .owner-box.available { background: linear-gradient(135deg, #eef9f0, #d4edda); }
 .owner-name { font-size: 24rpx; color: #555; font-weight: 600; }
 .owner-box.available .owner-name { color: #1e7e34; }
@@ -398,32 +398,32 @@ export default {
 
 /* 加载更多 */
 .load-more { margin: 32rpx 24rpx; text-align: center; }
-.load-btn { padding: 24rpx; background: #fff; border-radius: 16rpx; font-size: 28rpx; color: #666; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.06); font-weight: 500; }
-.load-btn:active { background: #fafafa; }
+.load-btn { padding: 24rpx; background: var(--cr-surface); border-radius: 16rpx; font-size: 28rpx; color: var(--cr-text-muted); box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.06); font-weight: 500; }
+.load-btn:active { background: var(--cr-canvas); }
 
 /* 空状态 */
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 160rpx 0; }
 .empty-icon-img-wrap { display: flex; align-items: center; justify-content: center; margin-bottom: 32rpx; opacity: 0.6; }
 .empty-icon-img { width: 96rpx; height: 96rpx; display: block; }
-.empty-text { font-size: 30rpx; color: #bbb; font-weight: 500; }
+.empty-text { font-size: 30rpx; color: var(--cr-text-muted); font-weight: 500; }
 .footer-space { height: 60rpx; }
 
 /* ===== 弹窗 ===== */
 .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4rpx); }
-.modal-content { width: 88%; max-width: 600rpx; background: #fff; border-radius: 32rpx; overflow: hidden; box-shadow: 0 24rpx 64rpx rgba(0, 0, 0, 0.15); }
+.modal-content { width: 88%; max-width: 600rpx; background: var(--cr-surface); border-radius: 32rpx; overflow: hidden; box-shadow: 0 24rpx 64rpx rgba(0, 0, 0, 0.15); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 32rpx 36rpx; border-bottom: 1rpx solid #f0f1f6; }
-.modal-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.modal-close { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; font-size: 40rpx; color: #ccc; border-radius: 50%; }
-.modal-close:active { background: #f5f6fa; }
+.modal-title { font-size: 34rpx; font-weight: 700; color: var(--cr-text); }
+.modal-close { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; font-size: 40rpx; color: var(--cr-border-strong); border-radius: 50%; }
+.modal-close:active { background: var(--cr-surface-alt); }
 .modal-body { padding: 32rpx 36rpx; }
 .form-item { margin-bottom: 28rpx; }
-.form-label { display: block; font-size: 26rpx; color: #666; margin-bottom: 12rpx; font-weight: 500; }
-.form-input { width: 100%; height: 88rpx; background: #f8f8f8; border-radius: 16rpx; padding: 0 24rpx; font-size: 30rpx; color: #333; border: 2rpx solid transparent; }
+.form-label { display: block; font-size: 26rpx; color: var(--cr-text-muted); margin-bottom: 12rpx; font-weight: 500; }
+.form-input { width: 100%; height: 88rpx; background: var(--cr-surface-alt); border-radius: 16rpx; padding: 0 24rpx; font-size: 30rpx; color: var(--cr-text); border: 2rpx solid transparent; }
 .form-input:focus { border-color: #667eea; background: #fff; }
-.form-select { width: 100%; height: 88rpx; background: #f8f8f8; border-radius: 16rpx; padding: 0 24rpx; display: flex; align-items: center; font-size: 30rpx; color: #333; }
+.form-select { width: 100%; height: 88rpx; background: var(--cr-surface-alt); border-radius: 16rpx; padding: 0 24rpx; display: flex; align-items: center; font-size: 30rpx; color: var(--cr-text); }
 .modal-footer { display: flex; border-top: 1rpx solid #f0f1f6; padding: 16rpx; gap: 16rpx; }
 .modal-btn { flex: 1; height: 80rpx; display: flex; align-items: center; justify-content: center; font-size: 30rpx; font-weight: 600; border-radius: 16rpx; }
-.modal-btn.cancel { color: #666; background: #f5f6fa; }
+.modal-btn.cancel { color: var(--cr-text-muted); background: #f5f6fa; }
 .modal-btn.cancel:active { background: #eaeaea; }
 .modal-btn.confirm { color: #fff; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4rpx 16rpx rgba(102,126,234,0.25); }
 .modal-btn.confirm:active { opacity: 0.85; }

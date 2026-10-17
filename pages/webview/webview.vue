@@ -1,5 +1,5 @@
 <template>
-  <view class="webview-box">
+  <view class="webview-box" :class="themeClass">
 
     <view class="nav-header" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="back-btn" @click="goBack">×</view>
@@ -24,7 +24,7 @@ export default {
       pendingLoginUrl: '',
       urlObserverInstalled: false,
       urlObserverTimer: null,
-      title: 'VCYWEB',
+      title: 'CloudRail-pro',
       isLogin: false,
       callbackHandled: false,
       statusBarHeight: 20,
@@ -182,7 +182,7 @@ export default {
 .webview-box {
   width: 100%;
   height: 100vh;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   position: relative;
 }
 
@@ -190,7 +190,7 @@ export default {
   position: fixed;
   top: 0; left: 0; width: 100%;
   height: 44px;
-  background: #fff;
+  background: var(--cr-surface);
   z-index: 999;
   display: flex;
   align-items: center;
@@ -200,11 +200,11 @@ export default {
   width: 44px; height: 44px;
   font-size: 28px;
   display: flex; align-items: center; justify-content: center;
-  color: #333;
+  color: var(--cr-text);
 }
 .title {
   font-size: 16px;
   font-weight: bold;
-  color: #333;
+  color: var(--cr-text);
 }
 </style>

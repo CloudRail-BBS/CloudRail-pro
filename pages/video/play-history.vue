@@ -1,5 +1,5 @@
 <template>
-  <view class="play-history-page">
+  <view class="play-history-page" :class="themeClass">
     <!-- 自定义导航栏 -->
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
@@ -154,7 +154,7 @@ export default {
 <style lang="scss" scoped>
 .play-history-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
 }
 
 .nav-bar {
@@ -162,7 +162,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 20rpx;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   position: fixed;
   top: 0;
   left: 0;
@@ -180,7 +180,7 @@ export default {
 
 .back-icon {
   font-size: 48rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 300;
 }
 
@@ -191,7 +191,7 @@ export default {
 
 .nav-title text {
   font-size: 34rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: bold;
 }
 
@@ -226,13 +226,13 @@ export default {
 
 .empty-text {
   font-size: 32rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-top: 30rpx;
 }
 
 .empty-hint {
   font-size: 26rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
   margin-top: 16rpx;
 }
 
@@ -242,7 +242,7 @@ export default {
 
 .history-item {
   display: flex;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
@@ -254,7 +254,7 @@ export default {
   height: 210rpx;
   border-radius: 12rpx;
   flex-shrink: 0;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
 }
 
 .history-info {
@@ -267,7 +267,7 @@ export default {
 
 .history-name {
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: bold;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -276,7 +276,7 @@ export default {
 
 .history-actors {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -288,7 +288,7 @@ export default {
 
 .progress-text {
   font-size: 22rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .progress-bar {
@@ -314,7 +314,7 @@ export default {
 
 .history-time {
   font-size: 22rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
   margin-top: auto;
 }
 

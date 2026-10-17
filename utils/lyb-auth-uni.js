@@ -748,31 +748,9 @@ var LYBAuth = {
    * 小程序登录
    */
   _mpLogin: function () {
-    var redirectUri = _config.redirect_uri
-    if (!redirectUri) {
-      emitError(ERR.NO_CONFIG, '小程序平台请配置 redirect_uri 参数')
-      return
-    }
-
-    createMiniProgramState(function (state) {
-      if (!state) {
-        emitError(ERR.STATE_MISMATCH, '当前环境无法安全发起登录')
-        return
-      }
-      saveOAuthState(state)
-
-      var sep = _config.authorize_url.indexOf('?') === -1 ? '?' : '&'
-      var url = _config.authorize_url + sep +
-        'client_id=' + encodeURIComponent(_config.client_id) +
-        '&redirect_uri=' + encodeURIComponent(redirectUri) +
-        '&response_type=code' +
-        '&state=' + encodeURIComponent(state) +
-        '&app_name=' + encodeURIComponent(_config.app_name)
-
-      uni.navigateTo({
-        url: '/pages/lyb-webview/lyb-webview?url=' + encodeURIComponent(url)
-      })
-    })
+    // This SDK has no registered mini-program callback view and no callback
+    // state consumer outside H5. Keep the flow closed until both are supplied.
+    emitError(ERR.NO_CONFIG, '小程序暂不支持第三方账号登录，请使用手机号、邮箱或密码登录')
   },
 
   /**

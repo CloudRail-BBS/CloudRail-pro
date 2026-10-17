@@ -1,5 +1,5 @@
 <template>
-  <view class="zjh-page">
+  <view class="zjh-page" :class="themeClass">
     <!-- 顶部栏 -->
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-bar">
@@ -510,7 +510,7 @@ export default {
 .ai-cards { display: flex; gap: 6rpx; }
 .mini-card {
   width: 44rpx; height: 62rpx; border-radius: 8rpx;
-  background: #fff; display: flex; align-items: center; justify-content: center;
+  background: var(--cr-surface); display: flex; align-items: center; justify-content: center;
 }
 .mini-card.back { background: linear-gradient(135deg, #2b6fd6, #17407f); }
 .mini-txt { font-size: 18rpx; color: #111; font-weight: 700; }
@@ -536,7 +536,7 @@ export default {
 .me-cards { display: flex; gap: 10rpx; }
 .big-card {
   width: 76rpx; height: 108rpx; border-radius: 10rpx;
-  background: #fff; display: flex; align-items: center; justify-content: center;
+  background: var(--cr-surface); display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.3);
 }
 .big-card.back { background: linear-gradient(135deg, #2b6fd6, #17407f); }
@@ -573,11 +573,11 @@ export default {
 .mask { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }
 .result-box {
   width: 560rpx; padding: 48rpx 40rpx; border-radius: 32rpx;
-  background: #fff; display: flex; flex-direction: column; align-items: center; gap: 18rpx;
+  background: var(--cr-surface); display: flex; flex-direction: column; align-items: center; gap: 18rpx;
 }
-.result-title { font-size: 32rpx; color: #333; font-weight: 700; }
-.result-num { font-size: 64rpx; font-weight: 800; color: #999; }
+.result-title { font-size: 32rpx; color: var(--cr-text); font-weight: 700; }
+.result-num { font-size: 64rpx; font-weight: 800; color: var(--cr-text-muted); }
 .result-num.up { color: #ff3b5c; }
 .result-num.down { color: #4a90e2; }
-.result-detail { font-size: 24rpx; color: #888; text-align: center; line-height: 1.6; }
+.result-detail { font-size: 24rpx; color: var(--cr-text-muted); text-align: center; line-height: 1.6; }
 </style>

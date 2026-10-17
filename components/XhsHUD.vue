@@ -1,5 +1,5 @@
 <template>
-  <view v-if="show" class="ios-hud-mask" @touchmove.stop.prevent>
+  <view v-if="show" class="ios-hud-mask" :class="themeClass" @touchmove.stop.prevent>
     <view class="ios-hud-box" @tap.stop>
       <view v-if="mode === 'loading'" class="ios-spinner"></view>
       <view v-else-if="mode === 'success'" class="ios-success-icon">
@@ -14,6 +14,7 @@
 </template>
 
 <script setup>
+import { themeClass } from '../common/theme.js'
 const props = defineProps({
   show: { type: Boolean, default: false },
   text: { type: String, default: '' },
@@ -121,7 +122,7 @@ const props = defineProps({
   left: 50%;
   width: 36rpx;
   height: 5rpx;
-  background: #fff;
+  background: var(--cr-surface);
   transform-origin: center;
 }
 

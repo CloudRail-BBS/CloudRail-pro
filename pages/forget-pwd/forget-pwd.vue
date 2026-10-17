@@ -1,5 +1,5 @@
 <template>
-  <view class="xhs-forget-container">
+  <view class="xhs-forget-container" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
         <view class="nav-left" @click="goBack">
@@ -322,79 +322,79 @@ export default {
 
 <style scoped>
 :root { --primary-color: #ff2442; --text-main: #333333; --text-sub: #999999; --border-color: #f5f5f5; --bg-color: #ffffff; --input-bg: #f8f8f8; }
-.xhs-forget-container { min-height: 100vh; background-color: #ffffff; display: flex; flex-direction: column; }
+.xhs-forget-container { min-height: 100vh; background-color: var(--cr-surface); display: flex; flex-direction: column; }
 
-.nav-bar { 
+.nav-bar {
     width: 100%;
-    position: fixed; 
-    top: 0; 
+    position: fixed;
+    top: 0;
     left: 0;
-    z-index: 100; 
-    background: #fff;
+    z-index: 100;
+    background: var(--cr-surface);
 }
 .nav-content {
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     height: 44px;
-    padding: 0 32rpx; 
+    padding: 0 32rpx;
 }
 .nav-left { width: 60rpx; height: 100%; display: flex; align-items: center; }
 .nav-icon { width: 40rpx; height: 40rpx; }
-.nav-title { font-size: 34rpx; font-weight: 600; color: #333; }
+.nav-title { font-size: 34rpx; font-weight: 600; color: var(--cr-text); }
 .nav-right { width: 60rpx; }
 
 .content-wrapper { flex: 1; padding: 40rpx 48rpx; display: flex; flex-direction: column; padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); }
 .step-indicator { display: flex; align-items: center; justify-content: space-between; margin-bottom: 60rpx; }
 .step-item { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
-.step-num { width: 48rpx; height: 48rpx; border-radius: 50%; background-color: #f0f0f0; color: #bbb; font-size: 24rpx; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-bottom: 12rpx; border: 4rpx solid #ffffff; transition: all 0.3s; }
-.step-txt { font-size: 20rpx; color: #ccc; transition: all 0.3s; }
+.step-num { width: 48rpx; height: 48rpx; border-radius: 50%; background-color: var(--cr-surface-alt); color: #bbb; font-size: 24rpx; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-bottom: 12rpx; border: 4rpx solid #ffffff; transition: all 0.3s; }
+.step-txt { font-size: 20rpx; color: var(--cr-border-strong); transition: all 0.3s; }
 .step-item.active .step-num { background-color: #ff2442; color: #ffffff; }
-.step-item.active .step-txt { color: #333; font-weight: 500; }
-.step-line { flex: 1; height: 4rpx; background-color: #f0f0f0; margin: 0 10rpx; margin-bottom: 30rpx; position: relative; z-index: 1; }
+.step-item.active .step-txt { color: var(--cr-text); font-weight: 500; }
+.step-line { flex: 1; height: 4rpx; background-color: var(--cr-surface-alt); margin: 0 10rpx; margin-bottom: 30rpx; position: relative; z-index: 1; }
 .step-line.active { background-color: #ff2442; }
 .form-area { flex: 1; }
 .fade-in { animation: fadeIn 0.4s ease forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10rpx); } to { opacity: 1; transform: translateY(0); } }
-.main-title { font-size: 48rpx; font-weight: 600; color: #333; display: block; margin-bottom: 16rpx; }
-.sub-title { font-size: 26rpx; color: #999; display: block; margin-bottom: 60rpx; }
-.input-group { display: flex; align-items: center; height: 100rpx; background-color: #f8f8f8; border-radius: 50rpx; padding: 0 32rpx; margin-bottom: 24rpx; transition: all 0.3s; border: 2rpx solid transparent; }
-.input-focus { background-color: #ffffff; border-color: #ff2442; box-shadow: 0 4rpx 12rpx rgba(255, 36, 66, 0.1); }
+.main-title { font-size: 48rpx; font-weight: 600; color: var(--cr-text); display: block; margin-bottom: 16rpx; }
+.sub-title { font-size: 26rpx; color: var(--cr-text-muted); display: block; margin-bottom: 60rpx; }
+.input-group { display: flex; align-items: center; height: 100rpx; background-color: var(--cr-surface-alt); border-radius: 50rpx; padding: 0 32rpx; margin-bottom: 24rpx; transition: all 0.3s; border: 2rpx solid transparent; }
+.input-focus { background-color: var(--cr-surface); border-color: #ff2442; box-shadow: 0 4rpx 12rpx rgba(255, 36, 66, 0.1); }
 .input-error { border-color: #ff4d4f; background-color: #fff0f0; }
-.xhs-input { flex: 1; height: 100%; font-size: 30rpx; color: #333; }
-.input-placeholder { color: #ccc; }
+.xhs-input { flex: 1; height: 100%; font-size: 30rpx; color: var(--cr-text); }
+.input-placeholder { color: var(--cr-border-strong); }
 .clear-btn, .eye-btn { width: 60rpx; height: 100%; display: flex; align-items: center; justify-content: center; }
-.clear-icon { font-size: 32rpx; color: #ccc; background: #f0f0f0; width: 32rpx; height: 32rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding-bottom: 2rpx; }
+.clear-icon { font-size: 32rpx; color: var(--cr-border-strong); background: #f0f0f0; width: 32rpx; height: 32rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding-bottom: 2rpx; }
 .eye-icon { width: 36rpx; height: 36rpx; }
 .error-msg { font-size: 24rpx; color: #ff4d4f; margin-left: 32rpx; margin-bottom: 20rpx; display: block; }
 
-.code-btn-wrapper { 
-    padding-left: 20rpx; 
-    border-left: 2rpx solid #eee; 
-    height: 40rpx; 
-    display: flex; 
+.code-btn-wrapper {
+    padding-left: 20rpx;
+    border-left: 2rpx solid var(--cr-border);
+    height: 40rpx;
+    display: flex;
     align-items: center;
     flex-shrink: 0; /* 防止被挤压 */
     min-width: 140rpx; /* 给一个最小宽度 */
     justify-content: center;
 }
 .get-code-text { font-size: 26rpx; color: #ff2442; font-weight: 500; white-space: nowrap; }
-.code-disabled { color: #ccc; }
+.code-disabled { color: var(--cr-border-strong); }
 
 .xhs-btn-primary { margin-top: 60rpx; background-color: #ff2442; color: #ffffff; border-radius: 50rpx; height: 96rpx; display: flex; align-items: center; justify-content: center; font-size: 32rpx; font-weight: 600; border: none; box-shadow: 0 8rpx 20rpx rgba(255, 36, 66, 0.2); transition: all 0.3s; }
 .xhs-btn-primary.disabled { background-color: #ffb3bf; box-shadow: none; color: rgba(255, 255, 255, 0.8); }
 .xhs-btn-primary:after { border: none; }
 .text-btn { margin-top: 30rpx; text-align: center; }
-.text-btn text { font-size: 26rpx; color: #999; }
+.text-btn text { font-size: 26rpx; color: var(--cr-text-muted); }
 .footer-tips { margin-top: auto; padding-bottom: 40rpx; text-align: center; }
-.tips-text { font-size: 24rpx; color: #bbb; }
-.link-text { font-size: 24rpx; color: #333; margin-left: 10rpx; font-weight: 500; text-decoration: underline; }
+.tips-text { font-size: 24rpx; color: var(--cr-text-muted); }
+.link-text { font-size: 24rpx; color: var(--cr-text); margin-left: 10rpx; font-weight: 500; text-decoration: underline; }
 .xhs-modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.xhs-modal { width: 600rpx; background-color: #ffffff; border-radius: 32rpx; padding: 50rpx 40rpx; display: flex; flex-direction: column; align-items: center; animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.xhs-modal { width: 600rpx; background-color: var(--cr-surface); border-radius: 32rpx; padding: 50rpx 40rpx; display: flex; flex-direction: column; align-items: center; animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .modal-icon-wrapper { width: 100rpx; height: 100rpx; border-radius: 50%; background-color: #ebfff0; display: flex; align-items: center; justify-content: center; margin-bottom: 30rpx; }
 .modal-icon { width: 50rpx; height: 50rpx; }
-.modal-title { font-size: 36rpx; font-weight: 600; color: #333; margin-bottom: 16rpx; }
-.modal-desc { font-size: 28rpx; color: #999; text-align: center; margin-bottom: 50rpx; line-height: 1.5; }
+.modal-title { font-size: 36rpx; font-weight: 600; color: var(--cr-text); margin-bottom: 16rpx; }
+.modal-desc { font-size: 28rpx; color: var(--cr-text-muted); text-align: center; margin-bottom: 50rpx; line-height: 1.5; }
 .xhs-modal-btn { width: 100%; height: 88rpx; background-color: #ff2442; color: #ffffff; border-radius: 44rpx; font-size: 30rpx; font-weight: 600; display: flex; align-items: center; justify-content: center; }
 </style>

@@ -1,10 +1,10 @@
 <template>
   <view
     class="detail-page-root"
-    :class="{
+    :class="[themeClass, {
       'is-video-page': isImmersiveVideoPage || videoFullscreen,
       'drawer-open': showCommentDrawer
-    }"
+    }]"
   >
     <!-- 沉浸式全屏视频播放器(H5+App 均编译, 手机端不再黑屏) -->
     <view v-show="(isImmersiveVideoPage || videoFullscreen) && postInfo" class="video-detail-page">
@@ -3752,8 +3752,8 @@ export default {
 <style scoped>
 .detail-page-root {
   min-height: 100vh;
-  background: #fff;
-  color: #222;
+  background: var(--cr-surface);
+  color: var(--cr-text);
   overflow-x: hidden;
 }
 
@@ -4176,8 +4176,8 @@ export default {
   margin-left: 8rpx;
   padding: 4rpx 10rpx;
   border-radius: 8rpx;
-  border: 1rpx solid #eee;
-  background: #f5f5f5;
+  border: 1rpx solid var(--cr-border);
+  background: var(--cr-surface-alt);
   max-width: 260rpx;
 }
 
@@ -4199,7 +4199,7 @@ export default {
   white-space: nowrap;
   font-size: 20rpx;
   line-height: 1.2;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 600;
 }
 
@@ -4341,7 +4341,7 @@ export default {
 
 .normal-detail-page {
   min-height: 100vh;
-  background: #fff;
+  background: var(--cr-surface);
   padding-bottom: 140rpx;
 }
 
@@ -4356,12 +4356,12 @@ export default {
      而 navTotalHeight 本身已包含状态栏高度. 若按 content-box 计算, 导航栏实际高度会多出
      一个状态栏高度, 白底会把正文顶部盖住(无图帖子正好盖住「共创」那一行, 看起来只显示一半) */
   box-sizing: border-box;
-  background: #fff;
+  background: var(--cr-surface);
   transition: background 0.2s ease;
 }
 
 .custom-nav-bar.nav-glass {
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
 }
 
@@ -4387,7 +4387,7 @@ export default {
 .xhs-nav-back-icon {
   font-size: 52rpx;
   line-height: 48rpx;
-  color: #222;
+  color: var(--cr-text);
   margin-top: -4rpx;
 }
 
@@ -4430,7 +4430,7 @@ export default {
   max-width: 260rpx;
   font-size: 28rpx;
   font-weight: 600;
-  color: #222;
+  color: var(--cr-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4463,7 +4463,7 @@ export default {
 }
 
 .xhs-nav-follow.followed text {
-  color: #999;
+  color: var(--cr-text-muted);
   font-weight: 400;
 }
 
@@ -4483,14 +4483,14 @@ export default {
 
 .xhs-media-box {
   width: 100%;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
   overflow: hidden;
 }
 
 .xhs-single-image {
   width: 100%;
   display: block;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
 }
 
 .xhs-swiper-wrap {
@@ -4506,7 +4506,7 @@ export default {
   width: 100%;
   height: 100%;
   display: block;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
 }
 
 .xhs-image-counter {
@@ -4542,7 +4542,7 @@ export default {
   margin-bottom: 16rpx;
   border-radius: 8rpx;
   background: #f2f3f5;
-  color: #666;
+  color: var(--cr-text-muted);
   font-size: 22rpx;
 }
 
@@ -4552,7 +4552,7 @@ export default {
 
 .xhs-time {
   font-size: 24rpx;
-  color: #9ca3af;
+  color: var(--cr-text-muted);
 }
 
 /* 打赏 + 浏览数: 功能保留、视觉弱化 */
@@ -4586,7 +4586,7 @@ export default {
 .xhs-view-count {
   flex-shrink: 0;
   font-size: 24rpx;
-  color: #9ca3af;
+  color: var(--cr-text-muted);
 }
 
 /* 满宽媒体之后: 这些区块自带左右内边距 */
@@ -4606,7 +4606,7 @@ export default {
 .disclaimer-title {
   font-size: 24rpx;
   font-weight: 400;
-  color: #bbb;
+  color: var(--cr-text-muted);
 }
 
 .disclaimer-text {
@@ -4628,7 +4628,7 @@ export default {
 .comment-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #222;
+  color: var(--cr-text);
 }
 
 .comment-list {
@@ -4664,7 +4664,7 @@ export default {
 
 /* 底部操作栏: 说点什么… + 点赞 + 收藏 + 评论 */
 .bottom-input-bar {
-  background: #fff;
+  background: var(--cr-surface);
   border-top: 1rpx solid #f0f1f4;
   padding: 14rpx 24rpx calc(env(safe-area-inset-bottom) + 14rpx);
 }
@@ -4676,7 +4676,7 @@ export default {
   border-radius: 999rpx;
   background: #f2f3f5;
   padding: 0 28rpx;
-  color: #222;
+  color: var(--cr-text);
   font-size: 26rpx;
 }
 
@@ -4704,7 +4704,7 @@ export default {
 .xhs-bar-count {
   margin-left: 8rpx;
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .xhs-bar-count.active {
@@ -4715,7 +4715,7 @@ export default {
   flex: 1;
   width: auto;
   text-align: left;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 25rpx;
 }
 
@@ -4750,7 +4750,7 @@ export default {
 .normal-back-text {
   font-size: 52rpx;
   line-height: 48rpx;
-  color: #222;
+  color: var(--cr-text);
   margin-top: -4rpx;
 }
 
@@ -4799,7 +4799,7 @@ export default {
 .normal-nav-name {
   max-width: 200rpx;
   font-size: 26rpx;
-  color: #222;
+  color: var(--cr-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4834,7 +4834,7 @@ export default {
 }
 
 .post-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 28rpx;
   padding: 26rpx 24rpx;
 }
@@ -4887,7 +4887,7 @@ export default {
 
 .post-author-name {
   max-width: 240rpx;
-  color: #222;
+  color: var(--cr-text);
   font-size: 30rpx;
   font-weight: 700;
   overflow: hidden;
@@ -4897,7 +4897,7 @@ export default {
 
 .post-time {
   margin-top: 8rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 22rpx;
 }
 
@@ -4909,7 +4909,7 @@ export default {
   border-radius: 999rpx;
   padding: 0 18rpx;
   background: #f1f2f4;
-  color: #666;
+  color: var(--cr-text-muted);
   font-size: 22rpx;
 }
 
@@ -4959,21 +4959,21 @@ export default {
   margin-top: 28rpx;
   padding: 70rpx 30rpx;
   border-radius: 24rpx;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
   text-align: center;
   display: flex;
   flex-direction: column;
 }
 
 .masked-title {
-  color: #222;
+  color: var(--cr-text);
   font-size: 32rpx;
   font-weight: 700;
 }
 
 .masked-sub {
   margin-top: 12rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 24rpx;
 }
 
@@ -4984,8 +4984,8 @@ export default {
 .comment-banner { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1rpx solid #bae6fd; }
 .unlock-card { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; padding: 40rpx 28rpx; gap: 12rpx; }
 .unlock-icon { font-size: 56rpx; }
-.unlock-title { font-size: 30rpx; font-weight: 900; color: #111827; }
-.unlock-desc { font-size: 24rpx; color: #6b7280; text-align: center; }
+.unlock-title { font-size: 30rpx; font-weight: 900; color: var(--cr-text); }
+.unlock-desc { font-size: 24rpx; color: var(--cr-text-muted); text-align: center; }
 .unlock-price { color: #ff2442; font-weight: 900; font-size: 28rpx; }
 .unlock-btn { margin-top: 8rpx; padding: 18rpx 56rpx; background: linear-gradient(135deg, #ff2442, #ef4444); border-radius: 40rpx; box-shadow: 0 6rpx 20rpx rgba(255,36,66,0.3); }
 .comment-banner .unlock-btn { background: linear-gradient(135deg, #0ea5e9, #3b82f6); box-shadow: 0 6rpx 20rpx rgba(14,165,233,0.3); }
@@ -5040,11 +5040,11 @@ export default {
 .unlock-card-bottom .unlock-title {
   font-size: 28rpx;
   font-weight: 900;
-  color: #111827;
+  color: var(--cr-text);
 }
 .unlock-card-bottom .unlock-desc {
   font-size: 24rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   text-align: center;
 }
 .unlock-card-bottom .unlock-btn {
@@ -5126,7 +5126,7 @@ export default {
 
 .post-content-text {
   margin-top: 18rpx;
-  color: #333;
+  color: var(--cr-text);
   font-size: 30rpx;
   line-height: 1.9;
   word-break: break-word;
@@ -5141,7 +5141,7 @@ export default {
 }
 
 .rich-text-normal {
-  color: #333;
+  color: var(--cr-text);
 }
 
 .rich-text-link {
@@ -5259,7 +5259,7 @@ export default {
 .shared-product-title {
   display: block;
   font-size: 28rpx;
-  color: #1f2937;
+  color: var(--cr-text);
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5340,7 +5340,7 @@ export default {
 .disclaimer-section {
   margin-top: 40rpx;
   padding: 30rpx 24rpx;
-  background: #f8f9fa;
+  background: var(--cr-surface-alt);
   border-radius: 16rpx;
 }
 
@@ -5353,13 +5353,13 @@ export default {
 .disclaimer-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #666;
+  color: var(--cr-text-muted);
   text-align: center;
 }
 
 .disclaimer-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   line-height: 1.6;
 }
 
@@ -5368,14 +5368,14 @@ export default {
 }
 
 .comment-title {
-  color: #222;
+  color: var(--cr-text);
   font-size: 30rpx;
   font-weight: 700;
 }
 
 .comment-loading,
 .empty-comment {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 60rpx 30rpx;
   text-align: center;
@@ -5383,12 +5383,12 @@ export default {
 
 .comment-loading text,
 .empty-comment text {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 25rpx;
 }
 
 .comment-list {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 6rpx 20rpx;
   contain: content;
@@ -5508,7 +5508,7 @@ export default {
 }
 
 .comment-text {
-  color: #222;
+  color: var(--cr-text);
 }
 .comment-bubble .comment-text.vip-red-text {
   color: #ff2442 !important;
@@ -5533,7 +5533,7 @@ export default {
 .comment-time,
 .comment-reply,
 .comment-delete {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 22rpx;
   margin-right: 24rpx;
 }
@@ -5570,7 +5570,7 @@ export default {
 }
 
 .reply-to {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 22rpx;
   margin: 0 8rpx;
 }
@@ -5578,7 +5578,7 @@ export default {
 .sub-comment-content {
   margin-top: 8rpx;
   border-radius: 16rpx;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
   padding: 14rpx 16rpx;
   word-break: break-word;
   white-space: pre-wrap;
@@ -5595,7 +5595,7 @@ export default {
 }
 
 .sub-actions text {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 21rpx;
   margin-right: 22rpx;
 }
@@ -5630,7 +5630,7 @@ export default {
   border-radius: 999rpx;
   background: #f2f3f5;
   padding: 0 24rpx;
-  color: #222;
+  color: var(--cr-text);
   font-size: 26rpx;
 }
 
@@ -5672,7 +5672,7 @@ export default {
 .comment-drawer {
   width: 100%;
   height: 76vh;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 28rpx 28rpx 0 0;
   display: flex;
   flex-direction: column;
@@ -5695,13 +5695,13 @@ export default {
 }
 
 .drawer-title {
-  color: #222;
+  color: var(--cr-text);
   font-size: 30rpx;
   font-weight: 700;
 }
 
 .drawer-close {
-  color: #666;
+  color: var(--cr-text-muted);
   font-size: 24rpx;
 }
 
@@ -5714,14 +5714,14 @@ export default {
 .drawer-comment-list {
   border-radius: 0;
   padding: 0;
-  background: #fff;
+  background: var(--cr-surface);
   contain: content;
 }
 
 .drawer-input-bar {
   padding: 16rpx 20rpx calc(env(safe-area-inset-bottom) + 16rpx);
   border-top: 1rpx solid #eef0f3;
-  background: #fff;
+  background: var(--cr-surface);
   display: flex;
   align-items: center;
 }
@@ -5732,7 +5732,7 @@ export default {
   border-radius: 999rpx;
   background: #f2f3f5;
   padding: 0 24rpx;
-  color: #222;
+  color: var(--cr-text);
   font-size: 26rpx;
 }
 
@@ -5761,7 +5761,7 @@ export default {
 .mention-panel {
   width: 100%;
   height: 70vh;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 28rpx 28rpx 0 0;
   display: flex;
   flex-direction: column;
@@ -5776,13 +5776,13 @@ export default {
 }
 
 .mention-title {
-  color: #222;
+  color: var(--cr-text);
   font-size: 30rpx;
   font-weight: 700;
 }
 
 .mention-close {
-  color: #666;
+  color: var(--cr-text-muted);
   font-size: 24rpx;
 }
 
@@ -5798,7 +5798,7 @@ export default {
   border-radius: 999rpx;
   background: #f2f3f5;
   padding: 0 24rpx;
-  color: #222;
+  color: var(--cr-text);
   font-size: 26rpx;
 }
 
@@ -5839,7 +5839,7 @@ export default {
 }
 
 .mention-name {
-  color: #222;
+  color: var(--cr-text);
   font-size: 26rpx;
 }
 
@@ -5849,7 +5849,7 @@ export default {
 }
 
 .mention-empty text {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 24rpx;
 }
 
@@ -5863,7 +5863,7 @@ export default {
 .modal-box {
   width: 620rpx;
   max-width: calc(100vw - 80rpx);
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 28rpx;
   overflow: hidden;
 }
@@ -5871,7 +5871,7 @@ export default {
 .modal-title {
   padding: 32rpx 24rpx 12rpx;
   text-align: center;
-  color: #222;
+  color: var(--cr-text);
   font-size: 32rpx;
   font-weight: 700;
 }
@@ -5902,7 +5902,7 @@ export default {
 }
 
 .modal-btn.cancel text {
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .modal-btn.confirm {
@@ -5910,7 +5910,7 @@ export default {
 }
 
 .modal-btn.confirm text {
-  color: #111827;
+  color: var(--cr-text);
   font-weight: 700;
 }
 
@@ -5945,7 +5945,7 @@ export default {
 
 .sheet-item {
   height: 96rpx;
-  background: #fff;
+  background: var(--cr-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5958,7 +5958,7 @@ export default {
 }
 
 .sheet-item text {
-  color: #222;
+  color: var(--cr-text);
   font-size: 28rpx;
 }
 
@@ -6007,7 +6007,7 @@ export default {
 /* CSS dots for action sheet trigger — avoids font rendering diff across Android */
 .more-dots { display: flex; flex-direction: row; align-items: center; gap: 6rpx; }
 .more-dot { width: 9rpx; height: 9rpx; border-radius: 50%; flex-shrink: 0; }
-.white-dots .more-dot { background: #fff; }
+.white-dots .more-dot { background: var(--cr-surface); }
 .dark-dots .more-dot { background: #222; }
 
 /* 沉浸式视频锁定遮罩 */
@@ -6058,7 +6058,7 @@ export default {
   margin-right: 0;
 }
 .post-view-count text {
-  color: #bbb;
+  color: var(--cr-text-muted);
   font-size: 23rpx;
 }
 
@@ -6132,30 +6132,30 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3rpx solid #e5e7eb;
+  border: 3rpx solid var(--cr-border);
 }
 .rewarders-more-text {
   font-size: 20rpx;
-  color: #9ca3af;
+  color: var(--cr-text-muted);
   font-weight: 600;
 }
 
 /* Pay password modal */
 .pay-pwd-mask { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
-.pay-pwd-box { width: 580rpx; background: #fff; border-radius: 28rpx; padding: 44rpx 36rpx 32rpx; display: flex; flex-direction: column; align-items: center; gap: 20rpx; }
-.pay-pwd-title { font-size: 32rpx; font-weight: 900; color: #111827; }
-.pay-pwd-desc { font-size: 26rpx; color: #6b7280; text-align: center; }
-.pay-pwd-input { width: 100%; height: 88rpx; border-radius: 16rpx; background: #f8f9fb; padding: 0 24rpx; font-size: 32rpx; font-weight: 700; color: #111827; text-align: center; letter-spacing: 8rpx; }
+.pay-pwd-box { width: 580rpx; background: var(--cr-surface); border-radius: 28rpx; padding: 44rpx 36rpx 32rpx; display: flex; flex-direction: column; align-items: center; gap: 20rpx; }
+.pay-pwd-title { font-size: 32rpx; font-weight: 900; color: var(--cr-text); }
+.pay-pwd-desc { font-size: 26rpx; color: var(--cr-text-muted); text-align: center; }
+.pay-pwd-input { width: 100%; height: 88rpx; border-radius: 16rpx; background: #f8f9fb; padding: 0 24rpx; font-size: 32rpx; font-weight: 700; color: var(--cr-text); text-align: center; letter-spacing: 8rpx; }
 .pay-pwd-ph { color: #d1d5db; font-size: 26rpx; letter-spacing: 0; }
 .pay-pwd-btns { display: flex; width: 100%; gap: 16rpx; margin-top: 8rpx; }
 .pay-pwd-cancel { flex: 1; height: 80rpx; border-radius: 20rpx; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
-.pay-pwd-cancel text { font-size: 28rpx; color: #6b7280; font-weight: 700; }
+.pay-pwd-cancel text { font-size: 28rpx; color: var(--cr-text-muted); font-weight: 700; }
 .pay-pwd-confirm { flex: 1; height: 80rpx; border-radius: 20rpx; background: linear-gradient(135deg, #ff2442, #ef4444); display: flex; align-items: center; justify-content: center; }
 .pay-pwd-confirm text { font-size: 28rpx; color: #fff; font-weight: 800; }
 
 /* 打赏弹窗样式 */
 .reward-mask { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
-.reward-box { width: 580rpx; background: #fff; border-radius: 28rpx; padding: 44rpx 36rpx 32rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; }
+.reward-box { width: 580rpx; background: var(--cr-surface); border-radius: 28rpx; padding: 44rpx 36rpx 32rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; }
 .reward-title-row {
   display: flex;
   align-items: center;
@@ -6167,35 +6167,35 @@ export default {
   height: 36rpx;
   margin-right: 8rpx;
 }
-.reward-title { font-size: 34rpx; font-weight: 900; color: #111827; }
-.reward-author { font-size: 26rpx; color: #6b7280; }
+.reward-title { font-size: 34rpx; font-weight: 900; color: var(--cr-text); }
+.reward-author { font-size: 26rpx; color: var(--cr-text-muted); }
 
 /* 打赏者列表弹窗样式 */
-.rewarders-modal-box { width: 600rpx; max-height: 70vh; background: #fff; border-radius: 28rpx; display: flex; flex-direction: column; overflow: hidden; }
+.rewarders-modal-box { width: 600rpx; max-height: 70vh; background: var(--cr-surface); border-radius: 28rpx; display: flex; flex-direction: column; overflow: hidden; }
 .rewarders-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 32rpx 36rpx; border-bottom: 1rpx solid #f3f4f6; }
-.rewarders-modal-title { font-size: 32rpx; font-weight: 800; color: #111827; }
+.rewarders-modal-title { font-size: 32rpx; font-weight: 800; color: var(--cr-text); }
 .rewarders-modal-close { width: 56rpx; height: 56rpx; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
-.close-icon { font-size: 40rpx; color: #6b7280; line-height: 1; }
+.close-icon { font-size: 40rpx; color: var(--cr-text-muted); line-height: 1; }
 .rewarders-modal-list { flex: 1; padding: 16rpx 0; max-height: 60vh; }
 .rewarder-item { display: flex; align-items: center; padding: 20rpx 36rpx; gap: 20rpx; }
 .rewarder-item:active { background: #f9fafb; }
-.rewarder-item-avatar { width: 80rpx; height: 80rpx; border-radius: 50%; border: 2rpx solid #e5e7eb; }
+.rewarder-item-avatar { width: 80rpx; height: 80rpx; border-radius: 50%; border: 2rpx solid var(--cr-border); }
 .rewarder-item-info { flex: 1; display: flex; flex-direction: column; gap: 8rpx; }
-.rewarder-item-name { font-size: 28rpx; font-weight: 700; color: #111827; }
-.rewarder-item-amount { font-size: 24rpx; color: #9ca3af; }
+.rewarder-item-name { font-size: 28rpx; font-weight: 700; color: var(--cr-text); }
+.rewarder-item-amount { font-size: 24rpx; color: var(--cr-text-muted); }
 .reward-amount-grid { display: flex; flex-wrap: wrap; gap: 20rpx; width: 100%; justify-content: center; }
 .reward-amount-chip { width: 220rpx; height: 80rpx; border-radius: 16rpx; background: #f3f4f6; display: flex; align-items: center; justify-content: center; border: 3rpx solid transparent; }
 .reward-amount-chip.active { background: #fff0f0; border-color: #ff2442; }
-.reward-amount-chip text { font-size: 28rpx; color: #374151; font-weight: 700; }
+.reward-amount-chip text { font-size: 28rpx; color: var(--cr-text); font-weight: 700; }
 .reward-amount-chip.active text { color: #ff2442; }
-.reward-amount-chip.custom-chip { border: 3rpx dashed #d1d5db; }
+.reward-amount-chip.custom-chip { border: 3rpx dashed var(--cr-border); }
 .reward-amount-chip.custom-chip.active { border-style: solid; border-color: #ff2442; background: #fff0f0; }
-.custom-reward-input { width: 100%; height: 100%; text-align: center; font-size: 28rpx; font-weight: 700; color: #374151; }
-.reward-chip-ph { color: #9ca3af; font-weight: 400; }
-.reward-balance { font-size: 24rpx; color: #9ca3af; }
+.custom-reward-input { width: 100%; height: 100%; text-align: center; font-size: 28rpx; font-weight: 700; color: var(--cr-text); }
+.reward-chip-ph { color: var(--cr-text-muted); font-weight: 400; }
+.reward-balance { font-size: 24rpx; color: var(--cr-text-muted); }
 .reward-btns { display: flex; width: 100%; gap: 16rpx; margin-top: 12rpx; }
 .reward-cancel { flex: 1; height: 80rpx; border-radius: 20rpx; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
-.reward-cancel text { font-size: 28rpx; color: #6b7280; font-weight: 700; }
+.reward-cancel text { font-size: 28rpx; color: var(--cr-text-muted); font-weight: 700; }
 .reward-confirm { flex: 1; height: 80rpx; border-radius: 20rpx; background: linear-gradient(135deg, #ff2442, #ef4444); display: flex; align-items: center; justify-content: center; }
 .reward-confirm.disabled { opacity: 0.5; }
 .reward-confirm text { font-size: 28rpx; color: #fff; font-weight: 800; }
@@ -6385,7 +6385,7 @@ export default {
 .cv-back-btn { left: 24rpx; }
 .cv-more-btn { right: 24rpx; }
 .cv-dots { display: flex; flex-direction: row; align-items: center; justify-content: center; }
-.cv-dot { width: 9rpx; height: 9rpx; border-radius: 50%; background: #fff; margin: 0 3rpx; flex-shrink: 0; }
+.cv-dot { width: 9rpx; height: 9rpx; border-radius: 50%; background: var(--cr-surface); margin: 0 3rpx; flex-shrink: 0; }
 .cv-center-play-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 12; }
 .cv-center-play-btn { width: 132rpx; height: 132rpx; border-radius: 50%; background: rgba(0,0,0,0.48); display: flex; align-items: center; justify-content: center; }
 .cv-play-icon { color: #fff; font-size: 56rpx; line-height: 56rpx; margin-left: 8rpx; }

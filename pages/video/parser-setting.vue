@@ -1,5 +1,5 @@
 <template>
-  <view class="parser-setting-page">
+  <view class="parser-setting-page" :class="themeClass">
     <!-- 自定义导航栏 -->
     <view class="nav-bar">
       <view class="nav-back" @click="goBack">
@@ -171,7 +171,7 @@ export default {
 <style lang="scss" scoped>
 .parser-setting-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
 }
 
 .nav-bar {
@@ -179,7 +179,7 @@ export default {
   align-items: center;
   padding-top: var(--status-bar-height);
   height: calc(44px + var(--status-bar-height));
-  background-color: #fff;
+  background-color: var(--cr-surface);
   position: sticky;
   top: 0;
   z-index: 99;
@@ -195,7 +195,7 @@ export default {
 
 .back-icon {
   font-size: 56rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 300;
   line-height: 1;
 }
@@ -207,7 +207,7 @@ export default {
 
 .nav-title text {
   font-size: 32rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
 }
 
@@ -220,40 +220,40 @@ export default {
 }
 
 .tip-section {
-  background-color: #fff;
+  background-color: var(--cr-surface);
   padding: 30rpx;
   margin-bottom: 20rpx;
 }
 
 .tip-title {
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: bold;
   margin-bottom: 20rpx;
 }
 
 .tip-text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.6;
   margin-bottom: 10rpx;
 }
 
 .input-section {
-  background-color: #fff;
+  background-color: var(--cr-surface);
   padding: 30rpx;
   margin-bottom: 20rpx;
 }
 
 .input-title {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 20rpx;
 }
 
 .input-box {
   width: 100%;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 30rpx;
@@ -262,13 +262,13 @@ export default {
 .url-input {
   width: 100%;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.6;
   word-break: break-all;
 }
 
 .input-placeholder {
-  color: #ccc;
+  color: var(--cr-border-strong);
 }
 
 .save-btn {
@@ -288,14 +288,14 @@ export default {
 }
 
 .preset-section {
-  background-color: #fff;
+  background-color: var(--cr-surface);
   padding: 30rpx;
   margin-bottom: 20rpx;
 }
 
 .section-title {
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: bold;
   margin-bottom: 20rpx;
 }
@@ -307,7 +307,7 @@ export default {
 }
 
 .preset-item {
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   border-radius: 12rpx;
   padding: 20rpx;
 }
@@ -315,7 +315,7 @@ export default {
 .preset-name {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
   margin-bottom: 8rpx;
 }
@@ -323,12 +323,12 @@ export default {
 .preset-url {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   word-break: break-all;
 }
 
 .status-section {
-  background-color: #fff;
+  background-color: var(--cr-surface);
   padding: 30rpx;
 }
 
@@ -345,13 +345,13 @@ export default {
 .status-label {
   width: 150rpx;
   font-size: 28rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .status-value {
   flex: 1;
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .status-value.active {

@@ -1,5 +1,5 @@
 ﻿<template>
-  <view class="xhs-bind-container">
+  <view class="xhs-bind-container" :class="themeClass">
     <view class="custom-nav">
       <view class="nav-left" @click="goBack">
         <image src="/static/icon/arrow-left-dark.svg" class="back-arrow" mode="aspectFit"></image>
@@ -252,7 +252,7 @@ export default {
 <style scoped>
 .xhs-bind-container {
   min-height: 100vh;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   display: flex;
   flex-direction: column;
 }
@@ -264,10 +264,10 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 30rpx;
-  background: #fff;
+  background: var(--cr-surface);
 }
 .back-arrow { width: 44rpx; height: 44rpx; }
-.nav-title { font-size: 34rpx; font-weight: 600; color: #333; }
+.nav-title { font-size: 34rpx; font-weight: 600; color: var(--cr-text); }
 .nav-right { width: 44rpx; }
 
 .content-body {
@@ -276,12 +276,12 @@ export default {
 }
 
 .header-text { margin-bottom: 80rpx; }
-.h1 { font-size: 48rpx; font-weight: 600; color: #333; margin-bottom: 16rpx; }
-.h2 { font-size: 26rpx; color: #999; }
+.h1 { font-size: 48rpx; font-weight: 600; color: var(--cr-text); margin-bottom: 16rpx; }
+.h2 { font-size: 26rpx; color: var(--cr-text-muted); }
 
 .input-item {
   height: 100rpx;
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border-radius: 50rpx;
   display: flex;
   align-items: center;
@@ -296,9 +296,9 @@ export default {
   flex: 1;
   height: 100%;
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
 }
-.ph-style { color: #ccc; }
+.ph-style { color: var(--cr-border-strong); }
 
 .code-item { padding-right: 30rpx; }
 .line { width: 2rpx; height: 32rpx; background: #ddd; margin: 0 24rpx; }
@@ -308,7 +308,7 @@ export default {
   font-weight: 500;
   white-space: nowrap;
 }
-.code-btn.disabled { color: #ccc; }
+.code-btn.disabled { color: var(--cr-border-strong); }
 
 .error-text {
   font-size: 24rpx;
@@ -340,9 +340,9 @@ export default {
 }
 
 .outline-btn {
-  background: #fff;
-  border: 2rpx solid #ddd;
-  color: #333;
+  background: var(--cr-surface);
+  border: 2rpx solid var(--cr-border);
+  color: var(--cr-text);
   width: 240rpx;
   height: 80rpx;
   line-height: 76rpx;
@@ -352,7 +352,7 @@ export default {
 
 .cancel-text {
   text-align: center;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
   margin-top: 40rpx;
 }
@@ -368,10 +368,10 @@ export default {
   height: 140rpx;
   border-radius: 50%;
   margin-bottom: 40rpx;
-  border: 2rpx solid #f0f0f0;
+  border: 2rpx solid var(--cr-border);
 }
-.bound-title { font-size: 30rpx; color: #666; margin-bottom: 16rpx; }
-.bound-email { font-size: 44rpx; color: #333; font-weight: bold; margin-bottom: 30rpx; }
+.bound-title { font-size: 30rpx; color: var(--cr-text-muted); margin-bottom: 16rpx; }
+.bound-email { font-size: 44rpx; color: var(--cr-text); font-weight: bold; margin-bottom: 30rpx; }
 .safe-tag {
   background: #eafff6;
   color: #00b386;

@@ -1,5 +1,5 @@
 <template>
-  <view class="admin-page">
+  <view class="admin-page" :class="themeClass">
     <!-- 顶部导航 -->
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-bg"></view>
@@ -564,7 +564,7 @@ export default {
 /* ====== 页面 ====== */
 .admin-page {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: var(--cr-surface-alt);
 }
 
 /* ====== 导航栏 ====== */
@@ -572,7 +572,7 @@ export default {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 999;
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.06);
 }
 
@@ -593,7 +593,7 @@ export default {
   width: 40rpx; height: 40rpx;
 }
 .nav-title {
-  font-size: 34rpx; font-weight: 700; color: #333; letter-spacing: 2rpx;
+  font-size: 34rpx; font-weight: 700; color: var(--cr-text); letter-spacing: 2rpx;
 }
 .nav-right {
   width: 64rpx; height: 64rpx;
@@ -602,14 +602,14 @@ export default {
 .nav-user {
   width: 60rpx; height: 60rpx;
   border-radius: 50%; overflow: hidden;
-  border: 2rpx solid #e0e0e0;
+  border: 2rpx solid var(--cr-border);
 }
 .nav-avatar-img { width: 100%; height: 100%; }
 .user-icon { width: 32rpx; height: 32rpx; }
 
 .main-scroll { height: 100vh; }
 .nav-placeholder {
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 /* ====== 全站数据卡片 ====== */
@@ -648,7 +648,7 @@ export default {
 /* ====== 待办事项 ====== */
 .todo-section {
   margin: 0 20rpx 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04);
@@ -658,7 +658,7 @@ export default {
   margin-bottom: 24rpx;
 }
 .todo-title {
-  font-size: 30rpx; font-weight: 700; color: #222;
+  font-size: 30rpx; font-weight: 700; color: var(--cr-text);
 }
 .todo-badge {
   background: linear-gradient(135deg, #ff4757, #ff6b81);
@@ -710,14 +710,14 @@ export default {
 }
 .todo-label {
   display: block;
-  font-size: 22rpx; color: #888;
+  font-size: 22rpx; color: var(--cr-text-muted);
   margin-top: 8rpx;
 }
 
 /* ====== 常用管理 ====== */
 .manage-section {
   margin: 0 20rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx 0;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04);
@@ -727,7 +727,7 @@ export default {
   padding: 0 28rpx;
 }
 .manage-title {
-  font-size: 30rpx; font-weight: 700; color: #222;
+  font-size: 30rpx; font-weight: 700; color: var(--cr-text);
 }
 .manage-grid {
   display: flex; flex-wrap: wrap;
@@ -745,11 +745,11 @@ export default {
 }
 .manage-icon {
   width: 76rpx; height: 76rpx;
-  background: #f5f6fa;
+  background: var(--cr-surface-alt);
   border-radius: 18rpx;
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 10rpx;
-  color: #333;
+  color: var(--cr-text);
   transition: all 0.2s;
 }
 .manage-icon :deep(svg),
@@ -786,23 +786,23 @@ export default {
 }
 .modal-content {
   position: relative;
-  width: 600rpx; background: #fff;
+  width: 600rpx; background: var(--cr-surface);
   border-radius: 24rpx; overflow: hidden;
 }
 .modal-title {
   padding: 32rpx;
-  font-size: 32rpx; font-weight: 600; color: #333;
+  font-size: 32rpx; font-weight: 600; color: var(--cr-text);
   text-align: center;
-  border-bottom: 1rpx solid #f2f2f2;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 .modal-body { padding: 32rpx; }
 .modal-desc {
-  font-size: 28rpx; color: #666; line-height: 1.6;
+  font-size: 28rpx; color: var(--cr-text-muted); line-height: 1.6;
   margin-bottom: 24rpx;
 }
 .modal-input-row { margin-bottom: 16rpx; }
 .input-label {
-  display: block; font-size: 26rpx; color: #666;
+  display: block; font-size: 26rpx; color: var(--cr-text-muted);
   margin-bottom: 12rpx;
 }
 .modal-input {
@@ -811,13 +811,13 @@ export default {
   padding: 0 24rpx; font-size: 28rpx;
 }
 .modal-footer {
-  display: flex; border-top: 1rpx solid #f2f2f2;
+  display: flex; border-top: 1rpx solid var(--cr-border);
 }
 .modal-btn {
   flex: 1; padding: 28rpx;
   text-align: center; font-size: 30rpx;
 }
-.modal-btn.cancel { color: #888; border-right: 1rpx solid #f2f2f2; }
+.modal-btn.cancel { color: var(--cr-text-muted); border-right: 1rpx solid #f2f2f2; }
 .modal-btn.confirm { color: #667eea; font-weight: 600; }
 
 /* ====== 用户弹窗 ====== */
@@ -829,7 +829,7 @@ export default {
 }
 .user-modal-content {
   position: relative;
-  width: 600rpx; background: #fff;
+  width: 600rpx; background: var(--cr-surface);
   border-radius: 28rpx; overflow: hidden;
 }
 .um-header {
@@ -866,8 +866,8 @@ export default {
   border-bottom: 1rpx solid #f5f5f5;
 }
 .um-row:last-child { border-bottom: none; }
-.um-label { font-size: 27rpx; color: #999; }
-.um-val { font-size: 27rpx; color: #333; font-weight: 500; max-width: 320rpx; text-align: right; word-break: break-all; }
+.um-label { font-size: 27rpx; color: var(--cr-text-muted); }
+.um-val { font-size: 27rpx; color: var(--cr-text); font-weight: 500; max-width: 320rpx; text-align: right; word-break: break-all; }
 .um-close {
   padding: 20rpx 32rpx 32rpx;
   text-align: center;
@@ -919,7 +919,7 @@ export default {
 .logs-content {
   position: relative;
   width: 100%; height: 85vh;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 32rpx 32rpx 0 0;
   margin-top: auto;
   display: flex; flex-direction: column;
@@ -969,7 +969,7 @@ export default {
   font-family: monospace; margin-bottom: 6rpx;
 }
 .log-admin {
-  font-size: 26rpx; color: #333; font-weight: 600;
+  font-size: 26rpx; color: var(--cr-text); font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .log-item-right { flex: 1; min-width: 0; }
@@ -982,17 +982,17 @@ export default {
   line-height: 1.4; margin-bottom: 6rpx;
   word-break: break-all;
 }
-.log-time { font-size: 22rpx; color: #aaa; }
+.log-time { font-size: 22rpx; color: var(--cr-text-muted); }
 .log-loading-more, .log-no-more {
   text-align: center; padding: 20rpx;
-  font-size: 24rpx; color: #bbb;
+  font-size: 24rpx; color: var(--cr-text-muted);
 }
 .logs-empty {
   flex: 1; display: flex; align-items: center; justify-content: center;
-  color: #bbb; font-size: 28rpx;
+  color: var(--cr-text-muted); font-size: 28rpx;
 }
 .logs-loading {
   flex: 1; display: flex; align-items: center; justify-content: center;
-  color: #999; font-size: 26rpx;
+  color: var(--cr-text-muted); font-size: 26rpx;
 }
 </style>

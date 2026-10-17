@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-bar">
         <view class="nav-back" @click="goBack">返回</view>
@@ -182,14 +182,14 @@ export default {
 <style scoped>
 .page{
   min-height:100vh;
-  background:#f5f6f8;
+  background: var(--cr-surface-alt);
 }
 .nav{
   position:fixed;
   left:0;
   right:0;
   top:0;
-  background:#f5f6f8;
+  background: var(--cr-surface-alt);
   z-index:20;
 }
 .nav-bar{
@@ -202,22 +202,22 @@ export default {
 .nav-back,.nav-placeholder{
   width:120rpx;
   font-size:28rpx;
-  color:#374151;
+  color: var(--cr-text);
 }
 .nav-title{
   font-size:32rpx;
   font-weight:800;
-  color:#111827;
+  color: var(--cr-text);
 }
 .card{
   margin:24rpx;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:16rpx;
   padding:28rpx;
 }
 .label{
   font-size:28rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:700;
 }
 .search-row{
@@ -232,7 +232,7 @@ export default {
   border-radius:12rpx;
   padding:0 24rpx;
   font-size:28rpx;
-  color:#111827;
+  color: var(--cr-text);
 }
 .search-btn{
   width:160rpx;
@@ -252,7 +252,7 @@ export default {
   margin-top:16rpx;
   font-size:24rpx;
   line-height:1.6;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
 }
 .group-head{
   display:flex;
@@ -290,13 +290,13 @@ export default {
 }
 .group-name{
   font-size:34rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:800;
 }
 .group-code,
 .group-count{
   font-size:24rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
 }
 .status-box{
   margin-top:24rpx;
@@ -319,7 +319,7 @@ export default {
 }
 .verify-label{
   font-size:26rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:700;
 }
 .verify-input{
@@ -331,7 +331,7 @@ export default {
   padding:20rpx 24rpx;
   box-sizing:border-box;
   font-size:26rpx;
-  color:#111827;
+  color: var(--cr-text);
 }
 .action-row{
   margin-top:24rpx;
@@ -352,20 +352,20 @@ export default {
 }
 .empty-card{
   margin:60rpx 24rpx 0;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:16rpx;
   padding:60rpx 40rpx;
   text-align:center;
 }
 .empty-title{
   font-size:30rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:800;
 }
 .empty-desc{
   margin-top:12rpx;
   display:block;
   font-size:24rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
 }
 </style>

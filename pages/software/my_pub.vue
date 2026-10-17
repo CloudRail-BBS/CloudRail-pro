@@ -1,5 +1,5 @@
 <template>
-  <view class="manage-container">
+  <view class="manage-container" :class="themeClass">
     <view class="nav-bar-fixed">
       <view :style="{ height: statusBarHeight + 'px' }"></view>
       <view class="nav-content">
@@ -162,8 +162,8 @@ export default {
 </script>
 
 <style scoped>
-.manage-container { background: #f7f8fa; min-height: 100vh; }
-.nav-bar-fixed { position: fixed; top: 0; left: 0; width: 100%; background: #fff; z-index: 99; border-bottom: 1rpx solid #eee; }
+.manage-container { background: var(--cr-surface-alt); min-height: 100vh; }
+.nav-bar-fixed { position: fixed; top: 0; left: 0; width: 100%; background: var(--cr-surface); z-index: 99; border-bottom: 1rpx solid var(--cr-border); }
 .nav-content { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 30rpx; }
 .nav-btn { width: 60rpx; height: 100%; display: flex; align-items: center; }
 .nav-icon { width: 44rpx; height: 44rpx; }
@@ -176,7 +176,7 @@ export default {
   padding: 22rpx;
   margin-bottom: 18rpx;
   border-radius: 18rpx;
-  background: #fff;
+  background: var(--cr-surface);
 }
 .i-logo {
   width: 126rpx;
@@ -193,7 +193,7 @@ export default {
   display: block;
   font-size: 30rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
 }
 .i-meta-row {
   display: flex;
@@ -203,17 +203,17 @@ export default {
 }
 .i-meta {
   font-size: 22rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   padding: 6rpx 14rpx;
   border-radius: 999rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .i-status {
   display: block;
   margin-top: 14rpx;
   font-size: 24rpx;
 }
-.s-0 { color: #999; }
+.s-0 { color: var(--cr-text-muted); }
 .s-1 { color: #52c41a; }
 .s-2 { color: #ff9500; }
 .i-act {
@@ -227,9 +227,9 @@ export default {
   text-align: center;
   padding: 10rpx 18rpx;
   border-radius: 999rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--cr-border);
   font-size: 22rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 .act-btn.del {
   color: #ff3b30;
@@ -237,7 +237,7 @@ export default {
 }
 .empty {
   text-align: center;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-top: 120rpx;
   font-size: 28rpx;
 }

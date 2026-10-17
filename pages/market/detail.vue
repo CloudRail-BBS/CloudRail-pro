@@ -1,5 +1,5 @@
 <template>
-  <view class="detail-page">
+  <view class="detail-page" :class="themeClass">
     <!-- 顶部导航 -->
     <view class="nav-bar always-solid" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-row">
@@ -512,12 +512,12 @@ view, text, image, input, textarea { box-sizing: border-box; }
   transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 .nav-bar.solid {
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 1rpx 0 rgba(0,0,0,0.04);
   pointer-events: all;
 }
 .nav-bar.always-solid {
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 1rpx 0 rgba(0,0,0,0.04);
   pointer-events: all;
 }
@@ -536,11 +536,11 @@ view, text, image, input, textarea { box-sizing: border-box; }
   box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
 }
 .nav-bar.solid .nav-btn {
-  background: #F5F5F5;
+  background: var(--cr-surface-alt);
   box-shadow: none;
 }
 .nav-bar.always-solid .nav-btn {
-  background: #F5F5F5;
+  background: var(--cr-surface-alt);
   box-shadow: none;
 }
 .nav-title-text {
@@ -571,14 +571,14 @@ view, text, image, input, textarea { box-sizing: border-box; }
 /* === 图片轮播 === */
 .hero-wrap {
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   position: relative;
   border-radius: 0 0 32rpx 32rpx;
   overflow: hidden;
 }
 .hero-scroll { width: 100%; white-space: nowrap; }
 .hero-img-item { display: inline-block; width: 100%; vertical-align: top; }
-.hero-img { width: 100%; display: block; background: #f5f5f5; }
+.hero-img { width: 100%; display: block; background: var(--cr-surface-alt); }
 .hero-indicator {
   position: absolute; right: 24rpx; bottom: 36rpx;
   background: rgba(0,0,0,0.55);
@@ -605,7 +605,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
 
 /* === 主信息卡片 === */
 .main-card {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 20rpx 24rpx 18rpx;
   margin: 16rpx 16rpx 0;
   border-radius: 24rpx;
@@ -650,7 +650,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
   border-top: 1rpx solid #F5F5F5;
 }
 .stock-label {
-  font-size: 24rpx; color: #888; font-weight: 500;
+  font-size: 24rpx; color: var(--cr-text-muted); font-weight: 500;
 }
 .stock-val {
   font-size: 26rpx; color: #1677FF; font-weight: 700;
@@ -679,8 +679,8 @@ view, text, image, input, textarea { box-sizing: border-box; }
 .cat-badge {
   padding: 6rpx 14rpx;
   border-radius: 999rpx;
-  background: #F5F5F5;
-  font-size: 20rpx; color: #888;
+  background: var(--cr-surface-alt);
+  font-size: 20rpx; color: var(--cr-text-muted);
   font-weight: 500;
 }
 
@@ -693,7 +693,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
 
 /* === 服务保障卡片 === */
 .service-card {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 16rpx 16rpx 0;
   padding: 28rpx;
   border-radius: 24rpx;
@@ -721,7 +721,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
   display: flex; flex-direction: column;
   align-items: center;
   padding: 20rpx 8rpx;
-  background: #FAFAFA;
+  background: var(--cr-canvas);
   border-radius: 16rpx;
   gap: 10rpx;
 }
@@ -799,12 +799,12 @@ view, text, image, input, textarea { box-sizing: border-box; }
 }
 .service-sub {
   font-size: 19rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* === 卖家卡片 === */
 .seller-card {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 16rpx 16rpx 0;
   padding: 18rpx 24rpx;
   border-radius: 24rpx;
@@ -886,7 +886,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
   content: '';
   position: absolute;
   width: 4rpx; height: 4rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 50%;
   top: 50%; left: 6rpx;
   transform: translateY(-50%);
@@ -896,7 +896,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
 
 /* === 宝贝详情 === */
 .desc-card {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 16rpx 16rpx 0;
   padding: 20rpx 24rpx;
   border-radius: 24rpx;
@@ -924,7 +924,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
 /* === 底部操作栏 === */
 .bottom-bar {
   position: fixed; bottom: 0; left: 0; width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   padding: 14rpx 24rpx;
   padding-bottom: calc(14rpx + env(safe-area-inset-bottom));
   display: flex; gap: 24rpx; align-items: center;
@@ -963,7 +963,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .pay-sheet {
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 32rpx 32rpx 0 0;
   padding: 0 0 calc(env(safe-area-inset-bottom));
   animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -1011,8 +1011,8 @@ view, text, image, input, textarea { box-sizing: border-box; }
 .sheet-thumb {
   width: 160rpx; height: 160rpx;
   border-radius: 16rpx;
-  background: #f5f5f5;
-  border: 1rpx solid #F0F0F0;
+  background: var(--cr-surface-alt);
+  border: 1rpx solid var(--cr-border);
 }
 .sheet-thumb-tag {
   position: absolute;
@@ -1054,7 +1054,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
   line-height: 1;
 }
 .sheet-goods-tip {
-  font-size: 20rpx; color: #999;
+  font-size: 20rpx; color: var(--cr-text-muted);
 }
 
 /* 表单 */
@@ -1073,7 +1073,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
   display: flex; align-items: center; gap: 4rpx;
 }
 .form-label {
-  font-size: 28rpx; color: #333;
+  font-size: 28rpx; color: var(--cr-text);
   font-weight: 600;
 }
 .form-required {
@@ -1104,7 +1104,7 @@ view, text, image, input, textarea { box-sizing: border-box; }
   display: flex; justify-content: space-between;
   align-items: baseline; margin-bottom: 20rpx;
 }
-.sheet-total-label { font-size: 26rpx; color: #888; }
+.sheet-total-label { font-size: 26rpx; color: var(--cr-text-muted); }
 .sheet-total-price-wrap {
   display: flex; align-items: baseline;
   color: #FF2F00;

@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
         <view class="back-btn"><view class="back-arrow"></view></view>
@@ -154,10 +154,10 @@ export default {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #fff; }
+.page { min-height: 100vh; background: var(--cr-surface); }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  height: 44px; background: #fff; border-bottom: 1rpx solid #f5f5f5;
+  height: 44px; background: var(--cr-surface); border-bottom: 1rpx solid #f5f5f5;
   display: flex; align-items: center; justify-content: space-between; padding: 0 20rpx;
 }
 .nav-left, .nav-right { width: 80rpx; display: flex; align-items: center; }
@@ -168,19 +168,19 @@ export default {
 .body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
 
 .empty-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 0; }
-.empty-text { font-size: 28rpx; color: #9ca3af; }
-.spinner { width: 60rpx; height: 60rpx; border-radius: 50%; border: 6rpx solid #e5e7eb; border-top-color: #111827; animation: spin 0.8s linear infinite; }
+.empty-text { font-size: 28rpx; color: var(--cr-text-muted); }
+.spinner { width: 60rpx; height: 60rpx; border-radius: 50%; border: 6rpx solid var(--cr-border); border-top-color: #111827; animation: spin 0.8s linear infinite; }
 
 .list { padding: 20rpx 28rpx 0; display: flex; flex-direction: column; gap: 20rpx; }
 
-.record-card { background: #fff; border-radius: 20rpx; padding: 28rpx; }
+.record-card { background: var(--cr-surface); border-radius: 20rpx; padding: 28rpx; }
 .card-top { display: flex; align-items: center; gap: 14rpx; margin-bottom: 14rpx; }
 .channel-badge { border-radius: 10rpx; padding: 6rpx 16rpx; }
 .alipay-badge { background: #e8f4ff; }
 .wxpay-badge { background: #e8f9ee; }
 .bank-badge { background: #fef3c7; }
-.badge-text { font-size: 22rpx; font-weight: 700; color: #374151; }
-.amount { flex: 1; font-size: 36rpx; font-weight: 900; color: #111827; }
+.badge-text { font-size: 22rpx; font-weight: 700; color: var(--cr-text); }
+.amount { flex: 1; font-size: 36rpx; font-weight: 900; color: var(--cr-text); }
 .status-tag { border-radius: 10rpx; padding: 6rpx 16rpx; }
 .status-0 { background: #fef9c3; }
 .status-1 { background: #dcfce7; }
@@ -191,15 +191,15 @@ export default {
 .status-2 .status-text { color: #991b1b; }
 
 .card-mid { margin-bottom: 12rpx; }
-.account-text { font-size: 26rpx; color: #6b7280; }
+.account-text { font-size: 26rpx; color: var(--cr-text-muted); }
 
 .card-bot { display: flex; align-items: center; gap: 12rpx; }
-.time-text { font-size: 22rpx; color: #9ca3af; flex: 1; }
-.remark-text { font-size: 22rpx; color: #6b7280; flex: 1; text-align: right; }
+.time-text { font-size: 22rpx; color: var(--cr-text-muted); flex: 1; }
+.remark-text { font-size: 22rpx; color: var(--cr-text-muted); flex: 1; text-align: right; }
 .cancel-btn { padding: 8rpx 24rpx; border-radius: 12rpx; border: 2rpx solid #ef4444; }
 .cancel-text { font-size: 22rpx; font-weight: 700; color: #ef4444; }
 
-.no-more { text-align: center; padding: 24rpx; font-size: 22rpx; color: #9ca3af; }
+.no-more { text-align: center; padding: 24rpx; font-size: 22rpx; color: var(--cr-text-muted); }
 
 .hud-wrap { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; }
 .hud { background: rgba(17,24,39,0.88); border-radius: 24rpx; padding: 36rpx 48rpx; display: flex; flex-direction: column; align-items: center; gap: 18rpx; }

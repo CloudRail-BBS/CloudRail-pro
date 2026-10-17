@@ -1,5 +1,5 @@
 <template>
-  <view class="container">
+  <view class="container" :class="themeClass">
     <view class="custom-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-header">
         <view class="back-wrap" @click="goBack">
@@ -396,9 +396,9 @@ export default {
 </script>
 
 <style scoped>
-page { background-color: #F8F9FA; }
+page { background-color: var(--cr-surface-alt); }
 
-.container { min-height: 100vh; background: #F8F9FA; }
+.container { min-height: 100vh; background: var(--cr-surface-alt); }
 
 /* ===== 导航栏 ===== */
 .custom-nav {
@@ -485,10 +485,10 @@ page { background-color: #F8F9FA; }
   display: flex;
   align-items: center;
   padding: 24rpx 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-bottom: 1rpx solid #F2F2F7;
 }
-.msg-item:active { background: #F8F9FA; }
+.msg-item:active { background: var(--cr-surface-alt); }
 
 /* ===== 头像 ===== */
 .avatar {
@@ -551,7 +551,7 @@ page { background-color: #F8F9FA; }
 }
 .time {
   font-size: 22rpx;
-  color: #aaa;
+  color: var(--cr-text-muted);
   flex-shrink: 0;
   margin-left: 12rpx;
 }
@@ -587,7 +587,7 @@ page { background-color: #F8F9FA; }
   height: 100rpx;
   border-radius: 12rpx;
   overflow: hidden;
-  background: #F0F0F0;
+  background: var(--cr-surface-alt);
   border: 1rpx solid rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 }
@@ -603,7 +603,7 @@ page { background-color: #F8F9FA; }
   height: 100rpx;
   font-size: 20rpx;
   color: #3C3C43;
-  background: #F8F8F8;
+  background: var(--cr-surface-alt);
   padding: 12rpx;
   overflow: hidden;
   border-radius: 12rpx;
@@ -628,7 +628,7 @@ page { background-color: #F8F9FA; }
   justify-content: center;
   padding-top: 200rpx;
 }
-.empty-text { font-size: 28rpx; color: #CCCCCC; }
+.empty-text { font-size: 28rpx; color: var(--cr-border-strong); }
 .load-more {
   text-align: center;
   color: #bdbdbd;
@@ -639,7 +639,7 @@ page { background-color: #F8F9FA; }
 /* ===== 骨架屏 ===== */
 .skeleton-wrap { animation: fadeIn .3s ease; }
 .skeleton-box {
-  background: #fff;
+  background: var(--cr-surface);
 }
 .chat-wrap { }
 .chat-row {
@@ -687,7 +687,7 @@ page { background-color: #F8F9FA; }
 .confirm-box {
   width: 100%;
   max-width: 560rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   overflow: hidden;
   animation: scaleIn .3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -726,5 +726,5 @@ page { background-color: #F8F9FA; }
   color: #007AFF;
   font-weight: 700;
 }
-.confirm-btn:active { background: #F8F9FA; }
+.confirm-btn:active { background: var(--cr-surface-alt); }
 </style>

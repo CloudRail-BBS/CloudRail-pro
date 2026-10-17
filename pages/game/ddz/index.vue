@@ -1,5 +1,5 @@
 <template>
-  <view class="ddz-page">
+  <view class="ddz-page" :class="themeClass">
     <!-- 顶栏 -->
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-bar">
@@ -546,7 +546,7 @@ export default {
 /* ---------- 扑克牌（真实牌面） ---------- */
 .pk {
   position: relative;
-  background: #ffffff;
+  background: var(--cr-surface);
   border-radius: 8rpx;
   box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.35);
   overflow: hidden;

@@ -1,5 +1,5 @@
 <template>
-  <view class="group-list-page">
+  <view class="group-list-page" :class="themeClass">
     <view class="top-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
         <view class="nav-side" @click="goBack">
@@ -240,7 +240,7 @@ export default {
 .group-list-page {
   width: 100%;
   min-height: 100vh;
-  background: #f5f6f8;
+  background: var(--cr-surface-alt);
 }
 
 .top-nav {
@@ -297,7 +297,7 @@ export default {
 .loading-box {
   padding: 200rpx 0;
   text-align: center;
-  color: #9ca3af;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
 }
 
@@ -309,7 +309,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 24rpx 32rpx;
-  background: #fff;
+  background: var(--cr-surface);
   position: relative;
   transition: all 0.2s;
 }
@@ -349,7 +349,7 @@ export default {
 }
 .group-meta {
   font-size: 22rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   background: #f3f4f6;
   padding: 4rpx 12rpx;
   border-radius: 999rpx;
@@ -357,7 +357,7 @@ export default {
 }
 .group-preview {
   font-size: 28rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -369,7 +369,7 @@ export default {
   justify-content: space-between;
   align-items: center;
 }
-.group-code { font-size: 22rpx; color: #9ca3af; }
+.group-code { font-size: 22rpx; color: var(--cr-text-muted); }
 .group-time { font-size: 22rpx; color: #d1d5db; }
 
 .group-badge {
@@ -393,7 +393,7 @@ export default {
 .empty {
   padding: 200rpx 60rpx;
   text-align: center;
-  color: #9ca3af;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
   display: flex;
   flex-direction: column;
@@ -420,7 +420,7 @@ export default {
 
 .menu-sheet {
   width: 100%;
-  background: #f5f6f8;
+  background: var(--cr-surface-alt);
   border-top-left-radius: 24rpx;
   border-top-right-radius: 24rpx;
   overflow: hidden;
@@ -437,7 +437,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 32rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   transition: all 0.2s;
@@ -479,10 +479,10 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 32rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   font-size: 30rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   font-weight: 500;
   margin-top: 8rpx;
 }

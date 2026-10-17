@@ -1,5 +1,5 @@
 <template>
-  <view class="members-page">
+  <view class="members-page" :class="themeClass">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
 
     <!-- 顶部导航 -->
@@ -162,21 +162,21 @@ export default {
 <style scoped>
 .members-page {
   min-height: 100vh;
-  background: #f6f7f9;
+  background: var(--cr-canvas);
 }
 
 .status-bar-placeholder {
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .nav-bar {
   display: flex;
   align-items: center;
   height: 88rpx;
-  background: #fff;
+  background: var(--cr-surface);
   padding: 0 24rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--cr-border);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -192,7 +192,7 @@ export default {
 
 .back-icon {
   font-size: 48rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: bold;
 }
 
@@ -201,7 +201,7 @@ export default {
   text-align: center;
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .nav-right {
@@ -211,7 +211,7 @@ export default {
 
 .count-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .main-scroll {
@@ -226,7 +226,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   margin-bottom: 16rpx;
 }
@@ -286,7 +286,7 @@ export default {
 .member-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   max-width: 300rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -313,14 +313,14 @@ export default {
 
 .member-uid {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   display: block;
   margin-bottom: 4rpx;
 }
 
 .member-bio {
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -345,7 +345,7 @@ export default {
 
 .arrow-icon {
   font-size: 36rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
 }
 
 .load-more {
@@ -356,10 +356,10 @@ export default {
 .load-btn {
   display: inline-block;
   padding: 16rpx 48rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 30rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .empty-state {
@@ -379,7 +379,7 @@ export default {
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .footer-space {

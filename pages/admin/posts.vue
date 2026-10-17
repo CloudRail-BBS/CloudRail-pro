@@ -1,5 +1,5 @@
 <template>
-  <view class="posts-page">
+  <view class="posts-page" :class="themeClass">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
     <scroll-view class="main-scroll" scroll-y>
 
@@ -252,24 +252,24 @@ export default {
 </script>
 
 <style scoped>
-.posts-page { min-height: 100vh; background: #f5f5f7; }
+.posts-page { min-height: 100vh; background: var(--cr-surface-alt); }
 
 /* 状态栏占位 */
-.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #f5f5f7; }
+.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--cr-surface-alt); }
 
 .main-scroll { height: 100vh; padding-top: 44px; }
 
 /* 搜索 */
 .search-bar { display: flex; padding: 24rpx; gap: 16rpx; background: transparent; }
 .search-wrap {
-  flex: 1; height: 88rpx; background: #fff;
+  flex: 1; height: 88rpx; background: var(--cr-surface);
   border-radius: 44rpx; display: flex; align-items: center; padding: 0 32rpx;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06);
   border: 2rpx solid rgba(255,255,255,0.6);
 }
 .search-icon-img { width: 32rpx; height: 32rpx; display: block; margin-right: 16rpx; opacity: 0.6; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-input::placeholder { color: #aaa; }
+.search-input { flex: 1; font-size: 28rpx; color: var(--cr-text); }
+.search-input::placeholder { color: var(--cr-text-muted); }
 .search-action {
   width: 130rpx; height: 88rpx; background: linear-gradient(135deg, #ff2442, #ff4d6d);
   border-radius: 44rpx; display: flex; align-items: center; justify-content: center;
@@ -282,8 +282,8 @@ export default {
 .filter-scroll { white-space: nowrap; background: transparent; }
 .filter-items { display: inline-flex; padding: 12rpx 28rpx 24rpx; gap: 20rpx; }
 .filter-item {
-  padding: 16rpx 36rpx; border-radius: 34rpx; font-size: 26rpx; color: #666;
-  background: #fff; transition: all 0.25s ease; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
+  padding: 16rpx 36rpx; border-radius: 34rpx; font-size: 26rpx; color: var(--cr-text-muted);
+  background: var(--cr-surface); transition: all 0.25s ease; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
 }
 .filter-item:active { transform: scale(0.96); }
 .filter-item.active {
@@ -294,7 +294,7 @@ export default {
 /* 帖子卡片 - 信息流风格 */
 .post-list { padding: 0 24rpx 24rpx; }
 .post-card {
-  background: #fff; border-radius: 28rpx; margin-bottom: 24rpx;
+  background: var(--cr-surface); border-radius: 28rpx; margin-bottom: 24rpx;
   padding: 28rpx; box-shadow: 0 6rpx 28rpx rgba(0,0,0,0.06);
   transition: all 0.3s ease;
 }
@@ -309,7 +309,7 @@ export default {
 }
 .pc-author-info { flex: 1; display: flex; flex-direction: column; gap: 6rpx; min-width: 0; }
 .pc-name { font-size: 28rpx; font-weight: 600; color: #1a1a1a; }
-.pc-time { font-size: 22rpx; color: #999; }
+.pc-time { font-size: 22rpx; color: var(--cr-text-muted); }
 .pc-status {
   padding: 6rpx 20rpx; border-radius: 999rpx; font-size: 21rpx; flex-shrink: 0; font-weight: 700; letter-spacing: 1rpx;
 }
@@ -323,7 +323,7 @@ export default {
   line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .pc-content {
-  display: block; margin-top: 10rpx; font-size: 26rpx; color: #666; line-height: 1.6;
+  display: block; margin-top: 10rpx; font-size: 26rpx; color: var(--cr-text-muted); line-height: 1.6;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 
@@ -331,7 +331,7 @@ export default {
 .pc-media { display: flex; gap: 12rpx; margin-top: 20rpx; flex-wrap: wrap; }
 .pc-img {
   width: 200rpx; height: 200rpx; border-radius: 18rpx; flex-shrink: 0;
-  background: #f5f5f7; box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  background: var(--cr-surface-alt); box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
 }
 .pc-media .pc-img:only-child { width: 320rpx; height: 320rpx; }
 
@@ -340,7 +340,7 @@ export default {
   display: flex; align-items: center; justify-content: space-between;
   gap: 16rpx; margin-top: 24rpx; padding-top: 22rpx; border-top: 1rpx solid #f3f3f5;
 }
-.pc-stat { font-size: 23rpx; color: #999; }
+.pc-stat { font-size: 23rpx; color: var(--cr-text-muted); }
 .pc-actions { display: flex; gap: 14rpx; flex-shrink: 0; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .pa-btn {
   padding: 12rpx 26rpx; border-radius: 999rpx; font-size: 24rpx; text-align: center; font-weight: 700;
@@ -356,14 +356,14 @@ export default {
 /* 加载/空状态 */
 .load-more { padding: 24rpx; }
 .load-btn {
-  background: #fff; padding: 26rpx; border-radius: 44rpx; text-align: center;
-  font-size: 28rpx; color: #888; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
+  background: var(--cr-surface); padding: 26rpx; border-radius: 44rpx; text-align: center;
+  font-size: 28rpx; color: var(--cr-text-muted); box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
 }
 .load-btn:active { transform: scale(0.98); }
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 160rpx 0; }
 .empty-emoji-img-wrap { display: flex; align-items: center; justify-content: center; opacity: 0.6; }
 .empty-emoji-img { width: 100rpx; height: 100rpx; display: block; }
-.empty-text { font-size: 28rpx; color: #999; margin-top: 20rpx; }
+.empty-text { font-size: 28rpx; color: var(--cr-text-muted); margin-top: 20rpx; }
 .footer-space { height: 60rpx; }
 
 /* HUD */

@@ -1,5 +1,5 @@
 <template>
-  <view class="nav-wrap">
+  <view class="nav-wrap" :class="themeClass">
     <view
       class="custom-nav"
       :style="{
@@ -142,7 +142,7 @@ export default {
 .nav-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .nav-placeholder {

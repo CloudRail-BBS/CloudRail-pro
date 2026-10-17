@@ -3,8 +3,8 @@ import { API_BASE, ADMIN_BASE, WEB_BASE } from '@/common/config.js'
 
 // ══════════════════════════════════════════════
 // 域名集中配置（换域名只改这里）
-// 本程序由 02提供 QQ：1748520308 星域社区唯一正版官方
-// （请保留以上作者署名信息，谢谢配合）
+// CloudRail-pro frontend
+
 // ═══════════════════════════════════════════════
 
 // Go API 接口域名
@@ -27,9 +27,9 @@ export const apiKey = 'YOUR-CALL-API-KEY'
 // 接口：GET /api/public/video/config → { cms_api_url, kefu_qq, currency_name, share_text, site_name }
 // ═════════════════════════════════════════════
 const _DEFAULT_CMS_URL = 'https://your-domain.com'
-const _DEFAULT_CURRENCY_NAME = '星域豆'
-const _DEFAULT_SHARE_TEXT = '我在星域社区发现一个不错的帖子，快来看看：\n{title}\n{link}'
-const _DEFAULT_SITE_NAME = '星域社区'
+const _DEFAULT_CURRENCY_NAME = '余额'
+const _DEFAULT_SHARE_TEXT = '我在 CloudRail-pro 发现一个不错的帖子，快来看看：\n{title}\n{link}'
+const _DEFAULT_SITE_NAME = 'CloudRail-pro'
 
 let _appConfigCache = null
 let _appConfigCacheAt = 0          // 缓存填充时间戳

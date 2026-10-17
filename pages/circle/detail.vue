@@ -1,5 +1,5 @@
 <template>
-  <view class="index-container">
+  <view class="index-container" :class="themeClass">
     <!-- 权限拒绝提示 -->
     <view class="access-denied" v-if="accessDenied">
       <view class="denied-content">
@@ -901,19 +901,19 @@ export default {
 </script>
 
 <style scoped>
-.index-container { height: 100vh; background-color: #F8F8F8; position: relative; overflow-x: hidden; display: flex; flex-direction: column; box-sizing: border-box; }
+.index-container { height: 100vh; background-color: var(--cr-surface-alt); position: relative; overflow-x: hidden; display: flex; flex-direction: column; box-sizing: border-box; }
 .pc-layout-wrapper { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.fix-head-block { background: #F8F8F8; }
+.fix-head-block { background: var(--cr-surface-alt); }
 
 /* App Bar */
-.custom-app-bar { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    z-index: 999; 
-    background: #ffffff; 
-    box-shadow: 0 1rpx 3rpx rgba(0,0,0,0.05); 
+.custom-app-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+    background: var(--cr-surface);
+    box-shadow: 0 1rpx 3rpx rgba(0,0,0,0.05);
 }
 
 .app-bar-content { display: flex; align-items: center; justify-content: space-between; padding-left: 24rpx; }
@@ -925,23 +925,23 @@ export default {
 .nav-center-tabs { display: flex; align-items: center; gap: 32rpx; }
 .nav-tab { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
 
-.nav-tab text { 
-    font-size: 30rpx; 
-    color: #999999; 
-    font-weight: 400; 
-    transition: all 0.2s; 
+.nav-tab text {
+    font-size: 30rpx;
+    color: var(--cr-text-muted);
+    font-weight: 400;
+    transition: all 0.2s;
 }
-.nav-tab.active text { 
-    font-size: 34rpx; 
-    color: #333333; 
-    font-weight: 800; 
-    transform: scale(1.05); 
+.nav-tab.active text {
+    font-size: 34rpx;
+    color: var(--cr-text);
+    font-weight: 800;
+    transform: scale(1.05);
 }
 .active-line { width: 28rpx; height: 6rpx; background: #FF2442; border-radius: 4rpx; position: absolute; bottom: -8rpx; }
 
 /* 圈子头部 */
 .circle-header {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 32rpx 24rpx;
   margin-bottom: 12rpx;
   border-radius: 0 0 24rpx 24rpx;
@@ -959,7 +959,7 @@ export default {
   height: 120rpx;
   border-radius: 24rpx;
   overflow: hidden;
-  border: 2rpx solid #f0f0f0;
+  border: 2rpx solid var(--cr-border);
   flex-shrink: 0;
 }
 
@@ -977,7 +977,7 @@ export default {
 .circle-name {
   font-size: 36rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -991,7 +991,7 @@ export default {
 
 .meta-item {
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .meta-divider {
@@ -1003,7 +1003,7 @@ export default {
 
 .circle-desc {
   font-size: 24rpx;
-  color: #888;
+  color: var(--cr-text-muted);
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1038,17 +1038,17 @@ export default {
 }
 
 .join-btn.joined {
-  background: #f5f5f5;
-  border-color: #e0e0e0;
+  background: var(--cr-surface-alt);
+  border-color: var(--cr-border);
 }
 
 .join-btn.joined text {
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 /* Follow */
 .follow-top-section {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 30rpx 0;
   margin-bottom: 12rpx;
   border-radius: 0 0 24rpx 24rpx;
@@ -1062,11 +1062,11 @@ export default {
 .fh-title {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--cr-text);
 }
 .fh-more {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .follow-scroll {
   white-space: nowrap;
@@ -1112,7 +1112,7 @@ export default {
 }
 .follow-name {
   font-size: 22rpx;
-  color: #333;
+  color: var(--cr-text);
   width: 100%;
   text-align: center;
   overflow: hidden;
@@ -1121,13 +1121,13 @@ export default {
 }
 
 /* Scroll */
-.main-scroll { flex: 1; min-height: 0; background-color: #F8F8F8; position: relative; box-sizing: border-box; }
+.main-scroll { flex: 1; min-height: 0; background-color: var(--cr-surface-alt); position: relative; box-sizing: border-box; }
 
 /* Waterfall（与首页 WaterfallTheme 保持一致） */
 .waterfall-wrap { display: flex; align-items: flex-start; gap: 12rpx; padding: 0 16rpx; box-sizing: border-box; width: 100%; }
 .waterfall-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12rpx; }
 
-.post-card { position: relative; width: 100%; overflow: hidden; border-radius: 20rpx; background: #fff; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06); box-sizing: border-box; transition: all 0.2s ease; }
+.post-card { position: relative; width: 100%; overflow: hidden; border-radius: 20rpx; background: var(--cr-surface); box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06); box-sizing: border-box; transition: all 0.2s ease; }
 .post-card:active { transform: scale(0.985); }
 
 .card-img-wrap { position: relative; width: 100%; min-height: 200rpx; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); overflow: hidden; }
@@ -1146,7 +1146,7 @@ export default {
 
 /* 纯文字帖子（非封面模式） */
 .card-text-only { position: relative; min-height: 132rpx; padding: 24rpx; display: flex; align-items: center; justify-content: center; }
-.text-preview { font-size: 28rpx; color: #333; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+.text-preview { font-size: 28rpx; color: var(--cr-text); line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
 
 /* 付费/评论解锁角标 */
 .lock-badge { position: absolute; left: 14rpx; bottom: 14rpx; padding: 6rpx 14rpx; border-radius: 10rpx; }
@@ -1164,24 +1164,24 @@ export default {
 .card-content { padding: 18rpx 16rpx 14rpx; min-width: 0; }
 .card-tags { display: flex; flex-wrap: wrap; gap: 8rpx; margin-bottom: 10rpx; }
 .card-tag { display: inline-block; padding: 4rpx 12rpx; font-size: 20rpx; color: #ff2442; background: rgba(255,36,66,0.08); border-radius: 6rpx; font-weight: 500; }
-.card-tag.tag-secondary { color: #666; background: #f5f5f5; }
-.card-title { font-size: 28rpx; color: #333; font-weight: 600; line-height: 1.42; margin-bottom: 12rpx; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+.card-tag.tag-secondary { color: var(--cr-text-muted); background: #f5f5f5; }
+.card-title { font-size: 28rpx; color: var(--cr-text); font-weight: 600; line-height: 1.42; margin-bottom: 12rpx; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
 
 .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
 .user-row { display: flex; align-items: center; min-width: 0; flex: 1; }
 .user-avatar-box { position: relative; width: 36rpx; height: 36rpx; margin-right: 8rpx; overflow: visible; flex-shrink: 0; }
-.user-avatar { width: 100%; height: 100%; border-radius: 50%; border: 1rpx solid #f0f0f0; }
+.user-avatar { width: 100%; height: 100%; border-radius: 50%; border: 1rpx solid var(--cr-border); }
 .user-frame { position: absolute; top: -4rpx; left: -4rpx; width: 44rpx; height: 44rpx; pointer-events: none; }
 .user-meta { min-width: 0; flex: 1; }
 .user-name-scroll { width: 100%; white-space: nowrap; }
-.user-name { display: inline-block; font-size: 22rpx; color: #666; }
+.user-name { display: inline-block; font-size: 22rpx; color: var(--cr-text-muted); }
 
 .action-row { display: flex; align-items: center; flex-shrink: 0; gap: 4rpx; }
 .like-btn { display: flex; align-items: center; gap: 4rpx; padding: 4rpx 8rpx; border-radius: 20rpx; transition: all 0.2s ease; }
 .like-btn:active { transform: scale(0.9); }
 .like-btn.liked .action-num { color: #ff2442; }
 .action-icon-img { width: 28rpx; height: 28rpx; margin-right: 6rpx; }
-.action-num { font-size: 24rpx; color: #666; }
+.action-num { font-size: 24rpx; color: var(--cr-text-muted); }
 
 /* VIP / 靓号文字 */
 .fancy-text { color: #ff2442 !important; font-weight: 800 !important; }
@@ -1198,10 +1198,10 @@ export default {
 .card-douyin-title { display: block; color: #fff; font-size: 24rpx; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Skeleton */
-.skeleton-card { background: #fff; border-radius: 16rpx; overflow: hidden; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.02); margin-bottom: 16rpx; }
-.sk-img { width: 100%; height: 300rpx; background: #f5f5f5; animation: pulse 1.5s infinite; }
-.sk-txt { width: 80%; height: 30rpx; background: #f5f5f5; margin: 20rpx; animation: pulse 1.5s infinite; }
-.sk-user { width: 40%; height: 20rpx; background: #f5f5f5; margin: 0 20rpx 20rpx; animation: pulse 1.5s infinite; }
+.skeleton-card { background: var(--cr-surface); border-radius: 16rpx; overflow: hidden; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.02); margin-bottom: 16rpx; }
+.sk-img { width: 100%; height: 300rpx; background: var(--cr-surface-alt); animation: pulse 1.5s infinite; }
+.sk-txt { width: 80%; height: 30rpx; background: var(--cr-surface-alt); margin: 20rpx; animation: pulse 1.5s infinite; }
+.sk-user { width: 40%; height: 20rpx; background: var(--cr-surface-alt); margin: 0 20rpx 20rpx; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
 /* Anim */
@@ -1212,7 +1212,7 @@ export default {
 .status-area { padding: 30rpx 0; display: flex; justify-content: center; }
 .empty-wrap { display: flex; flex-direction: column; align-items: center; margin-top: 60rpx; }
 .empty-img { width: 200rpx; margin-bottom: 20rpx; opacity: 0.5; }
-.empty-wrap text, .nomore-wrap { font-size: 24rpx; color: #ccc; }
+.empty-wrap text, .nomore-wrap { font-size: 24rpx; color: var(--cr-border-strong); }
 .spinner { width: 40rpx; height: 40rpx; border: 4rpx solid #f3f3f3; border-top-color: #ff2442; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -1251,9 +1251,9 @@ export default {
   flex-direction: column;
   justify-content: flex-start;
   overflow: hidden;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
-  border: 1rpx solid #ebebeb;
+  border: 1rpx solid var(--cr-border);
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .hero-cover {
@@ -1317,7 +1317,7 @@ export default {
 }
 .hero-stats text {
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 .hero-desc {
   position: relative;
@@ -1343,11 +1343,11 @@ export default {
   border: 1rpx solid #000;
 }
 .hero-info .join-btn text { color: #fff; font-size: 25rpx; font-weight: 900; }
-.hero-info .join-btn.joined { background: #f5f5f5; border: 1rpx solid #e0e0e0; }
-.hero-info .join-btn.joined text { color: #666; }
+.hero-info .join-btn.joined { background: var(--cr-surface-alt); border: 1rpx solid #e0e0e0; }
+.hero-info .join-btn.joined text { color: var(--cr-text-muted); }
 .mod-section {
   margin: 18rpx 22rpx 0;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 8rpx;
   overflow: hidden;
 }
@@ -1387,7 +1387,7 @@ export default {
   margin: 18rpx 22rpx 0;
   padding: 18rpx 22rpx;
   border-radius: 8rpx;
-  background: #fff;
+  background: var(--cr-surface);
   display: flex;
   flex-direction: column;
   gap: 12rpx;
@@ -1428,7 +1428,7 @@ export default {
   margin-top: 18rpx;
   height: 88rpx;
   padding: 0 22rpx;
-  background: #f5f6f8;
+  background: var(--cr-surface-alt);
   display: flex;
   align-items: center;
   gap: 14rpx;
@@ -1451,7 +1451,7 @@ export default {
   margin-bottom: 18rpx;
   padding: 24rpx;
   border-radius: 8rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border: 1rpx solid #edf0f4;
   box-shadow: 0 10rpx 28rpx rgba(20, 28, 40, 0.04);
 }
@@ -1642,7 +1642,7 @@ export default {
 }
 .feed-cover-lock-text {
   font-size: 30rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   font-weight: 700;
   text-align: center;
 }
@@ -1706,8 +1706,8 @@ export default {
   flex: 1;
   height: 58rpx;
   border-radius: 8rpx;
-  background: #f5f6f8;
-  color: #333;
+  background: var(--cr-surface-alt);
+  color: var(--cr-text);
   font-size: 23rpx;
   font-weight: 800;
   display: flex;
@@ -1779,10 +1779,10 @@ export default {
   .index-container {
     max-width: 520px;
     margin: 0 auto;
-    background: #fff;
+    background: var(--cr-surface);
     box-shadow: 0 0 60px rgba(0, 0, 0, 0.08);
   }
-  
+
   .custom-app-bar {
     max-width: 520px;
     left: 50%;
@@ -1839,7 +1839,7 @@ export default {
 .denied-btn {
   display: inline-block;
   padding: 20rpx 60rpx;
-  background: #fff;
+  background: var(--cr-surface);
   color: #764ba2;
   border-radius: 50rpx;
   font-size: 30rpx;

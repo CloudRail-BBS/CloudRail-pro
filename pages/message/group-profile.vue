@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <!-- 顶部导航(固定) -->
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-bar">
@@ -1108,7 +1108,7 @@ export default {
 
 /* 卡片 */
 .card{
-  background:#FFFFFF;
+  background: var(--cr-surface);
   margin:20rpx 24rpx;
   border-radius:16rpx;
   overflow:hidden;
@@ -1179,17 +1179,17 @@ export default {
 }
 .pf-sub-text{
   font-size:22rpx;
-  color:#999;
+  color: var(--cr-text-muted);
 }
 .pf-copy{
   margin-left:12rpx;
   padding:2rpx 14rpx;
-  background:#F2F2F2;
+  background: var(--cr-surface-alt);
   border-radius:6rpx;
 }
 .pf-copy-text{
   font-size:20rpx;
-  color:#666;
+  color: var(--cr-text-muted);
 }
 .pf-qr{
   display:flex;
@@ -1204,13 +1204,13 @@ export default {
 }
 .pf-qr-text{
   font-size:20rpx;
-  color:#999;
+  color: var(--cr-text-muted);
   margin-top:4rpx;
 }
 .pf-announce{
   display:block;
   font-size:26rpx;
-  color:#666;
+  color: var(--cr-text-muted);
   line-height:1.6;
   margin-top:26rpx;
   word-break:break-all;
@@ -1218,11 +1218,11 @@ export default {
 .pf-time{
   margin-top:22rpx;
   padding-top:22rpx;
-  border-top:1rpx solid #F2F2F2;
+  border-top: 1rpx solid var(--cr-border);
 }
 .pf-time-text{
   font-size:22rpx;
-  color:#AAA;
+  color: var(--cr-text-muted);
 }
 
 /* 成员情况统计块 */
@@ -1242,7 +1242,7 @@ export default {
 }
 .stat-title{
   font-size:24rpx;
-  color:#333;
+  color: var(--cr-text);
   font-weight:500;
 }
 .stat-title.female{
@@ -1253,7 +1253,7 @@ export default {
 }
 .stat-sub{
   font-size:20rpx;
-  color:#999;
+  color: var(--cr-text-muted);
   margin-top:8rpx;
 }
 
@@ -1265,8 +1265,8 @@ export default {
   align-items:center;
   padding:16rpx 24rpx;
   padding-bottom:calc(16rpx + env(safe-area-inset-bottom));
-  background:#FFF;
-  border-top:1rpx solid #F0F0F0;
+  background: var(--cr-surface);
+  border-top: 1rpx solid var(--cr-border);
   z-index:100;
 }
 .foot-btn{
@@ -1287,11 +1287,11 @@ export default {
   background:#F2F2F4;
 }
 .foot-btn.primary.is-pending .foot-btn-text{
-  color:#999;
+  color: var(--cr-text-muted);
 }
 .foot-btn-text{
   font-size:28rpx;
-  color:#333;
+  color: var(--cr-text);
   font-weight:500;
 }
 .foot-btn-text.primary-text{
@@ -1310,7 +1310,7 @@ export default {
 }
 .qr-panel{
   width:600rpx;
-  background:#FFF;
+  background: var(--cr-surface);
   border-radius:24rpx;
   padding:36rpx 32rpx 28rpx;
   display:flex;
@@ -1337,7 +1337,7 @@ export default {
 }
 .qr-panel-code{
   font-size:24rpx;
-  color:#999;
+  color: var(--cr-text-muted);
   margin-top:6rpx;
 }
 .qr-panel-body{
@@ -1355,11 +1355,11 @@ export default {
 }
 .qr-panel-loading-text{
   font-size:26rpx;
-  color:#999;
+  color: var(--cr-text-muted);
 }
 .qr-panel-tip{
   font-size:24rpx;
-  color:#999;
+  color: var(--cr-text-muted);
   text-align:center;
   line-height:1.5;
   margin:22rpx 0 26rpx;
@@ -1386,8 +1386,8 @@ export default {
   font-size:30rpx;
 }
 .qr-panel-btn.ghost{
-  background:#F2F2F2;
-  color:#666;
+  background: var(--cr-surface-alt);
+  color: var(--cr-text-muted);
   margin-right:20rpx;
 }
 .qr-panel-btn.primary{
@@ -1402,7 +1402,7 @@ export default {
   align-items:center;
   justify-content:space-between;
   padding:28rpx 32rpx;
-  border-bottom:1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--cr-border);
   min-height:88rpx;
 }
 .cell:last-child{
@@ -1423,7 +1423,7 @@ export default {
 }
 .cell-value{
   font-size:28rpx;
-  color:#888;
+  color: var(--cr-text-muted);
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -1437,7 +1437,7 @@ export default {
 }
 .cell-arrow{
   font-size:36rpx;
-  color:#CCC;
+  color: var(--cr-border-strong);
   margin-left:8rpx;
   flex-shrink:0;
 }
@@ -1463,7 +1463,7 @@ export default {
 }
 .member-grid-name{
   font-size:20rpx;
-  color:#666;
+  color: var(--cr-text-muted);
   margin-top:8rpx;
   max-width:100rpx;
   overflow:hidden;
@@ -1478,12 +1478,12 @@ export default {
   width:80rpx;
   height:80rpx;
   border-radius:12rpx;
-  background:#F5F5F5;
+  background: var(--cr-surface-alt);
   display:flex;
   align-items:center;
   justify-content:center;
   font-size:48rpx;
-  color:#999;
+  color: var(--cr-text-muted);
   font-weight:300;
 }
 
@@ -1503,7 +1503,7 @@ export default {
   display:flex;
   align-items:center;
   padding:16rpx 0;
-  border-bottom:1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 .request-item:last-child{
   border-bottom:none;
@@ -1528,7 +1528,7 @@ export default {
 .request-msg{
   display:block;
   font-size:22rpx;
-  color:#999;
+  color: var(--cr-text-muted);
   margin-top:4rpx;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -1545,14 +1545,14 @@ export default {
   border-radius:6rpx;
 }
 .mini-btn.ghost{
-  background:#F0F0F0;
+  background: var(--cr-surface-alt);
 }
 .mini-btn text{
   font-size:24rpx;
   color:#FFF;
 }
 .mini-btn.ghost text{
-  color:#666;
+  color: var(--cr-text-muted);
 }
 
 /* 底部操作 */
@@ -1560,7 +1560,7 @@ export default {
   padding:40rpx 24rpx 20rpx;
 }
 .danger-btn{
-  background:#FFFFFF;
+  background: var(--cr-surface);
   border-radius:16rpx;
   padding:28rpx;
   text-align:center;
@@ -1576,7 +1576,7 @@ export default {
 .modal-input{
   width:100%;
   height:80rpx;
-  background:#F5F5F5;
+  background: var(--cr-surface-alt);
   border-radius:12rpx;
   padding:0 24rpx;
   font-size:28rpx;
@@ -1585,7 +1585,7 @@ export default {
 .modal-textarea{
   width:100%;
   height:200rpx;
-  background:#F5F5F5;
+  background: var(--cr-surface-alt);
   border-radius:12rpx;
   padding:20rpx 24rpx;
   font-size:28rpx;
@@ -1599,7 +1599,7 @@ export default {
   display:flex;
   align-items:center;
   padding:20rpx 0;
-  border-bottom:1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 .modal-avatar{
   width:72rpx;
@@ -1619,13 +1619,13 @@ export default {
 .modal-sub{
   display:block;
   font-size:22rpx;
-  color:#999;
+  color: var(--cr-text-muted);
 }
 .check-dot{
   width:36rpx;
   height:36rpx;
   border-radius:50%;
-  border:2rpx solid #DDD;
+  border: 2rpx solid var(--cr-border);
 }
 .check-dot.active{
   background:#07C160;
@@ -1635,7 +1635,7 @@ export default {
   text-align:center;
   padding:60rpx;
   font-size:26rpx;
-  color:#999;
+  color: var(--cr-text-muted);
 }
 .action-sheet{
   padding:10rpx 0;
@@ -1643,9 +1643,9 @@ export default {
 .action-sheet-item{
   padding:28rpx 32rpx;
   font-size:30rpx;
-  color:#333;
+  color: var(--cr-text);
   text-align:center;
-  border-bottom:1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 .action-sheet-item.danger{
   color:#FF2442;

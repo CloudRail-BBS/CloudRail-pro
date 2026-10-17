@@ -717,26 +717,35 @@ export default {
       return `rgba(var(--nav-rgb), ${this.navOpacity})`
     },
 
-    themeClass() {
-      // 资料页统一使用白色主题，不做VIP黑色主题区分
-      return 'theme-light'
-    },
 
     themeVars() {
-      // 资料页强制使用白色主题，保留顶部背景图原样显示
-      // VIP身份标识（vip图标、渐变文字、金色按钮）不受影响，由各自样式控制
+      if (this.themeState.effectiveTheme === 'dark') {
+        return {
+          '--bg-color': '#0a0a0a',
+          '--container-bg': '#0a0a0a',
+          '--card-bg': '#111111',
+          '--text-main': '#ededed',
+          '--text-sub': '#a1a1a1',
+          '--accent': '#ffffff',
+          '--border': '#2e2e2e',
+          '--nav-rgb': '17, 17, 17',
+          '--tag-bg': '#1a1a1a',
+          '--btn-sec-bg': '#111111',
+          '--btn-sec-text': '#ededed'
+        }
+      }
       return {
-        '--bg-color': '#FFFFFF',
-        '--container-bg': '#FFFFFF',
-        '--card-bg': '#FFFFFF',
-        '--text-main': '#333333',
-        '--text-sub': '#999999',
-        '--accent': '#FF2442',
-        '--border': '#EEEEEE',
+        '--bg-color': '#fafafa',
+        '--container-bg': '#ffffff',
+        '--card-bg': '#ffffff',
+        '--text-main': '#171717',
+        '--text-sub': '#666666',
+        '--accent': '#000000',
+        '--border': '#e0e0e0',
         '--nav-rgb': '255, 255, 255',
-        '--tag-bg': '#F5F5F5',
-        '--btn-sec-bg': '#FFFFFF',
-        '--btn-sec-text': '#333333'
+        '--tag-bg': '#f2f2f2',
+        '--btn-sec-bg': '#ffffff',
+        '--btn-sec-text': '#171717'
       }
     }
   },
@@ -1483,8 +1492,8 @@ export default {
   background: rgba(0, 0, 0, .04);
   border-color: rgba(0, 0, 0, .06);
 }
-.relation-line.ghost .ghost-type { color: #999; }
-.relation-line.ghost .relation-name { color: #aaa; }
+.relation-line.ghost .ghost-type { color: var(--cr-text-muted); }
+.relation-line.ghost .relation-name { color: var(--cr-text-muted); }
 .relation-name {
   font-size: 22rpx;
   color: var(--text-sub, #666);
@@ -1553,7 +1562,7 @@ export default {
   color: var(--text-main, #222);
 }
 .rel-input-ph {
-  color: #aaa;
+  color: var(--cr-text-muted);
 }
 .rel-sheet-actions {
   display: flex;
@@ -1594,7 +1603,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #ffffff;
+  background: var(--cr-surface);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -1806,7 +1815,7 @@ export default {
   border: 3rpx solid var(--card-bg);
   z-index: 5;
   box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.22);
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 /* 在线状态: 左下角小圆点（右下角已被认证徽标占用，故放左下角） */
@@ -1869,7 +1878,7 @@ export default {
 
 .btn.disabled {
   background: #eee;
-  color: #999;
+  color: var(--cr-text-muted);
   border: none;
 }
 
@@ -2277,11 +2286,11 @@ export default {
 .mod-circles-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 .mod-circles-count {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-left: 12rpx;
 }
 .mod-circles-scroll {
@@ -2320,7 +2329,7 @@ export default {
   display: block;
   font-size: 26rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2329,7 +2338,7 @@ export default {
 .mod-circle-meta {
   display: block;
   font-size: 20rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-top: 4rpx;
 }
 .mod-circle-badge {
@@ -2591,7 +2600,7 @@ export default {
 }
 .card-cover-lock-text {
   font-size: 28rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   font-weight: 700;
   text-align: center;
   line-height: 1.4;
@@ -2756,7 +2765,7 @@ export default {
 
 .sheet-panel {
   width: 100%;
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border-radius: 24rpx 24rpx 0 0;
   overflow: hidden;
   transform: translateY(100%);
@@ -2768,18 +2777,18 @@ export default {
 }
 
 .sheet-opt {
-  background: #fff;
+  background: var(--cr-surface);
   height: 100rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 30rpx;
-  color: #333;
-  border-bottom: 1rpx solid #eee;
+  color: var(--cr-text);
+  border-bottom: 1rpx solid var(--cr-border);
 }
 
 .sheet-opt:active {
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
 }
 
 .sheet-opt.warning {
@@ -2788,7 +2797,7 @@ export default {
 
 .sheet-gap {
   height: 12rpx;
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
 }
 
 .sheet-opt.cancel {
@@ -2837,7 +2846,7 @@ export default {
   width: calc(33.33% - 6rpx);
   height: 200rpx;
   border-radius: 8rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .dyn-meta {
   display: flex;

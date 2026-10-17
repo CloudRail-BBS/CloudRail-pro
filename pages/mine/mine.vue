@@ -1,5 +1,5 @@
 <template>
-  <view class="page-container">
+  <view class="page-container" :class="themeClass">
 
     <OnlineNotifyCard />
 
@@ -1325,21 +1325,21 @@ export default {
 .mine-relation-line{ display:inline-flex; align-items:center; gap:8rpx; padding:6rpx 18rpx; border-radius:999rpx; background:rgba(255,90,140,.12); border:1rpx solid rgba(255,90,140,.3); }
 .mine-relation-type{ font-size:22rpx; font-weight:800; color:#ff4d79; }
 .mine-relation-ava{ width:40rpx; height:40rpx; border-radius:50%; background:#eee; flex-shrink:0; }
-.mine-relation-name{ font-size:22rpx; color:#888; max-width:220rpx; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mine-relation-name{ font-size:22rpx; color: var(--cr-text-muted); max-width:220rpx; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* 同类型多个：叠头像 */
 .mine-relation-stack{ position:relative; width:76rpx; height:40rpx; flex-shrink:0; }
 .mine-relation-stack-ava{ position:absolute; top:0; width:40rpx; height:40rpx; border-radius:50%; background:#eee; border:2rpx solid #fff; box-sizing:border-box; }
 
 .page-container {
   min-height: var(--tcy-vh, 100vh);
-  background-color: #F8F8F8;
-  color: #333;
+  background-color: var(--cr-surface-alt);
+  color: var(--cr-text);
   overflow-anchor: none;
 }
 
 .init-loading-mask {
   position: fixed; top: 0; left: 0; width: 100vw; height: var(--tcy-vh, 100vh);
-  background: #fff; z-index: 10000;
+  background: var(--cr-surface); z-index: 10000;
   display: flex; align-items: center; justify-content: center;
 }
 .spinner {
@@ -1354,7 +1354,7 @@ export default {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .skeleton {
-  background: #F0F0F0;
+  background: var(--cr-surface-alt);
   animation: shimmer 1.4s ease infinite;
   border-radius: 12rpx;
 }
@@ -1407,7 +1407,7 @@ export default {
 .nav-right { justify-content: flex-end; }
 .nav-title {
   font-size: 32rpx; font-weight: 700;
-  color: #333; opacity: 0;
+  color: var(--cr-text); opacity: 0;
   flex: 1; text-align: center;
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
   display: flex; align-items: center; justify-content: center; gap: 8rpx;
@@ -1432,7 +1432,7 @@ export default {
 }
 .refresh-loading {
   width: 36rpx; height: 36rpx;
-  border: 3rpx solid #ddd; border-radius: 50%;
+  border: 3rpx solid var(--cr-border); border-radius: 50%;
   border-top-color: transparent;
 }
 .refresh-loading.active {
@@ -1481,7 +1481,7 @@ export default {
 
 /* 白色内容区域 */
 .dy-content-area {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 32rpx 32rpx 0 0;
   margin-top: -30rpx;
   padding: 30rpx 32rpx 20rpx;
@@ -1505,14 +1505,14 @@ export default {
   line-height: 1.1;
 }
 .dy-stats .stat-item .label {
-  font-size: 24rpx; color: #999; margin-top: 0;
+  font-size: 24rpx; color: var(--cr-text-muted); margin-top: 0;
 }
 .edit-home-btn {
   padding: 16rpx 28rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 10rpx;
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
   flex-shrink: 0;
   margin-left: 20rpx;
@@ -1522,9 +1522,9 @@ export default {
 }
 .dy-bio .bio-line { padding: 0; }
 .dy-bio .bio-line text {
-  font-size: 28rpx; color: #333; line-height: 1.6;
+  font-size: 28rpx; color: var(--cr-text); line-height: 1.6;
 }
-.dy-bio .bio-placeholder { color: #bbb; }
+.dy-bio .bio-placeholder { color: var(--cr-text-muted); }
 .dy-function-row {
   display: flex; gap: 16rpx;
   padding-bottom: 24rpx;
@@ -1532,7 +1532,7 @@ export default {
 .dy-func-item {
   display: flex; flex-direction: column; align-items: center;
   gap: 12rpx; padding: 20rpx 16rpx;
-  background: #f8f8f8; border-radius: 16rpx;
+  background: var(--cr-surface-alt); border-radius: 16rpx;
   flex: 1;
 }
 .dy-func-item .func-icon-box {
@@ -1550,7 +1550,7 @@ export default {
   background: linear-gradient(135deg, #ff6b6b, #ffa500);
 }
 .dy-func-item .func-label {
-  font-size: 24rpx; color: #666;
+  font-size: 24rpx; color: var(--cr-text-muted);
 }
 .profile-top {
   display: flex; justify-content: space-between;
@@ -1560,7 +1560,7 @@ export default {
 .avatar-wrapper {
   width: 128rpx; height: 128rpx;
   border-radius: 50%;
-  background: #fff;
+  background: var(--cr-surface);
   padding: 4rpx;
   position: relative;
   box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
@@ -1590,7 +1590,7 @@ export default {
   border: 3rpx solid var(--card-bg);
   z-index: 5;
   box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.22);
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .action-buttons { padding-bottom: 8rpx; }
@@ -1609,7 +1609,7 @@ export default {
 }
 .btn:active { opacity: 0.85; transform: scale(0.97); }
 .btn.secondary {
-  background: #fff; color: #333;
+  background: var(--cr-surface); color: #333;
   border: none !important;
   outline: none;
   box-shadow: none;
@@ -1623,7 +1623,7 @@ export default {
 }
 .btn.vip-btn {
   background: linear-gradient(135deg, #FFD700, #FFA500);
-  color: #333; border: none;
+  color: var(--cr-text); border: none;
 }
 
 .profile-info { margin-bottom: 7rpx; }
@@ -1631,7 +1631,7 @@ export default {
   display: flex; align-items: center;
   gap: 12rpx; margin-bottom: 12rpx; flex-wrap: wrap;
 }
-.user-name { font-size: 38rpx; font-weight: 800; color: #333; }
+.user-name { font-size: 38rpx; font-weight: 800; color: var(--cr-text); }
 .vip-rainbow-text {
   background: linear-gradient(90deg, #ff2442, #ff7a00, #ffd400, #00c853, #00b0ff, #aa00ff, #ff2442);
   background-size: 300% 100%;
@@ -1720,7 +1720,7 @@ export default {
   z-index: 1;
 }
 .uid-line {
-  font-size: 22rpx; color: #999;
+  font-size: 22rpx; color: var(--cr-text-muted);
   margin-bottom: 12rpx; font-family: monospace;
   display: flex; align-items: center; gap: 10rpx;
 }
@@ -1829,12 +1829,12 @@ export default {
   line-height: 1;
 }
 .bio-line {
-  font-size: 26rpx; color: #333;
+  font-size: 26rpx; color: var(--cr-text);
   line-height: 1.5; white-space: pre-wrap;
   display: flex; align-items: center;
   text-shadow: 0 1rpx 4rpx rgba(255,255,255,0.6);
 }
-.bio-placeholder { color: #666; }
+.bio-placeholder { color: var(--cr-text-muted); }
 .edit-pen { margin-left: 10rpx; width: 24rpx; height: 24rpx; }
 
 .stats-row {
@@ -1853,12 +1853,12 @@ export default {
   height: 8rpx;
   background: transparent;
 }
-.stat-item .num { font-size: 32rpx; font-weight: 700; color: #333; }
-.stat-item .label { font-size: 22rpx; color: #999; margin-top: 2rpx; }
+.stat-item .num { font-size: 32rpx; font-weight: 700; color: var(--cr-text); }
+.stat-item .label { font-size: 22rpx; color: var(--cr-text-muted); margin-top: 2rpx; }
 
 .content-area {
   border-radius: 32rpx 32rpx 0 0;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   min-height: 500rpx;
   position: relative; z-index: 20;
   padding-bottom: constant(safe-area-inset-bottom);
@@ -1869,28 +1869,28 @@ export default {
 .sticky-tabs {
   position: sticky; z-index: 100;
   display: flex; height: 88rpx;
-  background: #fff;
-  border-bottom: 1rpx solid #F0F0F0;
+  background: var(--cr-surface);
+  border-bottom: 1rpx solid var(--cr-border);
   border-radius: 32rpx 32rpx 0 0;
 }
 .tab-item {
   flex: 1; display: flex;
   align-items: center; justify-content: center;
-  font-size: 28rpx; color: #999;
+  font-size: 28rpx; color: var(--cr-text-muted);
   position: relative; font-weight: 500;
   transition: all 0.2s;
 }
-.tab-item.active { color: #333; font-weight: 700; font-size: 30rpx; }
+.tab-item.active { color: var(--cr-text); font-weight: 700; font-size: 30rpx; }
 .active-bar {
   position: absolute; bottom: 0;
   width: 36rpx; height: 6rpx;
   background: #FF2442; border-radius: 6rpx;
 }
 
-.list-container { padding: 24rpx; min-height: 600rpx; background: #fff; }
+.list-container { padding: 24rpx; min-height: 600rpx; background: var(--cr-surface); }
 .waterfall-box { display: flex; flex-wrap: wrap; justify-content: space-between; }
 .card-item {
-  width: 48.5%; background: #fff;
+  width: 48.5%; background: var(--cr-surface);
   border-radius: 16rpx; overflow: hidden;
   margin-bottom: 20rpx; position: relative;
   box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.04);
@@ -1899,7 +1899,7 @@ export default {
 .card-item:active { transform: scale(0.98); }
 .card-image-box {
   width: 100%; height: 340rpx;
-  position: relative; background: #F5F5F5;
+  position: relative; background: var(--cr-surface-alt);
   overflow: hidden;
 }
 .card-cover {
@@ -1932,7 +1932,7 @@ export default {
 }
 .card-info { padding: 18rpx 16rpx; }
 .card-title {
-  font-size: 26rpx; color: #333;
+  font-size: 26rpx; color: var(--cr-text);
   line-height: 1.4; margin-bottom: 14rpx;
   display: -webkit-box; -webkit-line-clamp: 2;
   -webkit-box-orient: vertical; overflow: hidden;
@@ -1940,7 +1940,7 @@ export default {
 }
 .card-meta {
   display: flex; justify-content: space-between;
-  align-items: center; font-size: 20rpx; color: #999;
+  align-items: center; font-size: 20rpx; color: var(--cr-text-muted);
 }
 .meta-user {
   display: flex; align-items: center;
@@ -2007,12 +2007,12 @@ export default {
 .orange-tag { color: #ffa940; margin-right: 6rpx; }
 
 .empty-box { padding-top: 120rpx; text-align: center; }
-.empty-text { color: #ccc; font-size: 26rpx; }
+.empty-text { color: var(--cr-border-strong); font-size: 26rpx; }
 .loading-more {
   padding: 30rpx 0; text-align: center;
   display: flex; justify-content: center;
 }
-.no-more { color: #ccc; font-size: 22rpx; }
+.no-more { color: var(--cr-border-strong); font-size: 22rpx; }
 
 .sidebar-mask {
   position: fixed; top: 0; left: 0;
@@ -2030,7 +2030,7 @@ export default {
 .sidebar-panel {
   position: absolute; top: 0; right: 0;
   width: 580rpx; height: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   transform: translateX(100%);
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex; flex-direction: column;
@@ -2068,21 +2068,21 @@ export default {
 .sidebar-uinfo { flex: 1; overflow: hidden; }
 .sidebar-name {
   font-size: 32rpx; font-weight: 700;
-  color: #333; display: block;
+  color: var(--cr-text); display: block;
   overflow: hidden; white-space: nowrap;
   text-overflow: ellipsis;
 }
 .sidebar-uid {
-  font-size: 22rpx; color: #999;
+  font-size: 22rpx; color: var(--cr-text-muted);
   margin-top: 4rpx; display: block;
   font-family: monospace;
 }
 .sidebar-divider {
-  height: 1rpx; background: #F0F0F0;
+  height: 1rpx; background: var(--cr-surface-alt);
   margin: 0 36rpx;
 }
 .sidebar-section-title {
-  font-size: 22rpx; color: #bbb;
+  font-size: 22rpx; color: var(--cr-text-muted);
   padding: 24rpx 36rpx 8rpx;
   font-weight: 600;
 }
@@ -2092,13 +2092,13 @@ export default {
   padding: 24rpx 36rpx; gap: 20rpx;
   transition: background 0.15s;
 }
-.sidebar-item:active { background: #F8F8F8; }
+.sidebar-item:active { background: var(--cr-surface-alt); }
 .sidebar-item-icon { width: 40rpx; height: 40rpx; flex-shrink: 0; }
 .sidebar-item-text {
   flex: 1; font-size: 28rpx;
-  color: #333; font-weight: 500;
+  color: var(--cr-text); font-weight: 500;
 }
-.sidebar-arrow { font-size: 32rpx; color: #ccc; }
+.sidebar-arrow { font-size: 32rpx; color: var(--cr-border-strong); }
 .admin-item {
   background: linear-gradient(135deg, #FFE8EB 0%, #FFF0F2 100%);
   border-left: 6rpx solid #FF2442;
@@ -2125,28 +2125,28 @@ export default {
   display: flex; align-items: center; justify-content: center;
 }
 .dialog-box {
-  width: 580rpx; background: #fff;
+  width: 580rpx; background: var(--cr-surface);
   border-radius: 24rpx; overflow: hidden;
 }
 .dialog-title {
   padding: 40rpx 0 20rpx;
   text-align: center; font-weight: 700;
-  font-size: 32rpx; color: #333;
+  font-size: 32rpx; color: var(--cr-text);
 }
 .dialog-title.warn { color: #FF2442; }
 .dialog-content {
   padding: 0 40rpx 40rpx;
-  text-align: center; color: #666;
+  text-align: center; color: var(--cr-text-muted);
   font-size: 28rpx; line-height: 1.6;
 }
-.dialog-footer { display: flex; border-top: 1rpx solid #F0F0F0; }
+.dialog-footer { display: flex; border-top: 1rpx solid var(--cr-border); }
 .d-btn {
   flex: 1; height: 96rpx;
   display: flex; align-items: center; justify-content: center;
   font-size: 30rpx; transition: background 0.15s;
 }
-.d-btn:active { background: #F8F8F8; }
-.d-btn.cancel { color: #999; }
+.d-btn:active { background: var(--cr-surface-alt); }
+.d-btn.cancel { color: var(--cr-text-muted); }
 .d-btn.confirm {
   color: #FF2442; border-left: 1rpx solid #F0F0F0;
   font-weight: 600;
@@ -2154,13 +2154,13 @@ export default {
 .input-mode { padding-bottom: 30rpx; }
 .input-group { padding: 0 40rpx; margin-bottom: 20rpx; }
 .input-group text {
-  font-size: 24rpx; color: #999;
+  font-size: 24rpx; color: var(--cr-text-muted);
   margin-bottom: 10rpx; display: block;
 }
 .input-group input {
-  background: #F5F5F5; height: 76rpx;
+  background: var(--cr-surface-alt); height: 76rpx;
   border-radius: 14rpx; padding: 0 24rpx;
-  font-size: 28rpx; color: #333;
+  font-size: 28rpx; color: var(--cr-text);
 }
 
 .sheet-mask {
@@ -2178,7 +2178,7 @@ export default {
   pointer-events: auto;
 }
 .sheet-panel {
-  width: 100%; background: #F8F8F8;
+  width: 100%; background: var(--cr-surface-alt);
   border-radius: 24rpx 24rpx 0 0;
   overflow: hidden;
   transform: translateY(100%);
@@ -2186,20 +2186,20 @@ export default {
 }
 .sheet-mask.show .sheet-panel { transform: translateY(0); }
 .sheet-header {
-  background: #fff; padding: 28rpx;
+  background: var(--cr-surface); padding: 28rpx;
   text-align: center; font-size: 24rpx;
-  color: #999; border-bottom: 1rpx solid #eee;
+  color: var(--cr-text-muted); border-bottom: 1rpx solid #eee;
 }
 .sheet-opt {
-  background: #fff; height: 104rpx;
+  background: var(--cr-surface); height: 104rpx;
   display: flex; align-items: center; justify-content: center;
-  font-size: 30rpx; color: #333;
+  font-size: 30rpx; color: var(--cr-text);
   border-bottom: 1rpx solid #F5F5F5;
   transition: background 0.15s;
 }
-.sheet-opt:active { background: #F5F5F5; }
-.sheet-gap { height: 12rpx; background: #F8F8F8; }
-.sheet-opt.cancel { border-bottom: none; font-weight: 600; color: #999; }
+.sheet-opt:active { background: var(--cr-surface-alt); }
+.sheet-gap { height: 12rpx; background: var(--cr-surface-alt); }
+.sheet-opt.cancel { border-bottom: none; font-weight: 600; color: var(--cr-text-muted); }
 
 .hud-mask {
   position: fixed; top: 0; left: 0;
@@ -2218,20 +2218,20 @@ export default {
 }
 
 /* 商品橱窗 */
-.shop-grid { display: flex; flex-wrap: wrap; justify-content: space-between; padding: 20rpx 24rpx; background: #fff; }
+.shop-grid { display: flex; flex-wrap: wrap; justify-content: space-between; padding: 20rpx 24rpx; background: var(--cr-surface); }
 .shop-card {
   width: calc(50% - 12rpx);
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 14rpx;
   overflow: hidden;
-  border: 1rpx solid #F0F0F0;
+  border: 1rpx solid var(--cr-border);
   margin-bottom: 16rpx;
 }
 .shop-card:active { opacity: 0.85; }
 .shop-img { width: 100%; height: 220rpx; display: block; background: #eee; }
 .shop-info { padding: 14rpx 16rpx 16rpx; }
 .shop-title {
-  font-size: 24rpx; color: #333;
+  font-size: 24rpx; color: var(--cr-text);
   display: -webkit-box; -webkit-line-clamp: 2;
   -webkit-box-orient: vertical; overflow: hidden;
   line-height: 1.4; margin-bottom: 12rpx;
@@ -2248,7 +2248,7 @@ export default {
 /* 我的动态卡片 */
 .dynamic-list { padding: 20rpx 24rpx; }
 .dynamic-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   overflow: hidden;
   margin-bottom: 20rpx;
@@ -2259,7 +2259,7 @@ export default {
   width: 100%;
   height: 320rpx;
   position: relative;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   overflow: hidden;
 }
 .dynamic-cover { width: 100%; height: 100%; }
@@ -2277,7 +2277,7 @@ export default {
 .dynamic-card-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.4;
   margin-bottom: 8rpx;
   display: -webkit-box;
@@ -2322,13 +2322,13 @@ export default {
 }
 .dm-num {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 签到卡片 */
 .checkin-card {
   margin: 20rpx 32rpx 20rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   padding: 24rpx;
   display: flex;
@@ -2367,11 +2367,11 @@ export default {
 .checkin-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 .checkin-desc {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-top: 6rpx;
 }
 .checkin-btn {
@@ -2383,8 +2383,8 @@ export default {
   border-radius: 32rpx;
 }
 .checkin-btn.checked {
-  background: #f5f5f5;
-  color: #999;
+  background: var(--cr-surface-alt);
+  color: var(--cr-text-muted);
 }
 
 </style>

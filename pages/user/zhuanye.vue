@@ -1,5 +1,5 @@
 <template>
-  <view class="cert-page">
+  <view class="cert-page" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
         <view class="nav-side" @click="goBack">
@@ -644,7 +644,7 @@ export default {
   text-align: center;
   font-size: 32rpx;
   font-weight: 800;
-  color: #111827;
+  color: var(--cr-text);
 }
 
 .page-scroll {
@@ -743,7 +743,7 @@ export default {
   margin-top: 20rpx;
   padding: 28rpx;
   border-radius: 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
 }
 .info-card-head {
@@ -766,7 +766,7 @@ export default {
 .info-card-title {
   font-size: 30rpx;
   font-weight: 800;
-  color: #111827;
+  color: var(--cr-text);
 }
 .info-card-row {
   display: flex;
@@ -775,7 +775,7 @@ export default {
 }
 .info-card-label {
   font-size: 26rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
 }
 .info-card-value {
   font-size: 34rpx;
@@ -794,7 +794,7 @@ export default {
 }
 .info-card-tip {
   font-size: 23rpx;
-  color: #9ca3af;
+  color: var(--cr-text-muted);
   line-height: 1.6;
 }
 
@@ -818,7 +818,7 @@ export default {
   transition: all 0.2s;
 }
 .tab-item.active {
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 .tab-icon-text {
@@ -838,10 +838,10 @@ export default {
 .tab-label {
   font-size: 27rpx;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--cr-text-muted);
 }
 .tab-item.active .tab-label {
-  color: #111827;
+  color: var(--cr-text);
 }
 
 /* === 认证表单卡片 === */
@@ -849,7 +849,7 @@ export default {
   margin-top: 20rpx;
   padding: 28rpx;
   border-radius: 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
 }
 
@@ -912,14 +912,14 @@ export default {
 .status-banner-title {
   font-size: 28rpx;
   font-weight: 800;
-  color: #111827;
+  color: var(--cr-text);
 }
 .status-banner.success .status-banner-title { color: #065f46; }
 .status-banner.pending .status-banner-title { color: #92400e; }
 .status-banner.danger .status-banner-title { color: #991b1b; }
 .status-banner-sub {
   font-size: 23rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   line-height: 1.5;
 }
 
@@ -991,7 +991,7 @@ export default {
   gap: 12rpx;
   font-size: 28rpx;
   font-weight: 800;
-  color: #111827;
+  color: var(--cr-text);
   margin-bottom: 4rpx;
 }
 .form-section-bar {
@@ -1008,7 +1008,7 @@ export default {
 .form-label {
   font-size: 25rpx;
   font-weight: 700;
-  color: #374151;
+  color: var(--cr-text);
 }
 .form-input-wrap {
   position: relative;
@@ -1022,7 +1022,7 @@ export default {
   background: #f8fafc;
   border: 1rpx solid #e2e8f0;
   font-size: 27rpx;
-  color: #111827;
+  color: var(--cr-text);
 }
 .form-counter {
   position: absolute;
@@ -1042,7 +1042,7 @@ export default {
   background: #f8fafc;
   border: 1rpx solid #e2e8f0;
   font-size: 27rpx;
-  color: #111827;
+  color: var(--cr-text);
   line-height: 1.6;
 }
 .form-row {
@@ -1073,7 +1073,7 @@ export default {
 .license-plus-circle {
   width: 72rpx; height: 72rpx;
   border-radius: 50%;
-  background: #fff;
+  background: var(--cr-surface);
   border: 1rpx solid #e2e8f0;
   display: flex;
   align-items: center;

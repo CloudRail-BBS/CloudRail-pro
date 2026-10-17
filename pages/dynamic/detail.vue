@@ -1,5 +1,5 @@
 ﻿<template>
-  <view class="detail-container">
+  <view class="detail-container" :class="themeClass">
     <!-- 自定义导航栏 -->
     <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-back" @click="goBack">
@@ -631,7 +631,7 @@ export default {
 <style scoped>
 .detail-container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   overflow-x: hidden;
 }
 
@@ -640,7 +640,7 @@ export default {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
-  background: #fff;
+  background: var(--cr-surface);
   display: flex;
   align-items: center;
   height: 88rpx;
@@ -654,7 +654,7 @@ export default {
 }
 .nav-back-icon {
   font-size: 48rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1;
 }
 .nav-title-wrap {
@@ -664,7 +664,7 @@ export default {
 .nav-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 .nav-right {
   width: 60rpx;
@@ -674,7 +674,7 @@ export default {
 }
 .nav-menu-icon {
   font-size: 44rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1;
   padding: 0 10rpx;
 }
@@ -690,7 +690,7 @@ export default {
 .loading-dot {
   width: 28rpx; height: 28rpx;
   border-radius: 50%;
-  border: 3rpx solid #EBEBEB;
+  border: 3rpx solid var(--cr-border);
   border-top-color: #4A7FE0;
   animation: spin 0.8s linear infinite;
 }
@@ -698,7 +698,7 @@ export default {
 
 /* 详情内容 */
 .detail-content {
-  background: #fff;
+  background: var(--cr-surface);
   margin-bottom: 120rpx;
 }
 
@@ -718,7 +718,7 @@ export default {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .user-avatar-frame {
   position: absolute;
@@ -743,16 +743,16 @@ export default {
 .user-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.2;
 }
 .user-time {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .user-signature {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-top: 8rpx;
   overflow: hidden;
   white-space: nowrap;
@@ -764,7 +764,7 @@ export default {
   border-radius: 28rpx;
 }
 .follow-btn.followed {
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
 }
 .follow-text {
   font-size: 24rpx;
@@ -772,7 +772,7 @@ export default {
   font-weight: 500;
 }
 .follow-btn.followed .follow-text {
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 图片轮播 */
@@ -863,12 +863,12 @@ export default {
 }
 .comment-header {
   padding: 24rpx 0 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--cr-border);
 }
 .comment-header-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 .comment-list {
   padding-bottom: 20rpx;
@@ -883,7 +883,7 @@ export default {
   height: 64rpx;
   border-radius: 50%;
   flex-shrink: 0;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .cm-body {
   flex: 1;
@@ -899,13 +899,13 @@ export default {
 }
 .cm-content {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.5;
   word-break: break-all;
 }
 .cm-time {
   font-size: 22rpx;
-  color: #bbb;
+  color: var(--cr-text-muted);
   margin-top: 8rpx;
 }
 .cm-footer {
@@ -924,7 +924,7 @@ export default {
 .sub-comments {
   margin-top: 16rpx;
   padding: 8rpx 0 8rpx 0;
-  background: #f9f9f9;
+  background: var(--cr-surface-alt);
   border-radius: 12rpx;
   padding: 12rpx 16rpx;
 }
@@ -933,7 +933,7 @@ export default {
   padding: 12rpx 0;
 }
 .sub-comment-item + .sub-comment-item {
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--cr-border);
 }
 .reply-toggle {
   padding: 12rpx 0 4rpx;
@@ -948,7 +948,7 @@ export default {
   height: 48rpx;
   border-radius: 50%;
   flex-shrink: 0;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .sub-body {
   flex: 1;
@@ -964,7 +964,7 @@ export default {
 }
 .sub-content {
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.5;
   word-break: break-all;
 }
@@ -974,7 +974,7 @@ export default {
 }
 .comment-empty-text {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 不存在 */
@@ -984,14 +984,14 @@ export default {
 }
 .not-found-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 底部栏 */
 .bottom-bar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  background: #fff;
+  background: var(--cr-surface);
   display: flex;
   flex-direction: column;
   padding: 12rpx 24rpx;
@@ -1011,7 +1011,7 @@ export default {
 }
 .reply-cancel {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .bar-row {
   display: flex;
@@ -1022,7 +1022,7 @@ export default {
 .bar-input-wrap {
   width: 360rpx;
   height: 72rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 36rpx;
   display: flex;
   align-items: center;
@@ -1032,9 +1032,9 @@ export default {
   flex: 1;
   height: 72rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
 }
-.bar-placeholder { color: #bbb; }
+.bar-placeholder { color: var(--cr-text-muted); }
 .bar-actions {
   display: flex;
   align-items: center;
@@ -1066,7 +1066,7 @@ export default {
 }
 .bar-num {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .bar-num.liked-text {
   color: #ff2442;

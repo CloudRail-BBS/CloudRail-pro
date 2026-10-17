@@ -1,5 +1,5 @@
 <template>
-  <view class="rps-page">
+  <view class="rps-page" :class="themeClass">
     <!-- 顶部导航 -->
     <view class="page-header" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="header-left" @click="goBack">
@@ -453,7 +453,7 @@ export default {
 <style>
 .rps-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 
 .page-header {
@@ -524,7 +524,7 @@ export default {
 }
 
 .round-info {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 24rpx;
   padding: 24rpx;
   border-radius: 24rpx;
@@ -541,7 +541,7 @@ export default {
 .round-no {
   font-size: 32rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .countdown {
@@ -552,7 +552,7 @@ export default {
 
 .countdown-label {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .countdown-num {
@@ -573,7 +573,7 @@ export default {
 
 .progress-bar {
   height: 8rpx;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
   border-radius: 4rpx;
   overflow: hidden;
 }
@@ -586,7 +586,7 @@ export default {
 }
 
 .game-area {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 0 24rpx 24rpx;
   padding: 40rpx 24rpx;
   border-radius: 24rpx;
@@ -598,7 +598,7 @@ export default {
   text-align: center;
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 40rpx;
 }
 
@@ -614,7 +614,7 @@ export default {
   align-items: center;
   padding: 32rpx 24rpx;
   border-radius: 24rpx;
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border: 4rpx solid transparent;
   transition: all 0.3s;
 }
@@ -638,7 +638,7 @@ export default {
 .choice-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 8rpx;
 }
 
@@ -649,7 +649,7 @@ export default {
 }
 
 .bet-area {
-  border-top: 2rpx solid #f0f0f0;
+  border-top: 2rpx solid var(--cr-border);
   padding-top: 32rpx;
 }
 
@@ -657,12 +657,12 @@ export default {
   display: block;
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 16rpx;
 }
 
 .bet-input-wrap {
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border-radius: 16rpx;
   padding: 20rpx 24rpx;
   margin-bottom: 20rpx;
@@ -670,7 +670,7 @@ export default {
 
 .bet-input {
   font-size: 32rpx;
-  color: #333;
+  color: var(--cr-text);
   width: 100%;
 }
 
@@ -684,10 +684,10 @@ export default {
   flex: 1;
   text-align: center;
   padding: 16rpx 0;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   font-weight: 600;
 }
 
@@ -713,7 +713,7 @@ export default {
 .result-text {
   display: block;
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 16rpx;
 }
 
@@ -725,7 +725,7 @@ export default {
 }
 
 .players-section {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 0 24rpx 24rpx;
   padding: 24rpx;
   border-radius: 24rpx;
@@ -742,12 +742,12 @@ export default {
 .section-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .section-count {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .expand-btn {
@@ -785,7 +785,7 @@ export default {
 }
 
 .history-section {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 0 24rpx 24rpx;
   padding: 24rpx;
   border-radius: 24rpx;
@@ -803,13 +803,13 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 16rpx;
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border-radius: 16rpx;
 }
 
 .history-round {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   width: 180rpx;
 }
 
@@ -827,19 +827,19 @@ export default {
 .result-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .history-time {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .user-score-footer {
   position: sticky;
   bottom: 0;
-  background: #fff;
-  border-top: 2rpx solid #f0f0f0;
+  background: var(--cr-surface);
+  border-top: 2rpx solid var(--cr-border);
   padding: 24rpx;
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
   z-index: 10;
@@ -867,7 +867,7 @@ export default {
 }
 
 .my-bets-section {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 0 24rpx 24rpx;
   padding: 24rpx;
   border-radius: 24rpx;
@@ -885,7 +885,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx;
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border-radius: 16rpx;
 }
 
@@ -897,7 +897,7 @@ export default {
 
 .my-bet-round {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .my-bet-choice {
@@ -914,7 +914,7 @@ export default {
 .my-bet-choice .choice-name {
   font-size: 26rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .my-bet-right {
@@ -927,7 +927,7 @@ export default {
 .my-bet-amount {
   font-size: 26rpx;
   font-weight: 600;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .my-bet-result {
@@ -943,8 +943,8 @@ export default {
 }
 
 .my-bet-result.lose {
-  background: #f5f5f5;
-  color: #999;
+  background: var(--cr-surface-alt);
+  color: var(--cr-text-muted);
 }
 
 .my-bet-result:not(.win):not(.lose) {
@@ -959,6 +959,6 @@ export default {
 
 .empty-bets .empty-text {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <view class="order-container">
+  <view class="order-container" :class="themeClass">
     <view class="nav-bar-fixed">
         <view :style="{ height: statusBarHeight + 'px' }"></view>
         <view class="nav-content">
@@ -474,61 +474,61 @@ export default {
 </script>
 
 <style scoped>
-.order-container{background:#F7F8FA;min-height:100vh}
-.nav-bar-fixed{position:fixed;top:0;left:0;width:100%;background:#fff;z-index:99;border-bottom:1rpx solid #eee}
+.order-container{background: var(--cr-surface-alt);min-height:100vh}
+.nav-bar-fixed{position:fixed;top:0;left:0;width:100%;background: var(--cr-surface);z-index:99;border-bottom: 1rpx solid var(--cr-border)}
 .nav-content{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30rpx}
 .nav-btn{width:60rpx;height:100%;display:flex;align-items:center}.nav-icon{width:44rpx;height:44rpx}
 .nav-title{font-size:34rpx;font-weight:600}
-.tabs{display:flex;background:#fff;padding:20rpx 0;margin-bottom:20rpx}
-.tab{flex:1;text-align:center;font-size:30rpx;color:#999;position:relative}
-.tab.active{color:#333;font-weight:bold}
+.tabs{display:flex;background: var(--cr-surface);padding:20rpx 0;margin-bottom:20rpx}
+.tab{flex:1;text-align:center;font-size:30rpx;color: var(--cr-text-muted);position:relative}
+.tab.active{color: var(--cr-text);font-weight:bold}
 .tab.active:after{content:'';position:absolute;bottom:-10rpx;left:50%;transform:translateX(-50%);width:40rpx;height:6rpx;background:#FF2442;border-radius:3rpx}
 
 .list{padding:20rpx}
-.item{background:#fff;border-radius:16rpx;padding:30rpx;margin-bottom:20rpx}
-.i-head{display:flex;justify-content:space-between;font-size:24rpx;color:#999;border-bottom:1rpx solid #F9F9F9;padding-bottom:20rpx;margin-bottom:20rpx}
-.i-status{color:#333; font-weight: 500;}
+.item{background: var(--cr-surface);border-radius:16rpx;padding:30rpx;margin-bottom:20rpx}
+.i-head{display:flex;justify-content:space-between;font-size:24rpx;color: var(--cr-text-muted);border-bottom:1rpx solid #F9F9F9;padding-bottom:20rpx;margin-bottom:20rpx}
+.i-status{color: var(--cr-text); font-weight: 500;}
 .st-0{color:#FF2442} /* 待发货 */
 .st-1{color:#007AFF} /* 已发货 */
 .st-2{color:#52C41A} /* 完成 */
-.st-3{color:#999}    /* 退款 */
+.st-3{color: var(--cr-text-muted)}    /* 退款 */
 
 .i-body{display:flex;}
 .i-img{width:120rpx;height:120rpx;border-radius:10rpx;background:#eee;margin-right:20rpx}
 .i-info{flex:1;display:flex;flex-direction:column;justify-content:space-between}
-.i-title{font-size:28rpx;color:#333;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.i-price{font-size:32rpx;font-weight:bold;color:#333}
+.i-title{font-size:28rpx;color: var(--cr-text);font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.i-price{font-size:32rpx;font-weight:bold;color: var(--cr-text)}
 
-.i-ship{background:#F9F9F9;padding:20rpx;border-radius:8rpx;font-size:26rpx;color:#666;margin-top:20rpx;display:flex;align-items:center;}
+.i-ship{background: var(--cr-surface-alt);padding:20rpx;border-radius:8rpx;font-size:26rpx;color: var(--cr-text-muted);margin-top:20rpx;display:flex;align-items:center;}
 .ship-label{font-weight:bold;margin-right:10rpx;flex-shrink:0;}
 .ship-val{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-right:10rpx;}
-.ship-arrow{color:#999;}
+.ship-arrow{color: var(--cr-text-muted);}
 
 .i-foot{border-top:1rpx solid #F9F9F9;padding-top:20rpx;margin-top:20rpx;display:flex;justify-content:flex-end;gap:20rpx;flex-wrap:wrap}
 .btn{display:inline-block;padding:10rpx 30rpx;border-radius:30rpx;font-size:26rpx;}
-.btn.normal{background:#fff;color:#333;border:1rpx solid #CCC;}
+.btn.normal{background: var(--cr-surface);color:#333;border: 1rpx solid var(--cr-border-strong);}
 .btn.action{background:#1D1D1F;color:#fff;border:1rpx solid #1D1D1F;}
-.btn.delete{background:#fff;color:#FF3B30;border:1rpx solid #FF3B30;}
+.btn.delete{background: var(--cr-surface);color:#FF3B30;border:1rpx solid #FF3B30;}
 
 .company-scroll{display:flex;flex-wrap:wrap;gap:12rpx;margin-bottom:10rpx}
-.company-item{padding:8rpx 20rpx;background:#F5F5F5;border-radius:20rpx;font-size:24rpx;color:#333;border:2rpx solid transparent}
+.company-item{padding:8rpx 20rpx;background: var(--cr-surface-alt);border-radius:20rpx;font-size:24rpx;color: var(--cr-text);border:2rpx solid transparent}
 .company-item.selected{background:#1D1D1F;color:#fff}
-.ship-no-input{width:100%;height:72rpx;background:#F5F5F5;border-radius:10rpx;padding:0 20rpx;font-size:28rpx;font-weight:bold}
+.ship-no-input{width:100%;height:72rpx;background: var(--cr-surface-alt);border-radius:10rpx;padding:0 20rpx;font-size:28rpx;font-weight:bold}
 .detail-modal{max-height:80vh}
 .log-item{padding:16rpx 0;border-bottom:1rpx solid #F5F5F5;text-align:left}
-.log-time{font-size:22rpx;color:#999;display:block;margin-bottom:6rpx}
-.log-desc{font-size:26rpx;color:#333;display:block}
+.log-time{font-size:22rpx;color: var(--cr-text-muted);display:block;margin-bottom:6rpx}
+.log-desc{font-size:26rpx;color: var(--cr-text);display:block}
 
-.empty{text-align:center;color:#999;margin-top:100rpx}
+.empty{text-align:center;color: var(--cr-text-muted);margin-top:100rpx}
 
 /* iOS Modal & HUD */
 .ios-mask{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}.ios-mask.transparent{background:transparent;backdrop-filter:none}
 .ios-modal-box{width:560rpx;background:rgba(255,255,255,0.95);border-radius:28rpx;overflow:hidden;backdrop-filter:blur(10px);animation:popUp 0.2s ease-out}
 .modal-text{padding:40rpx 30rpx;text-align:center}.m-title{display:block;font-size:34rpx;font-weight:600;margin-bottom:20rpx}
-.m-desc{color:#666;font-size:26rpx;}
-.m-content-scroll{display:block;font-size:28rpx;color:#333;text-align:left;max-height:400rpx;overflow-y:auto;line-height:1.5;background:#f5f5f5;padding:20rpx;border-radius:10rpx;}
+.m-desc{color: var(--cr-text-muted);font-size:26rpx;}
+.m-content-scroll{display:block;font-size:28rpx;color: var(--cr-text);text-align:left;max-height:400rpx;overflow-y:auto;line-height:1.5;background: var(--cr-surface-alt);padding:20rpx;border-radius:10rpx;}
 
-.ship-area{width:100%;height:160rpx;background:#F5F5F5;border-radius:10rpx;padding:15rpx;box-sizing:border-box;font-size:28rpx;text-align:left}
+.ship-area{width:100%;height:160rpx;background: var(--cr-surface-alt);border-radius:10rpx;padding:15rpx;box-sizing:border-box;font-size:28rpx;text-align:left}
 .modal-footer{display:flex;border-top:1rpx solid rgba(0,0,0,0.1)}.m-btn{flex:1;height:90rpx;line-height:90rpx;text-align:center;font-size:34rpx;color:#007AFF}.m-btn:active{background:rgba(0,0,0,0.05)}.m-btn.confirm{border-right:1rpx solid rgba(0,0,0,0.1);font-weight:600}.m-btn.destructive{color:#FF3B30;font-weight:600}
 .ios-hud{padding:30rpx;min-width:200rpx;background:rgba(30,30,30,0.85);backdrop-filter:blur(15px);border-radius:24rpx;display:flex;flex-direction:column;align-items:center}
 .hud-text{color:#fff;font-size:28rpx;margin-top:10rpx}.hud-spinner{width:60rpx;height:60rpx;border:6rpx solid rgba(255,255,255,0.3);border-top:6rpx solid #fff;border-radius:50%;animation:iosSpin 1s linear infinite}.hud-success-mark{width:30rpx;height:50rpx;border-bottom:6rpx solid #fff;border-right:6rpx solid #fff;transform:rotate(45deg);margin-bottom:10rpx}.hud-error-mark{font-size:40rpx;color:#fff;border:4rpx solid #fff;border-radius:50%;width:60rpx;height:60rpx;text-align:center;line-height:52rpx}

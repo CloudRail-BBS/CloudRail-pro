@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
         <view class="nav-back-btn">
@@ -177,7 +177,7 @@ export default {
   data() {
     return {
       // 货币名称（从后端动态获取，启动时填充）
-      currencyName: '星域豆',
+      currencyName: '余额',
       statusBarHeight: 20,
       token: '',
       isLogin: false,
@@ -372,21 +372,21 @@ export default {
 
 <style scoped>
 
-.page { min-height: 100vh; background: #fff; }
+.page { min-height: 100vh; background: var(--cr-surface); }
 
 .scroll-body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
 
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   height: 44px;
-  background: #fff;
+  background: var(--cr-surface);
   border-bottom: 1rpx solid #f5f5f5;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 20rpx;
 }
 .nav-left, .nav-right { width: 80rpx; display: flex; align-items: center; }
 .nav-right { justify-content: flex-end; }
-.nav-title { font-size: 34rpx; font-weight: 800; color: #111827; }
+.nav-title { font-size: 34rpx; font-weight: 800; color: var(--cr-text); }
 
 .nav-back-btn {
   width: 64rpx; height: 64rpx;
@@ -456,7 +456,7 @@ export default {
 
 .section {
   margin: 24rpx 28rpx 0;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx;
   box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.04);
@@ -465,12 +465,12 @@ export default {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 24rpx;
 }
-.section-title { font-size: 30rpx; font-weight: 800; color: #111827; }
-.section-sub { font-size: 22rpx; color: #9ca3af; }
+.section-title { font-size: 30rpx; font-weight: 800; color: var(--cr-text); }
+.section-sub { font-size: 22rpx; color: var(--cr-text-muted); }
 
 .redeem-wrap { display: flex; gap: 16rpx; align-items: center; }
-.redeem-input { flex: 1; height: 88rpx; background: #f5f5f5; border-radius: 16rpx; padding: 0 24rpx; font-size: 32rpx; font-weight: 600; letter-spacing: 2rpx; color: #333; font-family: monospace; }
-.redeem-ph { color: #bbb; font-weight: 400; letter-spacing: 0; font-family: -apple-system, sans-serif; }
+.redeem-input { flex: 1; height: 88rpx; background: var(--cr-surface-alt); border-radius: 16rpx; padding: 0 24rpx; font-size: 32rpx; font-weight: 600; letter-spacing: 2rpx; color: var(--cr-text); font-family: monospace; }
+.redeem-ph { color: var(--cr-text-muted); font-weight: 400; letter-spacing: 0; font-family: -apple-system, sans-serif; }
 .redeem-btn { width: 160rpx; height: 88rpx; background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 16rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .redeem-btn.disabled { opacity: 0.6; }
 .redeem-btn-text { color: #fff; font-size: 30rpx; font-weight: 600; }
@@ -561,7 +561,7 @@ export default {
 /* ===== 账单 ===== */
 .clear-btn { padding: 8rpx 20rpx; background: #f3f4f6; border-radius: 20rpx; }
 .clear-btn.disabled { opacity: 0.4; }
-.clear-text { font-size: 22rpx; color: #6b7280; }
+.clear-text { font-size: 22rpx; color: var(--cr-text-muted); }
 
 .log-list { display: flex; flex-direction: column; gap: 0; }
 .log-item {
@@ -575,22 +575,22 @@ export default {
   display: flex; align-items: center; justify-content: center;
 }
 .income-bg { background: #f0fdf4; }
-.expense-bg { background: #fafafa; }
+.expense-bg { background: var(--cr-canvas); }
 .log-icon-text { font-size: 30rpx; font-weight: 900; }
 .income-bg .log-icon-text { color: #16a34a; }
-.expense-bg .log-icon-text { color: #6b7280; }
+.expense-bg .log-icon-text { color: var(--cr-text-muted); }
 
 .log-content { flex: 1; min-width: 0; }
-.log-memo { font-size: 28rpx; font-weight: 700; color: #111827; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.log-time { font-size: 22rpx; color: #9ca3af; margin-top: 4rpx; display: block; }
+.log-memo { font-size: 28rpx; font-weight: 700; color: var(--cr-text); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-time { font-size: 22rpx; color: var(--cr-text-muted); margin-top: 4rpx; display: block; }
 .log-amount { font-size: 30rpx; font-weight: 900; flex-shrink: 0; }
 .income-color { color: #16a34a; }
-.expense-color { color: #111827; }
+.expense-color { color: var(--cr-text); }
 
 .empty-state { padding: 40rpx 0; display: flex; flex-direction: column; align-items: center; gap: 16rpx; }
 .empty-icon-wrap { width: 96rpx; height: 96rpx; border-radius: 24rpx; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
-.empty-icon { width: 40rpx; height: 40rpx; border-radius: 50%; border: 4rpx solid #d1d5db; }
-.empty-text { font-size: 26rpx; color: #9ca3af; }
+.empty-icon { width: 40rpx; height: 40rpx; border-radius: 50%; border: 4rpx solid var(--cr-border); }
+.empty-text { font-size: 26rpx; color: var(--cr-text-muted); }
 
 /* ===== Bottom Sheet ===== */
 .sheet-mask {
@@ -600,7 +600,7 @@ export default {
 }
 .bottom-sheet {
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 32rpx 32rpx 0 0;
   padding-bottom: env(safe-area-inset-bottom, 20rpx);
   animation: slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
@@ -616,11 +616,11 @@ export default {
   padding: 16rpx 32rpx 20rpx;
   border-bottom: 1rpx solid #f3f4f6;
 }
-.sheet-title { font-size: 32rpx; font-weight: 900; color: #111827; }
+.sheet-title { font-size: 32rpx; font-weight: 900; color: var(--cr-text); }
 .sheet-close { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; }
-.sheet-close-icon { font-size: 44rpx; color: #9ca3af; line-height: 1; }
+.sheet-close-icon { font-size: 44rpx; color: var(--cr-text-muted); line-height: 1; }
 .sheet-body { padding: 24rpx 32rpx 16rpx; }
-.sheet-sub { font-size: 26rpx; color: #6b7280; display: block; margin-bottom: 20rpx; }
+.sheet-sub { font-size: 26rpx; color: var(--cr-text-muted); display: block; margin-bottom: 20rpx; }
 
 .sheet-btns { display: flex; gap: 16rpx; }
 .sheet-btn {
@@ -630,14 +630,14 @@ export default {
 .sheet-btn.secondary { background: #f3f4f6; }
 .sheet-btn.primary { background: #ff2442; }
 .sheet-btn.danger { background: #111827; }
-.sheet-btn-text { font-size: 28rpx; font-weight: 800; color: #374151; }
+.sheet-btn-text { font-size: 28rpx; font-weight: 800; color: var(--cr-text); }
 .sheet-btn-text.white { color: #fff; }
 
 .pwd-input {
   width: 100%; height: 88rpx; background: #f8f9fb; border-radius: 16rpx;
-  padding: 0 20rpx; font-size: 28rpx; color: #111827; box-sizing: border-box;
+  padding: 0 20rpx; font-size: 28rpx; color: var(--cr-text); box-sizing: border-box;
 }
-.input-ph { color: #9ca3af; }
+.input-ph { color: var(--cr-text-muted); }
 .inline-err {
   padding: 14rpx 18rpx; background: #fff5f5; border-radius: 14rpx;
   font-size: 24rpx; color: #ef4444; margin-bottom: 14rpx;
@@ -650,12 +650,12 @@ export default {
   display: flex; align-items: center; justify-content: center;
 }
 .alert-box {
-  width: 560rpx; background: #fff; border-radius: 28rpx;
+  width: 560rpx; background: var(--cr-surface); border-radius: 28rpx;
   padding: 40rpx 36rpx 28rpx;
   display: flex; flex-direction: column; align-items: center; gap: 16rpx;
 }
-.alert-title { font-size: 30rpx; font-weight: 900; color: #111827; }
-.alert-text { font-size: 26rpx; color: #6b7280; text-align: center; line-height: 1.6; }
+.alert-title { font-size: 30rpx; font-weight: 900; color: var(--cr-text); }
+.alert-text { font-size: 26rpx; color: var(--cr-text-muted); text-align: center; line-height: 1.6; }
 .alert-btn {
   margin-top: 12rpx; width: 100%; height: 80rpx; border-radius: 20rpx;
   background: #111827;

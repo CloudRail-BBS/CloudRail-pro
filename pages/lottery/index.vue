@@ -1,5 +1,5 @@
 <template>
-  <view class="lottery-page">
+  <view class="lottery-page" :class="themeClass">
     <!-- 顶部导航 -->
     <view class="page-header" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="header-left" @click="showRankingModal = true">
@@ -603,7 +603,7 @@ export default {
 <style>
 .lottery-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 
 .page-header {
@@ -718,7 +718,7 @@ export default {
   padding: 32rpx;
   position: relative;
   overflow: hidden;
-  box-shadow: 
+  box-shadow:
     0 8rpx 32rpx rgba(102, 126, 234, 0.4),
     0 4rpx 16rpx rgba(118, 75, 162, 0.3);
   margin-bottom: 24rpx;
@@ -726,7 +726,7 @@ export default {
 
 .fixed-game-card.duel-card {
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
-  box-shadow: 
+  box-shadow:
     0 8rpx 32rpx rgba(220, 38, 38, 0.4),
     0 4rpx 16rpx rgba(185, 28, 28, 0.3);
 }
@@ -817,7 +817,7 @@ export default {
 .meta-icon-svg.small {
   width: 24rpx;
   height: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .meta-icon-img { width: 100%; height: 100%; }
 
@@ -972,7 +972,7 @@ export default {
 }
 
 .activity-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
@@ -1038,14 +1038,14 @@ export default {
   display: block;
   font-size: 32rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 8rpx;
 }
 
 .activity-desc {
   display: block;
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-bottom: 16rpx;
 }
 
@@ -1070,7 +1070,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--cr-border);
 }
 
 .participate-info {
@@ -1134,20 +1134,20 @@ export default {
 .empty-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 12rpx;
 }
 
 .empty-desc {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 排行榜样式 */
 .ranking-section {
   margin: 24rpx;
   padding: 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
 }
@@ -1162,7 +1162,7 @@ export default {
 .ranking-section .section-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .refresh-btn {
@@ -1189,7 +1189,7 @@ export default {
   flex-direction: column;
   align-items: center;
   padding: 16rpx 20rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
   min-width: 140rpx;
@@ -1255,7 +1255,7 @@ export default {
 
 .top-name {
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 600;
   margin-bottom: 6rpx;
   max-width: 120rpx;
@@ -1311,7 +1311,7 @@ export default {
 
 .my-name {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 600;
 }
 
@@ -1332,7 +1332,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 20rpx 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   border: 2rpx solid #f5f5f5;
@@ -1341,14 +1341,14 @@ export default {
 
 .ranking-item:active {
   transform: scale(0.98);
-  background: #F8F9FA;
+  background: var(--cr-surface-alt);
   box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.08);
 }
 
 .rank-num {
   font-size: 26rpx;
   font-weight: 700;
-  color: #999;
+  color: var(--cr-text-muted);
   min-width: 50rpx;
 }
 
@@ -1362,7 +1362,7 @@ export default {
 .rank-name {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1382,7 +1382,7 @@ export default {
 
 .ranking-empty .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 弹窗样式 */
@@ -1405,7 +1405,7 @@ export default {
   width: 100%;
   max-width: 680rpx;
   max-height: 85vh;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 32rpx;
   overflow: hidden;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
@@ -1418,7 +1418,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--cr-border);
   flex-shrink: 0;
 }
 
@@ -1441,7 +1441,7 @@ export default {
 .modal-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .modal-close {
@@ -1450,14 +1450,14 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 50%;
 }
 
 .modal-close-svg {
   width: 28rpx;
   height: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1480,7 +1480,7 @@ export default {
 
 .disclaimer-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   line-height: 1.6;
   display: block;
 }

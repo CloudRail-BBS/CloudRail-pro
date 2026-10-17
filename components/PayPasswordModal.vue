@@ -1,5 +1,5 @@
 <template>
-  <view v-if="visible" class="ppm-mask" @touchmove.stop.prevent @click.self="onCancel">
+  <view v-if="visible" class="ppm-mask" :class="themeClass" @touchmove.stop.prevent @click.self="onCancel">
     <view class="ppm-sheet" :class="{ show: visible }">
       <view class="ppm-header">
         <text class="ppm-title">输入支付密码</text>
@@ -84,7 +84,7 @@ export default {
 <style scoped>
 .ppm-mask { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.45); display: flex; align-items: flex-end; }
 .ppm-sheet {
-  width: 100%; background: #fff; border-radius: 28rpx 28rpx 0 0;
+  width: 100%; background: var(--cr-surface); border-radius: 28rpx 28rpx 0 0;
   padding: 40rpx 36rpx calc(40rpx + env(safe-area-inset-bottom));
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -98,14 +98,14 @@ export default {
 .line1 { transform: rotate(45deg); }
 .line2 { transform: rotate(-45deg); }
 
-.ppm-desc { font-size: 24rpx; color: #999; display: block; margin-bottom: 40rpx; }
+.ppm-desc { font-size: 24rpx; color: var(--cr-text-muted); display: block; margin-bottom: 40rpx; }
 
 /* PIN 输入 */
 .pin-field { position: relative; }
 .ppm-pin-row { display: flex; gap: 16rpx; }
 .ppm-cell {
   flex: 1; height: 100rpx; border-radius: 16rpx;
-  background: #f8f8f8; border: 1.5rpx solid #e5e7eb;
+  background: var(--cr-surface-alt); border: 1.5rpx solid #e5e7eb;
   display: flex; align-items: center; justify-content: center;
   transition: border-color 0.15s;
 }
@@ -123,5 +123,5 @@ export default {
 }
 
 .ppm-error { display: block; text-align: center; font-size: 24rpx; color: #ff2442; margin-top: 20rpx; }
-.ppm-loading { display: block; text-align: center; font-size: 24rpx; color: #999; margin-top: 20rpx; }
+.ppm-loading { display: block; text-align: center; font-size: 24rpx; color: var(--cr-text-muted); margin-top: 20rpx; }
 </style>

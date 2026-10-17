@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-bar">
         <view class="nav-back" @click="goBack">返回</view>
@@ -141,21 +141,21 @@ export default {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #f5f6f8; }
-.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #fff; box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.06); }
+.page { min-height: 100vh; background: var(--cr-surface-alt); }
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--cr-surface); box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.06); }
 .nav-bar { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 28rpx; }
 .nav-back { width: 120rpx; font-size: 28rpx; color: #667eea; font-weight: 500; }
-.nav-title { font-size: 34rpx; font-weight: 700; color: #333; letter-spacing: 2rpx; }
+.nav-title { font-size: 34rpx; font-weight: 700; color: var(--cr-text); letter-spacing: 2rpx; }
 .nav-placeholder { width: 120rpx; }
 
-.card { margin: 24rpx; background: #fff; border-radius: 24rpx; padding: 32rpx; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04); }
+.card { margin: 24rpx; background: var(--cr-surface); border-radius: 24rpx; padding: 32rpx; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04); }
 .card-header { margin-bottom: 12rpx; }
-.card-title { font-size: 32rpx; font-weight: 700; color: #222; }
-.card-desc { display: block; font-size: 26rpx; color: #888; line-height: 1.6; margin-bottom: 32rpx; }
+.card-title { font-size: 32rpx; font-weight: 700; color: var(--cr-text); }
+.card-desc { display: block; font-size: 26rpx; color: var(--cr-text-muted); line-height: 1.6; margin-bottom: 32rpx; }
 
 .form-row { margin-bottom: 32rpx; }
-.form-label { display: block; font-size: 26rpx; color: #666; margin-bottom: 14rpx; font-weight: 500; }
-.wm-input { width: 100%; height: 88rpx; background: #f6f6f8; border-radius: 16rpx; padding: 0 24rpx; font-size: 30rpx; color: #333; box-sizing: border-box; }
+.form-label { display: block; font-size: 26rpx; color: var(--cr-text-muted); margin-bottom: 14rpx; font-weight: 500; }
+.wm-input { width: 100%; height: 88rpx; background: #f6f6f8; border-radius: 16rpx; padding: 0 24rpx; font-size: 30rpx; color: var(--cr-text); box-sizing: border-box; }
 
 .preview-box { margin-top: 16rpx; width: 200rpx; height: 320rpx; border-radius: 16rpx; overflow: hidden; background: #f0f0f2; }
 .preview-img { width: 100%; height: 100%; }
@@ -163,9 +163,9 @@ export default {
 .switch-row { display: flex; align-items: center; gap: 18rpx; }
 .switch-box { width: 92rpx; height: 52rpx; border-radius: 999rpx; background: #dcdfe6; padding: 4rpx; box-sizing: border-box; transition: background 0.2s ease; }
 .switch-box.on { background: #ff2442; }
-.switch-dot { width: 44rpx; height: 44rpx; border-radius: 50%; background: #fff; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15); transition: transform 0.2s ease; }
+.switch-dot { width: 44rpx; height: 44rpx; border-radius: 50%; background: var(--cr-surface); box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15); transition: transform 0.2s ease; }
 .switch-dot.on { transform: translateX(40rpx); }
-.switch-text { font-size: 28rpx; color: #999; }
+.switch-text { font-size: 28rpx; color: var(--cr-text-muted); }
 .switch-text.on { color: #ff2442; font-weight: 600; }
 
 .save-btn { height: 88rpx; border-radius: 44rpx; background: linear-gradient(135deg, #ff3b5c 0%, #ff6a3d 100%); box-shadow: 0 8rpx 24rpx rgba(255,54,92,0.3); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }

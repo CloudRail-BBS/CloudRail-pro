@@ -1,5 +1,5 @@
 <template>
-  <view class="certifications-page">
+  <view class="certifications-page" :class="themeClass">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
     <scroll-view class="main-scroll" scroll-y>
 
@@ -408,20 +408,20 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.certifications-page { min-height: 100vh; background: #f0f1f6; }
+.certifications-page { min-height: 100vh; background: var(--cr-surface-alt); }
 
 /* 导航栏 */
 /* 状态栏占位 */
-.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #f0f1f6; }
+.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--cr-surface-alt); }
 
 .main-scroll { height: 100vh; padding-top: 44px; }
 
 /* 搜索 */
 .search-bar {
-  display: flex; padding: 20rpx 24rpx; gap: 16rpx; background: #f0f1f6;
+  display: flex; padding: 20rpx 24rpx; gap: 16rpx; background: var(--cr-surface-alt);
 }
 .search-input {
-  flex: 1; height: 80rpx; background: #fff; border-radius: 40rpx;
+  flex: 1; height: 80rpx; background: var(--cr-surface); border-radius: 40rpx;
   padding: 0 32rpx; font-size: 28rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .search-action {
@@ -433,24 +433,24 @@ export default {
 }
 
 /* 筛选 */
-.filter-bar { background: #fff; padding: 14rpx 0; margin-bottom: 8rpx; }
+.filter-bar { background: var(--cr-surface); padding: 14rpx 0; margin-bottom: 8rpx; }
 .filter-scroll { white-space: nowrap; }
 .filter-items { display: inline-flex; padding: 0 24rpx; gap: 14rpx; }
 .filter-item {
-  padding: 10rpx 26rpx; background: #f5f6fa; border-radius: 32rpx;
-  font-size: 25rpx; color: #666; font-weight: 500; white-space: nowrap;
+  padding: 10rpx 26rpx; background: var(--cr-surface-alt); border-radius: 32rpx;
+  font-size: 25rpx; color: var(--cr-text-muted); font-weight: 500; white-space: nowrap;
 
   &.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; box-shadow: 0 4rpx 12rpx rgba(102,126,234,0.25); }
 }
 
-.filter-row { background: #fff; padding: 18rpx 24rpx; margin-top: 8rpx; }
+.filter-row { background: var(--cr-surface); padding: 18rpx 24rpx; margin-top: 8rpx; }
 .filter-group {
-  .filter-label { font-size: 25rpx; color: #aaa; margin-bottom: 10rpx; display: block; }
+  .filter-label { font-size: 25rpx; color: var(--cr-text-muted); margin-bottom: 10rpx; display: block; }
 }
 .filter-options { display: flex; gap: 12rpx; flex-wrap: wrap; }
 .filter-option {
-  padding: 9rpx 20rpx; background: #f5f6fa; border-radius: 28rpx;
-  font-size: 25rpx; color: #666; font-weight: 400;
+  padding: 9rpx 20rpx; background: var(--cr-surface-alt); border-radius: 28rpx;
+  font-size: 25rpx; color: var(--cr-text-muted); font-weight: 400;
 
   &.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
 }
@@ -458,15 +458,15 @@ export default {
 /* 列表 */
 .cert-list { padding: 8rpx 24rpx; }
 .cert-item {
-  background: #fff; border-radius: 20rpx; padding: 22rpx;
+  background: var(--cr-surface); border-radius: 20rpx; padding: 22rpx;
   margin-bottom: 16rpx; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04);
 }
 .cert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14rpx; }
 .user-info { display: flex; align-items: center; gap: 14rpx; }
 .user-avatar { width: 72rpx; height: 72rpx; border-radius: 50%; border: 2rpx solid #f0edff; }
 .user-detail {
-  .user-name { font-size: 27rpx; font-weight: 600; color: #222; display: block; }
-  .user-id { font-size: 22rpx; color: #bbb; margin-top: 4rpx; display: block; }
+  .user-name { font-size: 27rpx; font-weight: 600; color: var(--cr-text); display: block; }
+  .user-id { font-size: 22rpx; color: var(--cr-text-muted); margin-top: 4rpx; display: block; }
 }
 .cert-type {
   padding: 5rpx 14rpx; border-radius: 12rpx; font-size: 21rpx; font-weight: 500;
@@ -479,7 +479,7 @@ export default {
 .cert-info {
   display: flex; margin-bottom: 10rpx;
   &:last-child { margin-bottom: 0; }
-  .info-label { width: 120rpx; font-size: 25rpx; color: #aaa; flex-shrink: 0; }
+  .info-label { width: 120rpx; font-size: 25rpx; color: var(--cr-text-muted); flex-shrink: 0; }
   .info-value { flex: 1; font-size: 25rpx; color: #444; word-break: break-all; line-height: 1.45; }
 }
 .cert-image {
@@ -495,22 +495,22 @@ export default {
   &.pending { background: #fef5e7; color: #e67e22; }
   &.rejected { background: #fce8ec; color: #e74c3c; }
 }
-.cert-time { font-size: 22rpx; color: #bbb; }
+.cert-time { font-size: 22rpx; color: var(--cr-text-muted); }
 .cert-actions { display: flex; gap: 10rpx; }
 .action-btn {
   padding: 9rpx 22rpx; border-radius: 20rpx; font-size: 23rpx; font-weight: 500;
 
   &.approve { background: linear-gradient(135deg, #27ae60, #2ecc71); color: #fff; }
-  &.reject { background: #f5f6fa; color: #888; }
+  &.reject { background: var(--cr-surface-alt); color: #888; }
   &.delete { background: linear-gradient(135deg, #c0392b, #e74c3c); color: #fff; box-shadow: 0 3rpx 10rpx rgba(231,76,60,0.25); }
 }
 
 .load-more { padding: 24rpx; text-align: center; }
-.load-btn { display: inline-block; padding: 18rpx 36rpx; background: #fff; border-radius: 32rpx; font-size: 26rpx; color: #999; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.load-btn { display: inline-block; padding: 18rpx 36rpx; background: var(--cr-surface); border-radius: 32rpx; font-size: 26rpx; color: var(--cr-text-muted); box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80rpx 20rpx;
   .empty-icon-img { width: 96rpx; height: 96rpx; display: block; margin-bottom: 16rpx; opacity: 0.6; }
-  .empty-text { font-size: 27rpx; color: #bbb; }
+  .empty-text { font-size: 27rpx; color: var(--cr-text-muted); }
 }
 .footer-space { height: 30rpx; }
 

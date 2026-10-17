@@ -1,5 +1,5 @@
 <template>
-  <view class="text-flow-theme">
+  <view class="text-flow-theme" :class="themeClass">
     <view v-if="currentTab !== 2 && safeBannerList.length > 0" class="hero-band">
       <swiper
         class="hero-swiper"
@@ -600,12 +600,12 @@ export default {
 <style scoped>
 .text-flow-theme {
   min-height: 100vh;
-  background: #f5f5f7;
-  color: #1f2937;
+  background: var(--cr-surface-alt);
+  color: var(--cr-text);
 }
 
 .channel-strip {
-  background: #fff;
+  background: var(--cr-surface);
   border-bottom: 1rpx solid #eee6de;
 }
 
@@ -638,7 +638,7 @@ export default {
 
 .hero-band {
   padding: 20rpx 24rpx 0;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .hero-swiper,
@@ -693,7 +693,7 @@ export default {
   grid-template-columns: repeat(5, 1fr);
   gap: 8rpx;
   padding: 24rpx 18rpx 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 0 0 24rpx 24rpx;
 }
 
@@ -771,7 +771,7 @@ export default {
 .follow-panel,
 .feed-section {
   margin-top: 18rpx;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .pinned-panel {
@@ -799,7 +799,7 @@ export default {
 
 .pinned-title {
   font-size: 26rpx;
-  color: #1f2937;
+  color: var(--cr-text);
   font-weight: 700;
 }
 
@@ -844,7 +844,7 @@ export default {
 
 .section-title {
   font-size: 32rpx;
-  color: #1f2937;
+  color: var(--cr-text);
   font-weight: 900;
 }
 
@@ -1010,7 +1010,7 @@ export default {
   white-space: nowrap;
   font-size: 28rpx;
   font-weight: 800;
-  color: #222;
+  color: var(--cr-text);
 }
 
 .feed-name-badge {
@@ -1252,7 +1252,7 @@ export default {
   margin-top: 20rpx;
   font-size: 32rpx;
   line-height: 1.38;
-  color: #111827;
+  color: var(--cr-text);
   font-weight: 900;
   word-break: break-word;
 }
@@ -1410,7 +1410,7 @@ export default {
 
 .feed-media-locked-sub {
   margin-top: 18rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   font-size: 24rpx;
   line-height: 1.55;
 }
@@ -1435,7 +1435,7 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 8rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   font-size: 24rpx;
 }
 

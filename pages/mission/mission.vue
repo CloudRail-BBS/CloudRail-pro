@@ -1,5 +1,5 @@
 <template>
-  <view class="task-page">
+  <view class="task-page" :class="themeClass">
     <view class="custom-navbar" :style="{ paddingTop: statusBarHeight + 'px', height: navBarHeight + 'px' }">
       <view class="nav-content" :style="{ height: menuButtonHeight + 'px' }">
         <view class="nav-back" @click="goBack">
@@ -354,7 +354,7 @@ export default {
 <style scoped>
 .task-page {
   min-height: 100vh;
-  background-color: #F6F7F9;
+  background-color: var(--cr-canvas);
   padding-bottom: 60rpx;
 }
 .custom-navbar {
@@ -365,12 +365,12 @@ export default {
 .nav-content { display: flex; align-items: center; justify-content: space-between; padding: 0 30rpx; position: relative; }
 .nav-back { width: 60rpx; height: 100%; display: flex; align-items: center; }
 .back-icon { width: 40rpx; height: 40rpx; }
-.nav-title { font-size: 34rpx; font-weight: bold; color: #333; position: absolute; left: 50%; transform: translateX(-50%); }
+.nav-title { font-size: 34rpx; font-weight: bold; color: var(--cr-text); position: absolute; left: 50%; transform: translateX(-50%); }
 .nav-placeholder { width: 60rpx; }
 
 .header-container { padding: 0 30rpx; margin-bottom: 30rpx; }
 .user-score-card {
-  background: #2a2a2a; 
+  background: #2a2a2a;
   border-radius: 32rpx;
   padding: 40rpx;
   box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.15);
@@ -390,8 +390,8 @@ export default {
 .score-info { flex: 1; display: flex; flex-direction: column; }
 .score-label { font-size: 24rpx; color: rgba(255,255,255,0.6); margin-bottom: 6rpx; }
 .score-val { font-size: 56rpx; font-weight: bold; font-family: DIN, sans-serif; color: #f0c386; }
-.mall-btn { 
-  background: rgba(255,255,255,0.15); color: #f0c386; 
+.mall-btn {
+  background: rgba(255,255,255,0.15); color: #f0c386;
   font-size: 24rpx; padding: 8rpx 24rpx; border-radius: 30rpx; font-weight: 500;
   margin: 0; line-height: 1.5; border: 1rpx solid rgba(240, 195, 134, 0.3);
 }
@@ -405,10 +405,10 @@ export default {
 
 .task-list-wrap { padding: 0 30rpx; }
 .section-head { margin-bottom: 24rpx; }
-.sect-title { font-size: 32rpx; font-weight: 800; color: #333; }
+.sect-title { font-size: 32rpx; font-weight: 800; color: var(--cr-text); }
 
 .task-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx;
   margin-bottom: 20rpx;
@@ -425,7 +425,7 @@ export default {
 }
 .icon-wrap {
   width: 88rpx; height: 88rpx; border-radius: 20rpx;
-  background: #f5f5f5; display: flex; align-items: center; justify-content: center;
+  background: var(--cr-surface-alt); display: flex; align-items: center; justify-content: center;
 }
 .task-icon {
   color: #fff;
@@ -484,27 +484,27 @@ export default {
   align-items: center;
   gap: 12rpx;
 }
-.t-title { 
-  font-size: 30rpx; 
-  font-weight: 600; 
-  color: #1a1a1a; 
+.t-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 .vip-tag {
   background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 152, 0, 0.2) 100%);
-  padding: 4rpx 12rpx; 
+  padding: 4rpx 12rpx;
   border-radius: 16rpx;
 }
-.vip-tag-text { 
-  font-size: 20rpx; 
-  color: #ff9800; 
-  font-weight: 600; 
+.vip-tag-text {
+  font-size: 20rpx;
+  color: #ff9800;
+  font-weight: 600;
 }
-.t-desc { 
-  font-size: 24rpx; 
-  color: #999; 
-  white-space: nowrap; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
+.t-desc {
+  font-size: 24rpx;
+  color: var(--cr-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .info-footer {
@@ -521,7 +521,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 6rpx;
-  background: #f8f9fa;
+  background: var(--cr-surface-alt);
   padding: 6rpx 14rpx;
   border-radius: 16rpx;
 }
@@ -542,11 +542,11 @@ export default {
 .reward-num {
   font-size: 22rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 .reward-unit {
   font-size: 20rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .progress-area {
@@ -557,7 +557,7 @@ export default {
 .progress-bar {
   flex: 1;
   height: 8rpx;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
   border-radius: 4rpx;
   overflow: hidden;
 }
@@ -569,7 +569,7 @@ export default {
 }
 .progress-text {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   flex-shrink: 0;
 }
 
@@ -578,34 +578,34 @@ export default {
   flex-shrink: 0;
 }
 .task-btn {
-  width: 140rpx; 
-  height: 64rpx; 
+  width: 140rpx;
+  height: 64rpx;
   line-height: 64rpx;
-  border-radius: 32rpx; 
-  font-size: 26rpx; 
+  border-radius: 32rpx;
+  font-size: 26rpx;
   font-weight: 600;
-  padding: 0; 
-  margin: 0; 
-  border: none; 
+  padding: 0;
+  margin: 0;
+  border: none;
   outline: none;
 }
 .task-btn::after { border: none; }
 
-.btn-todo { 
-  background: #fff; 
-  color: #333; 
-  border: 2rpx solid #ddd; 
+.btn-todo {
+  background: var(--cr-surface);
+  color: var(--cr-text);
+  border: 2rpx solid var(--cr-border);
 }
-.btn-get { 
-  background: linear-gradient(135deg, #ff2442 0%, #ff4757 100%); 
-  color: #fff; 
-  box-shadow: 0 4rpx 16rpx rgba(255, 36, 66, 0.3); 
-  animation: pulse 1.5s infinite; 
+.btn-get {
+  background: linear-gradient(135deg, #ff2442 0%, #ff4757 100%);
+  color: #fff;
+  box-shadow: 0 4rpx 16rpx rgba(255, 36, 66, 0.3);
+  animation: pulse 1.5s infinite;
 }
 @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.05);} 100%{transform:scale(1);} }
-.btn-done { 
-  background: #f0f0f0; 
-  color: #bbb; 
+.btn-done {
+  background: var(--cr-surface-alt);
+  color: var(--cr-text-muted);
 }
 
 /* VIP任务样式 */
@@ -621,9 +621,9 @@ export default {
 .vip-icon-wrap .t-icon {
   filter: drop-shadow(0 2rpx 4rpx rgba(0,0,0,0.15));
 }
-.btn-vip { 
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); 
-  color: #fff; 
+.btn-vip {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: #fff;
   box-shadow: 0 4rpx 16rpx rgba(255, 193, 7, 0.4);
 }
 .btn-vip:active {
@@ -643,7 +643,7 @@ export default {
 }
 .modal-mask.show { opacity: 1; visibility: visible; }
 .modal-body {
-  width: 560rpx; background: #fff; border-radius: 40rpx;
+  width: 560rpx; background: var(--cr-surface); border-radius: 40rpx;
   padding: 50rpx 40rpx; display: flex; flex-direction: column; align-items: center;
   transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -654,7 +654,7 @@ export default {
   height: 140rpx;
   margin-bottom: 24rpx;
 }
-.m-title { font-size: 36rpx; font-weight: 800; color: #333; margin-bottom: 12rpx; }
+.m-title { font-size: 36rpx; font-weight: 800; color: var(--cr-text); margin-bottom: 12rpx; }
 .m-rewards { display: flex; align-items: center; gap: 40rpx; margin-bottom: 30rpx; margin-top: 20rpx; }
 .mr-item { display: flex; flex-direction: column; align-items: center; }
 .mr-icon-svg-img {
@@ -666,7 +666,7 @@ export default {
 .mr-icon-exp { color: #ffb300; }
 .mr-icon-vip { color: #ff5722; }
 .mr-num { font-size: 40rpx; font-weight: bold; color: #ff2442; font-family: DIN; }
-.mr-lbl { font-size: 24rpx; color: #666; margin-top: 6rpx; }
+.mr-lbl { font-size: 24rpx; color: var(--cr-text-muted); margin-top: 6rpx; }
 .divider-v { width: 2rpx; height: 40rpx; background: #eee; }
 
 .vip-skip-tip {
@@ -696,7 +696,7 @@ export default {
 }
 .empty-text {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .m-btn {

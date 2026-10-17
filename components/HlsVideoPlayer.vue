@@ -1,5 +1,5 @@
 <template>
-  <view class="hls-video-player-container" ref="containerRef">
+  <view class="hls-video-player-container" :class="themeClass" ref="containerRef">
     <!-- 原生video标签 -->
     <view class="video-wrapper">
       <video
@@ -697,7 +697,7 @@ export default {
   top: 0;
   left: 0;
   height: 100%;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   border-radius: 3rpx;
   z-index: 1;
 }
@@ -706,7 +706,7 @@ export default {
   position: absolute;
   width: 20rpx;
   height: 20rpx;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   border-radius: 50%;
   transform: translateX(-50%);
   z-index: 2;

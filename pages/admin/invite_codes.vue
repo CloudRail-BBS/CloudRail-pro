@@ -1,5 +1,5 @@
 <template>
-  <view class="invites-page">
+  <view class="invites-page" :class="themeClass">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
     <scroll-view class="main-scroll" scroll-y>
 
@@ -233,33 +233,33 @@ export default {
 </script>
 
 <style scoped>
-.invites-page { min-height: 100vh; background: #f0f1f6; }
+.invites-page { min-height: 100vh; background: var(--cr-surface-alt); }
 
 /* 状态栏占位 */
-.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #f0f1f6; }
+.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--cr-surface-alt); }
 
 .main-scroll { height: 100vh; padding-top: 44px; }
 .nav-placeholder { background: linear-gradient(135deg, #667eea, #764ba2); }
 
 /* 统计 */
-.stats-bar { display: flex; margin: 24rpx; background: #fff; border-radius: 18rpx; padding: 24rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.06); }
+.stats-bar { display: flex; margin: 24rpx; background: var(--cr-surface); border-radius: 18rpx; padding: 24rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.06); }
 .stat-item { flex: 1; text-align: center; }
 .stat-value { display: block; font-size: 34rpx; font-weight: 700; color: #667eea; }
-.stat-label { display: block; font-size: 23rpx; color: #bbb; margin-top: 6rpx; }
+.stat-label { display: block; font-size: 23rpx; color: var(--cr-text-muted); margin-top: 6rpx; }
 
 /* 列表 */
 .list { margin: 0 24rpx; }
 .list-item {
-  background: #fff; border-radius: 18rpx; padding: 22rpx;
+  background: var(--cr-surface); border-radius: 18rpx; padding: 22rpx;
   margin-bottom: 14rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.05);
 }
 .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
-.item-code { font-size: 30rpx; font-weight: 700; color: #222; font-family: monospace; letter-spacing: 2rpx; }
+.item-code { font-size: 30rpx; font-weight: 700; color: var(--cr-text); font-family: monospace; letter-spacing: 2rpx; }
 .item-status { font-size: 22rpx; padding: 5rpx 14rpx; border-radius: 12rpx; font-weight: 500; }
 .status-unused { background: #eef9f0; color: #27ae60; }
 .status-used { background: #eef5ff; color: #337ecc; }
 .item-meta { display: flex; flex-wrap: wrap; gap: 10rpx; margin-bottom: 12rpx; }
-.meta-tag { font-size: 22rpx; color: #bbb; }
+.meta-tag { font-size: 22rpx; color: var(--cr-text-muted); }
 .item-actions { display: flex; justify-content: flex-end; }
 
 .action-bar { display: flex; gap: 14rpx; margin: 0 24rpx 24rpx; }
@@ -269,31 +269,31 @@ export default {
 .action-btn.success { background: linear-gradient(135deg, #27ae60, #2ecc71); color: #fff; box-shadow: 0 4rpx 12rpx rgba(39,174,96,0.25); }
 
 .load-more { margin: 24rpx; text-align: center; }
-.load-btn { padding: 20rpx; background: #fff; border-radius: 18rpx; font-size: 27rpx; color: #999; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.load-btn { padding: 20rpx; background: var(--cr-surface); border-radius: 18rpx; font-size: 27rpx; color: var(--cr-text-muted); box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 120rpx 0; }
 .empty-icon-img { width: 96rpx; height: 96rpx; display: block; margin: 0 auto 20rpx; opacity: 0.6; }
-.empty-text { font-size: 27rpx; color: #bbb; }
+.empty-text { font-size: 27rpx; color: var(--cr-text-muted); }
 .footer-space { height: 40rpx; }
 
 /* 弹窗 */
 .modal-mask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4rpx); }
-.modal-content { width: 88%; max-width: 600rpx; max-height: 80vh; background: #fff; border-radius: 24rpx; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 24rpx 64rpx rgba(0,0,0,0.15); }
+.modal-content { width: 88%; max-width: 600rpx; max-height: 80vh; background: var(--cr-surface); border-radius: 24rpx; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 24rpx 64rpx rgba(0,0,0,0.15); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 26rpx 30rpx; border-bottom: 1rpx solid #f0f1f6; flex-shrink: 0; }
-.modal-title { font-size: 31rpx; font-weight: 700; color: #222; }
-.modal-close { font-size: 38rpx; color: #bbb; line-height: 1; }
+.modal-title { font-size: 31rpx; font-weight: 700; color: var(--cr-text); }
+.modal-close { font-size: 38rpx; color: var(--cr-text-muted); line-height: 1; }
 .modal-body { padding: 24rpx 30rpx; overflow-y: auto; }
 .form-item { margin-bottom: 22rpx; }
-.form-label { display: block; font-size: 27rpx; color: #666; margin-bottom: 10rpx; font-weight: 500; }
-.form-input { width: 100%; height: 80rpx; background: #f8f9fa; border-radius: 14rpx; padding: 0 22rpx; font-size: 27rpx; border: 2rpx solid transparent; }
+.form-label { display: block; font-size: 27rpx; color: var(--cr-text-muted); margin-bottom: 10rpx; font-weight: 500; }
+.form-input { width: 100%; height: 80rpx; background: var(--cr-surface-alt); border-radius: 14rpx; padding: 0 22rpx; font-size: 27rpx; border: 2rpx solid transparent; }
 .form-input:focus { border-color: #667eea; background: #fff; }
 .modal-footer { display: flex; border-top: 1rpx solid #f0f1f6; flex-shrink: 0; }
 .modal-btn { flex: 1; height: 84rpx; display: flex; align-items: center; justify-content: center; font-size: 29rpx; font-weight: 500; }
-.modal-btn.cancel { color: #999; border-right: 1rpx solid #f0f1f6; }
+.modal-btn.cancel { color: var(--cr-text-muted); border-right: 1rpx solid #f0f1f6; }
 .modal-btn.confirm { color: #667eea; font-weight: 700; }
 
 .code-item { display: flex; justify-content: space-between; align-items: center; padding: 15rpx 0; border-bottom: 1rpx solid #f0f1f6; }
-.code-text { font-size: 27rpx; font-weight: 600; color: #222; font-family: monospace; }
+.code-text { font-size: 27rpx; font-weight: 600; color: var(--cr-text); font-family: monospace; }
 .code-copy { font-size: 25rpx; color: #667eea; font-weight: 500; }
 
 .hud-mask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4rpx); }

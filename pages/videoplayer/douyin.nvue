@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <!-- 自己实现的竖向翻页：拖动时跟手、松手后平滑归位 -->
     <view class="pager">
       <view class="track" :style="{ transform: 'translateY(' + offsetY + 'px)' }">
@@ -178,6 +178,7 @@
 
 <script>
 import { request, webBaseUrl } from '../../common/request.js'
+import { themeState } from '../../common/theme.js'
 
 export default {
   data() {
@@ -214,6 +215,7 @@ export default {
     }
   },
   computed: {
+    themeClass() { return `theme-${themeState.effectiveTheme}` },
     cur() {
       return this.list[this.currentIndex] || {}
     }
@@ -876,4 +878,19 @@ export default {
 .amt-t { color: #333333; font-size: 28rpx; }
 .reward-btn { height: 88rpx; border-radius: 44rpx; background-color: #ff2c55; align-items: center; justify-content: center; margin-left: 24rpx; margin-right: 24rpx; margin-top: 10rpx; margin-bottom: 50rpx; }
 .reward-btn-t { color: #ffffff; font-size: 30rpx; font-weight: bold; }
-</style>
+
+/* Independent nvue/subNVue theme overrides. */
+.theme-dark.sheet,
+.theme-dark .sheet { background-color: #111111; }
+.theme-dark .sheet-title { color: #ededed; }
+.theme-dark .cmt-item { border-bottom-color: #2e2e2e; }
+.theme-dark .cmt-avatar { background-color: #1a1a1a; }
+.theme-dark .cmt-name, .theme-dark .cmt-text, .theme-dark .sub-text { color: #ededed; }
+.theme-dark .cmt-bubble { background-color: #1a1a1a; }
+.theme-dark .cmt-time, .theme-dark .cmt-reply, .theme-dark .sub-time, .theme-dark .sub-reply, .theme-dark .c-empty-t { color: #a1a1a1; }
+.theme-dark .sub-list { background-color: #111111; }
+.theme-dark .sub-replyto { color: #a1a1a1; }
+.theme-dark .c-input-row { border-top-color: #2e2e2e; }
+.theme-dark .c-input { background-color: #1a1a1a; color: #ededed; }
+.theme-dark .amt { background-color: #111111; border-color: #454545; }
+.theme-dark .amt-t { color: #ededed; }</style>

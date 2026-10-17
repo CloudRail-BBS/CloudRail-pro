@@ -1,5 +1,5 @@
 <template>
-  <view class="market-section" :class="{ embedded }">
+  <view class="market-section" :class="[themeClass, { embedded }]">
     <view class="search-bar-wrap">
       <view class="search-box">
         <view class="si-wrap">
@@ -154,7 +154,7 @@ export default {
 <style scoped>
 .market-section {
   min-height: 100%;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
 }
 
 .market-section.embedded {
@@ -163,14 +163,14 @@ export default {
 
 .search-bar-wrap {
   padding: 16rpx 24rpx 0;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .search-box {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 36rpx;
   padding: 0 20rpx;
 }
@@ -212,7 +212,7 @@ export default {
 }
 
 .search-ph {
-  color: #bbb;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
 }
 
@@ -234,8 +234,8 @@ export default {
 }
 
 .cat-scroll {
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: var(--cr-surface);
+  border-bottom: 1rpx solid var(--cr-border);
 }
 
 .cat-list {
@@ -252,8 +252,8 @@ export default {
   padding: 10rpx 28rpx;
   margin-right: 12rpx;
   font-size: 26rpx;
-  color: #666;
-  background: #f5f5f5;
+  color: var(--cr-text-muted);
+  background: var(--cr-surface-alt);
   border-radius: 30rpx;
   white-space: nowrap;
   flex-shrink: 0;
@@ -274,7 +274,7 @@ export default {
 }
 
 .goods-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 18rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -363,7 +363,7 @@ export default {
 
 .empty-state {
   text-align: center;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-top: 180rpx;
   font-size: 28rpx;
 }

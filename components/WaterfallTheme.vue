@@ -1,5 +1,5 @@
 <template>
-  <view class="waterfall-theme">
+  <view class="waterfall-theme" :class="themeClass">
     <!-- 顶部轮播图（banner） -->
     <view v-if="currentTab !== 2 && safeBannerList.length > 0" class="hero-band">
       <swiper
@@ -601,7 +601,7 @@ export default {
 <style scoped>
 .waterfall-theme {
   min-height: 100vh;
-  background: #fff;
+  background: var(--cr-surface);
   width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -609,7 +609,7 @@ export default {
 
 .hero-band {
   padding: 20rpx 24rpx 0;
-  background: #fff;
+  background: var(--cr-surface);
 }
 .hero-swiper {
   width: 100%;
@@ -667,7 +667,7 @@ export default {
 
 .discovery-header {
   padding-bottom: 18rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 0 0 24rpx 24rpx;
   overflow: hidden;
 }
@@ -713,7 +713,7 @@ export default {
 .pinned-text {
   flex: 1;
   min-width: 0;
-  color: #333;
+  color: var(--cr-text);
   font-size: 26rpx;
   overflow: hidden;
   white-space: nowrap;
@@ -727,7 +727,7 @@ export default {
 }
 
 .follow-top-section {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 20rpx 0 24rpx;
   margin-bottom: 12rpx;
   border-radius: 0 0 24rpx 24rpx;
@@ -744,7 +744,7 @@ export default {
 .follow-title {
   font-size: 30rpx;
   font-weight: 800;
-  color: #222;
+  color: var(--cr-text);
 }
 
 .follow-subtitle {
@@ -784,7 +784,7 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 1rpx solid #f2f2f2;
+  border: 1rpx solid var(--cr-border);
 }
 
 .follow-frame {
@@ -823,7 +823,7 @@ export default {
   width: 100%;
   text-align: center;
   font-size: 22rpx;
-  color: #333;
+  color: var(--cr-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -833,7 +833,7 @@ export default {
   width: 100%;
   padding: 28rpx 0;
   text-align: center;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 24rpx;
 }
 
@@ -859,7 +859,7 @@ export default {
   width: 100%;
   overflow: hidden;
   border-radius: 20rpx;
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06);
   box-sizing: border-box;
   transition: all 0.2s ease;
@@ -970,7 +970,7 @@ export default {
 
 .text-preview {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.55;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -1013,7 +1013,7 @@ export default {
 .locked-media-text,
 .locked-cover-text,
 .text-locked-hint {
-  color: #6b7280;
+  color: var(--cr-text-muted);
   font-size: 26rpx;
   font-weight: 700;
   text-align: center;
@@ -1083,13 +1083,13 @@ export default {
 }
 
 .card-tag.tag-secondary {
-  color: #666;
-  background: #f5f5f5;
+  color: var(--cr-text-muted);
+  background: var(--cr-surface-alt);
 }
 
 .card-title {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 600;
   line-height: 1.42;
   margin-bottom: 12rpx;
@@ -1139,7 +1139,7 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 1rpx solid #f0f0f0;
+  border: 1rpx solid var(--cr-border);
 }
 
 .user-meta {
@@ -1155,7 +1155,7 @@ export default {
 .user-name {
   display: inline-block;
   font-size: 22rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .action-row {
@@ -1207,12 +1207,12 @@ export default {
 
 .action-num {
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .action-sep {
   margin: 0 6rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
   font-size: 20rpx;
 }
 
@@ -1242,7 +1242,7 @@ export default {
 .skeleton-card {
   overflow: hidden;
   border-radius: 18rpx;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.03);
 }
 
@@ -1390,7 +1390,7 @@ export default {
   grid-template-columns: repeat(6, 1fr);
   gap: 8rpx;
   padding: 24rpx 18rpx;
-  background: #fff;
+  background: var(--cr-surface);
 }
 .quick-item {
   display: flex;

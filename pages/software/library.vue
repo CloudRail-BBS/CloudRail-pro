@@ -1,5 +1,5 @@
 <template>
-  <view class="page-container">
+  <view class="page-container" :class="themeClass">
     <view class="nav-bar-fixed">
       <view :style="{ height: statusBarHeight + 'px' }"></view>
       <view class="nav-content">
@@ -44,7 +44,7 @@ export default {
 <style scoped>
 .page-container {
   height: 100vh;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -55,7 +55,7 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   z-index: 999;
   border-bottom: 1rpx solid #f5f5f5;
 }

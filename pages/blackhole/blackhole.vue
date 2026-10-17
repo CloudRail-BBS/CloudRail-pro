@@ -1,5 +1,5 @@
 <template>
-  <view class="bh-page">
+  <view class="bh-page" :class="themeClass">
     <!-- 固定导航 -->
     <view class="bh-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="bh-nav-inner">
@@ -285,7 +285,7 @@ export default {
   left: 0;
   right: 0;
   z-index: 998;
-  background: #ffffff;
+  background: var(--cr-surface);
   box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 .bh-nav-inner {
@@ -387,7 +387,7 @@ export default {
 .bh-card {
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   padding: 22rpx 24rpx;
   margin-bottom: 16rpx;
@@ -454,7 +454,7 @@ export default {
   background: #fff7e6;
 }
 .bh-chip.released {
-  color: #6b7280;
+  color: var(--cr-text-muted);
   background: #f1f2f4;
 }
 
@@ -511,7 +511,7 @@ export default {
   height: auto;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: var(--cr-surface);
   border-radius: 28rpx 28rpx 0 0;
   padding-bottom: env(safe-area-inset-bottom);
   overflow: hidden;
@@ -557,7 +557,7 @@ export default {
   text-align: center;
   border-radius: 42rpx;
   background: #f2f3f5;
-  color: #333333;
+  color: var(--cr-text);
   font-size: 29rpx;
   font-weight: 600;
 }
@@ -620,7 +620,7 @@ export default {
   flex: 1;
   font-size: 27rpx;
   line-height: 1.6;
-  color: #333333;
+  color: var(--cr-text);
   word-break: break-all;
 }
 .bh-d-value.red {

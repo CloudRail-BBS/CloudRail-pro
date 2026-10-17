@@ -1,5 +1,5 @@
 <template>
-  <view class="gc-hall">
+  <view class="gc-hall" :class="themeClass">
     <view class="gc-bg"><view class="gc-blob"></view></view>
 
     <!-- 顶栏 -->

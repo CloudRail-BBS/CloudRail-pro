@@ -1,10 +1,11 @@
 <template>
-  <view v-if="mounted" :class="['fade-wrap', show ? 'in' : 'out']" @animationend="onAniEnd">
+  <view v-if="mounted" :class="['fade-wrap', show ? 'in' : 'out', themeClass]" @animationend="onAniEnd">
     <slot />
   </view>
 </template>
 
 <script setup>
+import { themeClass } from '../common/theme.js'
 import { ref, watch } from 'vue'
 
 const props = defineProps({

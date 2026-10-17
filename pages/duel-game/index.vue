@@ -1,5 +1,5 @@
 <template>
-  <view class="duel-page">
+  <view class="duel-page" :class="themeClass">
     <view class="page-header" :style="{ paddingTop: statusBarHeight + 'px', top: 0 }">
       <view class="header-left" @click="showHistoryModal = true">
         <image src="/static/icon/file-text-white.svg" class="history-icon" mode="aspectFit"></image>

@@ -1,5 +1,5 @@
 <template>
-  <div class="overlay">
+  <div class="overlay" :class="themeClass">
     <!-- 顶部渐变 -->
     <div class="top-gradient"></div>
     <!-- 底部渐变 -->
@@ -147,6 +147,8 @@
 </template>
 
 <script>
+import { themeState } from '../../common/theme.js'
+
 const API_BASE = 'http://example.com/api/index.php/'
 
 export default {
@@ -167,6 +169,9 @@ export default {
       statusBarHeight: 20,
       showFollowBtn: true
     }
+  },
+  computed: {
+    themeClass() { return `theme-${themeState.effectiveTheme}` }
   },
   created() {
     const sys = uni.getSystemInfoSync()
@@ -780,4 +785,13 @@ export default {
   color: #333333;
   font-size: 28px;
 }
-</style>
+
+/* SubNVue surfaces; media gradients and icons retain their visual meaning. */
+.theme-dark .drawer-content, .theme-dark .reward-content, .theme-dark .action-content { background-color: #111111; }
+.theme-dark .drawer-title, .theme-dark .comment-text, .theme-dark .reward-title, .theme-dark .reward-amount-text, .theme-dark .action-text-sheet { color: #ededed; }
+.theme-dark .drawer-close, .theme-dark .comment-time, .theme-dark .comment-reply, .theme-dark .empty-text, .theme-dark .cancel-text { color: #a1a1a1; }
+.theme-dark .drawer-header, .theme-dark .comment-input-bar, .theme-dark .action-item-sheet { border-color: #2e2e2e; }
+.theme-dark .comment-item { border-bottom-color: #2e2e2e; }
+.theme-dark .drawer-handle, .theme-dark .reward-amount-item { border-color: #454545; }
+.theme-dark .comment-input { background-color: #1a1a1a; color: #ededed; }
+.theme-dark .reward-cancel, .theme-dark .action-item-sheet.cancel { background-color: #1f1f1f; }</style>

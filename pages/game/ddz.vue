@@ -1,6 +1,6 @@
 <template>
   <!-- 斗地主牌桌（竖屏布局，横向自适应；根节点 position:fixed 铺满视口，不依赖 100vh） -->
-  <view class="dd">
+  <view class="dd" :class="themeClass">
     <!-- 牌桌背景（真实斗地主桌面素材） -->
     <view class="dd-bg">
       <image class="dd-bg-img" src="/static/ddz/ui/bg1.png" mode="aspectFill"></image>

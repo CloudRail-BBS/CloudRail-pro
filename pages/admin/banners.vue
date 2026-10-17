@@ -1,5 +1,5 @@
 <template>
-  <view class="banners-page">
+  <view class="banners-page" :class="themeClass">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
     <scroll-view class="main-scroll" scroll-y>
 
@@ -144,22 +144,22 @@ export default {
 </script>
 
 <style scoped>
-.banners-page { min-height: 100vh; background: #f0f1f6; }
+.banners-page { min-height: 100vh; background: var(--cr-surface-alt); }
 
 /* 状态栏占位 */
-.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #f0f1f6; }
+.status-bar-placeholder { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--cr-surface-alt); }
 
 .main-scroll { height: 100vh; padding-top: 44px; }
 
 /* 列表 */
 .list { margin: 24rpx; }
 .list-item {
-  background: #fff; border-radius: 18rpx; overflow: hidden;
+  background: var(--cr-surface); border-radius: 18rpx; overflow: hidden;
   margin-bottom: 16rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.07);
 }
 .item-image { width: 100%; height: 280rpx; object-fit: cover; }
 .item-footer { padding: 20rpx; }
-.item-link { display: block; font-size: 25rpx; color: #888; margin-bottom: 12rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-link { display: block; font-size: 25rpx; color: var(--cr-text-muted); margin-bottom: 12rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item-actions { display: flex; gap: 10rpx; justify-content: flex-end; }
 .action-btn { padding: 9rpx 22rpx; border-radius: 18rpx; font-size: 24rpx; font-weight: 500; }
 .action-btn.warn { background: #fef5e7; color: #e67e22; }
@@ -177,23 +177,23 @@ export default {
 
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 120rpx 0; }
 .empty-icon-img { width: 96rpx; height: 96rpx; display: block; margin: 0 auto 20rpx; opacity: 0.6; }
-.empty-text { font-size: 27rpx; color: #bbb; }
+.empty-text { font-size: 27rpx; color: var(--cr-text-muted); }
 .footer-space { height: 40rpx; }
 
 /* 弹窗 */
 .modal-mask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4rpx); }
-.modal-content { width: 88%; max-width: 600rpx; background: #fff; border-radius: 24rpx; overflow: hidden; box-shadow: 0 24rpx 64rpx rgba(0,0,0,0.15); }
+.modal-content { width: 88%; max-width: 600rpx; background: var(--cr-surface); border-radius: 24rpx; overflow: hidden; box-shadow: 0 24rpx 64rpx rgba(0,0,0,0.15); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 26rpx 30rpx; border-bottom: 1rpx solid #f0f1f6; }
-.modal-title { font-size: 31rpx; font-weight: 700; color: #222; }
-.modal-close { font-size: 38rpx; color: #bbb; line-height: 1; }
+.modal-title { font-size: 31rpx; font-weight: 700; color: var(--cr-text); }
+.modal-close { font-size: 38rpx; color: var(--cr-text-muted); line-height: 1; }
 .modal-body { padding: 24rpx 30rpx; }
 .form-item { margin-bottom: 22rpx; }
-.form-label { display: block; font-size: 27rpx; color: #666; margin-bottom: 10rpx; font-weight: 500; }
-.form-input { width: 100%; height: 80rpx; background: #f8f9fa; border-radius: 14rpx; padding: 0 22rpx; font-size: 27rpx; border: 2rpx solid transparent; }
+.form-label { display: block; font-size: 27rpx; color: var(--cr-text-muted); margin-bottom: 10rpx; font-weight: 500; }
+.form-input { width: 100%; height: 80rpx; background: var(--cr-surface-alt); border-radius: 14rpx; padding: 0 22rpx; font-size: 27rpx; border: 2rpx solid transparent; }
 .form-input:focus { border-color: #667eea; background: #fff; }
 .modal-footer { display: flex; border-top: 1rpx solid #f0f1f6; }
 .modal-btn { flex: 1; height: 84rpx; display: flex; align-items: center; justify-content: center; font-size: 29rpx; font-weight: 500; }
-.modal-btn.cancel { color: #999; border-right: 1rpx solid #f0f1f6; }
+.modal-btn.cancel { color: var(--cr-text-muted); border-right: 1rpx solid #f0f1f6; }
 .modal-btn.confirm { color: #667eea; font-weight: 700; }
 
 .hud-mask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4rpx); }

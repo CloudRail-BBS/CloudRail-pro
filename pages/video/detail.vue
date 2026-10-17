@@ -1,5 +1,5 @@
 <template>
-  <view class="video-detail-page">
+  <view class="video-detail-page" :class="themeClass">
     <!-- 自定义导航栏 -->
     <view class="nav-bar">
       <view class="nav-back" @click="goBack">
@@ -709,7 +709,7 @@ export default {
 <style lang="scss" scoped>
 .video-detail-page {
   min-height: 100vh;
-  background-color: #fff;
+  background-color: var(--cr-surface);
 }
 
 .nav-bar {
@@ -717,7 +717,7 @@ export default {
   align-items: center;
   padding-top: var(--status-bar-height);
   height: calc(44px + var(--status-bar-height));
-  background-color: #fff;
+  background-color: var(--cr-surface);
   position: sticky;
   top: 0;
   z-index: 99;
@@ -733,7 +733,7 @@ export default {
 
 .back-icon {
   font-size: 56rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 300;
   line-height: 1;
 }
@@ -745,7 +745,7 @@ export default {
 
 .nav-title text {
   font-size: 32rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
 }
 
@@ -836,7 +836,7 @@ export default {
 .video-title {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--cr-text);
   flex: 1;
 }
 
@@ -870,10 +870,10 @@ export default {
 
 .tag-item {
   padding: 6rpx 16rpx;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   border-radius: 8rpx;
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .desc-section {
@@ -882,7 +882,7 @@ export default {
 
 .desc-text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.8;
 }
 
@@ -937,12 +937,12 @@ export default {
   margin-bottom: 16rpx;
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .ep-count {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .episodes-scroll {
@@ -957,10 +957,10 @@ export default {
 
 .episode-item {
   padding: 16rpx;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   border-radius: 8rpx;
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
   text-align: center;
   display: flex;
   align-items: center;
@@ -976,7 +976,7 @@ export default {
   margin-top: 16rpx;
   text-align: center;
   padding: 16rpx;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   border-radius: 8rpx;
   font-size: 26rpx;
   color: #667eea;
@@ -989,13 +989,13 @@ export default {
 
 .tip-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-bottom: 12rpx;
 }
 
 .tip-hint {
   font-size: 22rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
 }
 
 .related-section {
@@ -1028,7 +1028,7 @@ export default {
   height: 280rpx;
   border-radius: 8rpx;
   overflow: hidden;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
 }
 
 .related-img {
@@ -1057,7 +1057,7 @@ export default {
 
 .related-name {
   font-size: 24rpx;
-  color: #333;
+  color: var(--cr-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

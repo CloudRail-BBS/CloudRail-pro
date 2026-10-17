@@ -1,5 +1,5 @@
 <template>
-  <view class="wrap"
+  <view class="wrap" :class="themeClass"
         @touchstart="onTouchStart"
         @touchmove="onTouchMove"
         @touchend="onTouchEnd"
@@ -71,6 +71,7 @@
 </template>
 
 <script setup>
+import { themeClass } from '../common/theme.js'
 import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -256,7 +257,7 @@ function onTouchEnd() {
 .r-sub{
   margin-top: 2px;
   font-size: 12px;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .r-progress{ width: 86px; }

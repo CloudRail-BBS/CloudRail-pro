@@ -1,5 +1,5 @@
 ﻿<template>
-  <view class="dynamic-feed">
+  <view class="dynamic-feed" :class="themeClass">
     <template v-if="firstLoading">
       <view class="sk-item" v-for="i in 4" :key="i">
         <view class="sk-head-row">
@@ -420,7 +420,7 @@ export default {
 
 /* Skeleton */
 .sk-item {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx 24rpx;
   margin-bottom: 16rpx;
@@ -436,7 +436,7 @@ export default {
 
 /* Dynamic Item */
 .dynamic-item {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx 24rpx;
   margin-bottom: 16rpx;
@@ -458,7 +458,7 @@ export default {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .item-avatar-frame {
   position: absolute;
@@ -477,12 +477,12 @@ export default {
 .item-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.2;
 }
 .item-time {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .item-meta-row {
   display: flex;
@@ -503,7 +503,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 6rpx 14rpx 6rpx 10rpx;
-  background: #f5f6f8;
+  background: var(--cr-surface-alt);
   border-radius: 999rpx;
 }
 .view-icon {
@@ -514,7 +514,7 @@ export default {
 }
 .view-num {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   line-height: 1;
 }
 
@@ -574,7 +574,7 @@ export default {
   overflow: hidden;
 }
 .row-img {
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 12rpx;
 }
 /* 统一所有图片数量：一行3个 */
@@ -597,7 +597,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--cr-border);
 }
 .footer-tag {
   flex-shrink: 0;
@@ -645,14 +645,14 @@ export default {
 }
 .action-label {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 .action-label.liked-text {
   color: #ff2442;
 }
 .action-num {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .action-num.liked-text {
   color: #ff2442;
@@ -666,7 +666,7 @@ export default {
 .loading-dot {
   width: 28rpx; height: 28rpx;
   border-radius: 50%;
-  border: 3rpx solid #EBEBEB;
+  border: 3rpx solid var(--cr-border);
   border-top-color: #4A7FE0;
   animation: spin 0.8s linear infinite;
 }
@@ -675,13 +675,13 @@ export default {
   display: flex; align-items: center; justify-content: center;
   padding: 32rpx 0;
 }
-.no-more-txt { font-size: 22rpx; color: #CCC; letter-spacing: 2rpx; }
+.no-more-txt { font-size: 22rpx; color: var(--cr-border-strong); letter-spacing: 2rpx; }
 .empty-wrap {
   padding: 80rpx 0 60rpx;
   display: flex; flex-direction: column; align-items: center;
 }
 .empty-img { width: 180rpx; height: 180rpx; opacity: 0.55; }
-.empty-title { margin-top: 24rpx; font-size: 28rpx; color: #333; font-weight: 600; }
+.empty-title { margin-top: 24rpx; font-size: 28rpx; color: var(--cr-text); font-weight: 600; }
 .empty-sub { margin-top: 8rpx; font-size: 24rpx; color: #AAB0BB; }
 
 @keyframes spin { to { transform: rotate(360deg); } }

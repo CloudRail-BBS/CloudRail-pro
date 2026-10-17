@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
         <view class="back-btn"><view class="back-arrow"></view></view>
@@ -205,10 +205,10 @@ export default {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #fff; }
+.page { min-height: 100vh; background: var(--cr-surface); }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 44px;
-  background: #fff; border-bottom: 1rpx solid #f5f5f5; display: flex; align-items: center; justify-content: space-between; padding: 0 20rpx;
+  background: var(--cr-surface); border-bottom: 1rpx solid #f5f5f5; display: flex; align-items: center; justify-content: space-between; padding: 0 20rpx;
 }
 .nav-left, .nav-right { width: 80rpx; display: flex; align-items: center; }
 .nav-title { font-size: 34rpx; font-weight: 700; color: #111; }
@@ -218,27 +218,27 @@ export default {
 .body { padding: 0 28rpx; }
 
 /* 已绑定 */
-.bound-card { margin-top: 40rpx; background: #fff; border-radius: 28rpx; padding: 60rpx 36rpx; display: flex; flex-direction: column; align-items: center; gap: 16rpx; }
+.bound-card { margin-top: 40rpx; background: var(--cr-surface); border-radius: 28rpx; padding: 60rpx 36rpx; display: flex; flex-direction: column; align-items: center; gap: 16rpx; }
 .bound-icon-wrap { width: 120rpx; height: 120rpx; border-radius: 30rpx; background: #111827; display: flex; align-items: center; justify-content: center; margin-bottom: 8rpx; }
 .bound-icon { display: flex; align-items: center; justify-content: center; }
 .phone-shape { width: 36rpx; height: 60rpx; border: 4rpx solid #fff; border-radius: 8rpx; }
-.bound-title { font-size: 32rpx; font-weight: 900; color: #111827; }
-.bound-phone { font-size: 36rpx; font-weight: 900; color: #111827; letter-spacing: 2rpx; }
+.bound-title { font-size: 32rpx; font-weight: 900; color: var(--cr-text); }
+.bound-phone { font-size: 36rpx; font-weight: 900; color: var(--cr-text); letter-spacing: 2rpx; }
 .safe-badge { padding: 8rpx 24rpx; background: #f0fdf4; border-radius: 20rpx; margin-top: 4rpx; }
 .safe-text { font-size: 22rpx; color: #16a34a; font-weight: 600; }
-.change-btn { margin-top: 16rpx; padding: 18rpx 60rpx; border: 2rpx solid #e5e7eb; border-radius: 32rpx; }
-.change-text { font-size: 28rpx; font-weight: 700; color: #374151; }
+.change-btn { margin-top: 16rpx; padding: 18rpx 60rpx; border: 2rpx solid var(--cr-border); border-radius: 32rpx; }
+.change-text { font-size: 28rpx; font-weight: 700; color: var(--cr-text); }
 
 /* 表单 */
-.form-card { margin-top: 40rpx; background: #fff; border-radius: 28rpx; padding: 40rpx 36rpx; }
-.form-title { font-size: 36rpx; font-weight: 900; color: #111827; display: block; margin-bottom: 10rpx; }
-.form-sub { font-size: 24rpx; color: #9ca3af; display: block; margin-bottom: 40rpx; }
+.form-card { margin-top: 40rpx; background: var(--cr-surface); border-radius: 28rpx; padding: 40rpx 36rpx; }
+.form-title { font-size: 36rpx; font-weight: 900; color: var(--cr-text); display: block; margin-bottom: 10rpx; }
+.form-sub { font-size: 24rpx; color: var(--cr-text-muted); display: block; margin-bottom: 40rpx; }
 
 .field { margin-bottom: 28rpx; }
-.field-label { font-size: 24rpx; color: #6b7280; display: block; margin-bottom: 12rpx; font-weight: 600; }
+.field-label { font-size: 24rpx; color: var(--cr-text-muted); display: block; margin-bottom: 12rpx; font-weight: 600; }
 .field-input-wrap { display: flex; align-items: center; background: #f8f9fb; border-radius: 16rpx; padding: 0 20rpx; height: 96rpx; gap: 12rpx; }
-.field-prefix { font-size: 28rpx; font-weight: 700; color: #374151; padding-right: 12rpx; border-right: 2rpx solid #e5e7eb; }
-.field-input { flex: 1; font-size: 30rpx; color: #111827; height: 96rpx; }
+.field-prefix { font-size: 28rpx; font-weight: 700; color: var(--cr-text); padding-right: 12rpx; border-right: 2rpx solid var(--cr-border); }
+.field-input { flex: 1; font-size: 30rpx; color: var(--cr-text); height: 96rpx; }
 .code-input { flex: 1; }
 .field-ph { color: #d1d5db; }
 .field-error { font-size: 22rpx; color: #ef4444; margin-top: 8rpx; display: block; }
@@ -254,7 +254,7 @@ export default {
 .submit-text { font-size: 30rpx; font-weight: 900; color: #fff; }
 
 .cancel-row { padding: 24rpx; display: flex; justify-content: center; }
-.cancel-text { font-size: 26rpx; color: #9ca3af; }
+.cancel-text { font-size: 26rpx; color: var(--cr-text-muted); }
 
 .hud-wrap { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; }
 .hud { background: rgba(17,24,39,0.88); border-radius: 24rpx; padding: 36rpx 48rpx; display: flex; flex-direction: column; align-items: center; gap: 18rpx; }

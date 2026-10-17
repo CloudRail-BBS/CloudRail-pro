@@ -1,5 +1,5 @@
 <template>
-  <view class="review-page">
+  <view class="review-page" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
         <text class="back-arrow">返回</text>
@@ -319,24 +319,24 @@ export default {
 .review-page { min-height: 100vh; background: #f6f7fb; }
 .nav-bar { position: fixed; top: 0; left: 0; right: 0; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; box-sizing: border-box; background: rgba(255,255,255,0.96); backdrop-filter: blur(18px); z-index: 20; border-bottom: 1rpx solid #eef0f4; }
 .nav-left, .nav-right { width: 90rpx; display: flex; align-items: center; }
-.back-arrow { font-size: 24rpx; color: #222; line-height: 1; }
-.nav-title { font-size: 17px; font-weight: 600; color: #222; }
+.back-arrow { font-size: 24rpx; color: var(--cr-text); line-height: 1; }
+.nav-title { font-size: 17px; font-weight: 600; color: var(--cr-text); }
 .page-scroll { height: 100vh; }
 .page-inner { padding: 24rpx; }
 .filter-tabs { display: flex; align-items: center; gap: 14rpx; margin-bottom: 24rpx; }
-.filter-tab { padding: 14rpx 30rpx; border-radius: 999rpx; background: #fff; color: #5b616e; font-size: 24rpx; border: 1rpx solid #eceef3; }
+.filter-tab { padding: 14rpx 30rpx; border-radius: 999rpx; background: var(--cr-surface); color: #5b616e; font-size: 24rpx; border: 1rpx solid #eceef3; }
 .filter-tab.active { background: #FF2442; color: #fff; border-color: #FF2442; font-weight: 600; }
 .loading-box, .empty-box { margin-top: 80rpx; padding: 80rpx 32rpx; text-align: center; color: #8b90a0; }
 .empty-title { display: block; font-size: 30rpx; color: #2b2f3a; font-weight: 600; margin-bottom: 14rpx; }
 .empty-desc, .loading-text { font-size: 24rpx; color: #8b90a0; }
-.review-card { background: #fff; border-radius: 28rpx; padding: 26rpx; box-shadow: 0 10rpx 30rpx rgba(31, 41, 55, 0.05); margin-bottom: 24rpx; }
+.review-card { background: var(--cr-surface); border-radius: 28rpx; padding: 26rpx; box-shadow: 0 10rpx 30rpx rgba(31, 41, 55, 0.05); margin-bottom: 24rpx; }
 .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
 .author-box { display: flex; align-items: center; min-width: 0; position: relative; }
 .avatar { width: 78rpx; height: 78rpx; border-radius: 24rpx; background: #f2f3f7; }
 .avatar-frame { position: absolute; left: -6rpx; top: -6rpx; width: 90rpx; height: 90rpx; pointer-events: none; }
 .author-meta { margin-left: 18rpx; min-width: 0; }
 .name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10rpx; }
-.author-name { font-size: 28rpx; color: #222; font-weight: 600; max-width: 360rpx; }
+.author-name { font-size: 28rpx; color: var(--cr-text); font-weight: 600; max-width: 360rpx; }
 .author-title { font-size: 22rpx; color: #ff5a6b; background: #fff1f3; padding: 4rpx 12rpx; border-radius: 999rpx; }
 .sub-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12rpx; margin-top: 8rpx; }
 .sub-text { font-size: 22rpx; color: #8b90a0; }

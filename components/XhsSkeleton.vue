@@ -1,5 +1,5 @@
 <template>
-  <view v-if="loading" class="sk">
+  <view v-if="loading" class="sk" :class="themeClass">
  
     <view v-if="type==='list'" class="sk-list">
       <view v-for="i in rows" :key="i" class="sk-item">
@@ -33,6 +33,7 @@
 </template>
 
 <script setup>
+import { themeClass } from '../common/theme.js'
 defineProps({
   loading: { type: Boolean, default: false },
   type: { type: String, default: 'list' }, // list | card | text
@@ -63,7 +64,7 @@ defineProps({
   display:flex;
   align-items:center;
   gap: 10px;
-  border-bottom: 1px solid #f2f2f2;
+  border-bottom: 1px solid var(--cr-border);
 }
 .sk-ava{
   width: 44px; height: 44px;
@@ -84,7 +85,7 @@ defineProps({
   flex-shrink:0;
 }
 
-.sk-card{ padding: 12px; border: 1px solid #f2f2f2; border-radius: 16px; margin-top: 12px; }
+.sk-card{ padding: 12px; border: 1px solid var(--cr-border); border-radius: 16px; margin-top: 12px; }
 .sk-cardTop{ display:flex; gap: 12px; align-items:center; margin-bottom: 12px; }
 .sk-line.l3{ width: 88%; margin-top: 10px; }
 .sk-line.l4{ width: 68%; margin-top: 10px; }

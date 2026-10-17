@@ -1,5 +1,5 @@
 <template>
-  <view class="agreement-mask" :class="{ show: visible }" @click="handleClose">
+  <view class="agreement-mask" :class="[themeClass, { show: visible }]" @click="handleClose">
     <view class="agreement-box" @click.stop>
       <view class="agreement-header">
         <view class="header-left" @click="handleClose">
@@ -123,7 +123,7 @@ export default {
   width: 100%;
   max-width: 600px;
   height: 80vh;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 20px 20px 0 0;
   display: flex;
   flex-direction: column;
@@ -161,7 +161,7 @@ export default {
 .header-title {
   font-size: 17px;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .agreement-content {
@@ -184,14 +184,14 @@ export default {
 .section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 12px;
   display: block;
 }
 
 .section-text {
   font-size: 14px;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.8;
   display: block;
 }

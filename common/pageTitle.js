@@ -1,7 +1,7 @@
-const DEFAULT_TITLE = '星域社区';
+const DEFAULT_TITLE = 'CloudRail-pro';
 
 const PAGE_TITLE_MAP = {
-  'pages/index/index': '星域社区',
+  'pages/index/index': 'CloudRail-pro',
   'pages/circle/circle': '发现圈子',
   'pages/circle/detail': '圈子详情',
   'pages/message/message': '消息',

@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
         <view class="back-btn"><view class="back-arrow"></view></view>
@@ -297,10 +297,10 @@ export default {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #fff; }
+.page { min-height: 100vh; background: var(--cr-surface); }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 44px;
-  background: #fff; border-bottom: 1rpx solid #f5f5f5; display: flex; align-items: center; justify-content: space-between; padding: 0 20rpx;
+  background: var(--cr-surface); border-bottom: 1rpx solid #f5f5f5; display: flex; align-items: center; justify-content: space-between; padding: 0 20rpx;
 }
 .nav-left, .nav-right { width: 80rpx; display: flex; align-items: center; }
 .nav-title { font-size: 34rpx; font-weight: 700; color: #111; }
@@ -308,18 +308,18 @@ export default {
 .back-arrow { width: 18rpx; height: 18rpx; border-left: 4rpx solid #111; border-bottom: 4rpx solid #111; transform: rotate(45deg); margin-left: 6rpx; }
 
 .body { padding: 0 28rpx; }
-.form-card { margin-top: 40rpx; background: #fff; border-radius: 28rpx; padding: 40rpx 36rpx; }
+.form-card { margin-top: 40rpx; background: var(--cr-surface); border-radius: 28rpx; padding: 40rpx 36rpx; }
 .form-title { font-size: 36rpx; font-weight: 700; color: #111; display: block; margin-bottom: 10rpx; }
-.form-sub { font-size: 24rpx; color: #999; display: block; margin-bottom: 40rpx; }
+.form-sub { font-size: 24rpx; color: var(--cr-text-muted); display: block; margin-bottom: 40rpx; }
 
 .field { margin-bottom: 28rpx; }
-.field-label { font-size: 24rpx; color: #666; display: block; margin-bottom: 12rpx; font-weight: 600; }
-.field-display { background: #f8f8f8; border-radius: 16rpx; padding: 0 20rpx; height: 96rpx; display: flex; align-items: center; border: 1rpx solid #f0f0f0; }
-.field-display-text { font-size: 28rpx; color: #333; }
-.field-input-wrap { display: flex; align-items: center; background: #f8f8f8; border-radius: 16rpx; padding: 0 20rpx; height: 96rpx; gap: 12rpx; border: 1rpx solid #f0f0f0; }
+.field-label { font-size: 24rpx; color: var(--cr-text-muted); display: block; margin-bottom: 12rpx; font-weight: 600; }
+.field-display { background: var(--cr-surface-alt); border-radius: 16rpx; padding: 0 20rpx; height: 96rpx; display: flex; align-items: center; border: 1rpx solid var(--cr-border); }
+.field-display-text { font-size: 28rpx; color: var(--cr-text); }
+.field-input-wrap { display: flex; align-items: center; background: var(--cr-surface-alt); border-radius: 16rpx; padding: 0 20rpx; height: 96rpx; gap: 12rpx; border: 1rpx solid var(--cr-border); }
 .field-input { flex: 1; font-size: 30rpx; color: #111; height: 96rpx; }
 .code-input { flex: 1; }
-.field-ph { color: #ccc; }
+.field-ph { color: var(--cr-border-strong); }
 .field-error { font-size: 22rpx; color: #ff2442; margin-top: 8rpx; display: block; }
 
 .send-btn { padding: 14rpx 28rpx; background: #111; border-radius: 12rpx; flex-shrink: 0; }
@@ -331,7 +331,7 @@ export default {
 .pin-box { display: flex; gap: 16rpx; }
 .pin-cell {
   flex: 1; height: 96rpx; border-radius: 16rpx;
-  background: #f8f8f8; border: 1.5rpx solid #e5e7eb;
+  background: var(--cr-surface-alt); border: 1.5rpx solid #e5e7eb;
   display: flex; align-items: center; justify-content: center;
   transition: border-color 0.15s;
 }

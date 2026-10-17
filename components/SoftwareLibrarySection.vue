@@ -1,5 +1,5 @@
 <template>
-  <view class="software-section" :style="{ height: sectionHeight + 'px' }">
+  <view class="software-section" :class="themeClass" :style="{ height: sectionHeight + 'px' }">
     <view class="main-content">
       <!-- 左侧分类列表 - 固定不动 -->
       <view class="category-sidebar">
@@ -213,7 +213,7 @@ export default {
 .software-section {
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   overflow: hidden;
 }
 
@@ -221,14 +221,14 @@ export default {
 .main-content {
   display: flex;
   height: 100%;
-  background: #ffffff;
+  background: var(--cr-surface);
 }
 
 /* 左侧分类侧边栏 - 固定不动 */
 .category-sidebar {
   width: 280rpx;
-  background: #ffffff;
-  border-right: 1rpx solid #f0f0f0;
+  background: var(--cr-surface);
+  border-right: 1rpx solid var(--cr-border);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -239,8 +239,8 @@ export default {
 .type-selector {
   height: 96rpx;
   padding: 16rpx 24rpx;
-  background: #ffffff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: var(--cr-surface);
+  border-bottom: 1rpx solid var(--cr-border);
   flex-shrink: 0;
   position: relative;
 }
@@ -251,7 +251,7 @@ export default {
   left: 24rpx;
   right: 24rpx;
   height: 64rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 32rpx;
 }
 
@@ -261,7 +261,7 @@ export default {
   left: 0rpx;
   width: calc(50% + 10rpx);
   height: 64rpx;
-  background: #ffffff;
+  background: var(--cr-surface);
   border-radius: 32rpx;
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
@@ -286,7 +286,7 @@ export default {
   justify-content: center;
   font-size: 32rpx;
   font-weight: 500;
-  color: #999999;
+  color: var(--cr-text-muted);
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -316,7 +316,7 @@ export default {
   justify-content: center;
   padding: 22rpx 20rpx;
   font-size: 30rpx;
-  color: #666666;
+  color: var(--cr-text-muted);
   font-weight: 400;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 0 32rpx 32rpx 0;
@@ -338,7 +338,7 @@ export default {
   flex: 1;
   min-width: 0;
   width: 0;
-  background: #fafafa;
+  background: var(--cr-canvas);
   /* 确保底部留出空间，不被tabbar遮挡 */
   padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
 }
@@ -352,7 +352,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 24rpx;
-  background: #ffffff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx;
   margin-bottom: 20rpx;

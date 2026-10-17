@@ -1,5 +1,5 @@
-﻿<template>
-  <view class="redpacket-overlay" v-if="visible" @touchmove.stop.prevent>
+<template>
+  <view class="redpacket-overlay" :class="themeClass" v-if="visible" @touchmove.stop.prevent>
     <view class="redpacket-container">
       <view class="redpacket-close" @click="close">×</view>
       
@@ -105,7 +105,7 @@ export default {
       claimAmount: 0,
       compensationPoints: 0,
       resultText: '',
-      // 与应用基本配置一致：优先从 settings 接口读取 site_name/site_logo，避免硬编码"星域社区/logo.png"
+      // 与应用基本配置一致：优先从 settings 接口读取 site_name/site_logo，避免硬编码"CloudRail-pro/logo.png"
       siteName: '',
       siteLogo: ''
     }
@@ -276,7 +276,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 40rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
   z-index: 10;
 }
@@ -314,7 +314,7 @@ export default {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: #fff;
+  background: var(--cr-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -413,7 +413,7 @@ export default {
 }
 
 .open-btn.loading .open-text {
-  color: #888;
+  color: var(--cr-text-muted);
 }
 
 /* 领取结果 */
@@ -433,7 +433,7 @@ export default {
 }
 
 .result-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.15);
@@ -493,7 +493,7 @@ export default {
 
 .result-desc {
   font-size: 28rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .result-footer {

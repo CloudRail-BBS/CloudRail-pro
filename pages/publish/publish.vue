@@ -1,5 +1,5 @@
 <template>
-  <view class="publish-container">
+  <view class="publish-container" :class="themeClass">
     <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="handleReset">
         <text class="nav-text">重置</text>
@@ -2090,7 +2090,7 @@ export default {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
 }
 .author-meta {
   margin-left: 20rpx;
@@ -2207,7 +2207,7 @@ export default {
 
 .toolbox-text {
   font-size: 22rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 600;
 }
 
@@ -2216,7 +2216,7 @@ export default {
 }
 
 .share-preview-main {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 18rpx;
   padding: 16rpx;
   display: flex;
@@ -2242,7 +2242,7 @@ export default {
 .share-preview-title {
   display: block;
   font-size: 28rpx;
-  color: #1f2937;
+  color: var(--cr-text);
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2322,7 +2322,7 @@ export default {
 .media-add-btn {
   aspect-ratio: 1;
   border-radius: var(--radius-md);
-  background: #fafafa;
+  background: var(--cr-canvas);
   border: 1.5rpx dashed #d8d8dd;
   display: flex;
   flex-direction: column;
@@ -2565,7 +2565,7 @@ export default {
   width: 44rpx;
   height: 44rpx;
   border-radius: 50%;
-  background: #fff;
+  background: var(--cr-surface);
   position: absolute;
   top: 4rpx;
   left: 4rpx;
@@ -2587,7 +2587,7 @@ export default {
 }
 .pay-price-input-wrap {
   flex: 1;
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
   border-radius: 12rpx;
   padding: 0 20rpx;
   display: flex;
@@ -2622,7 +2622,7 @@ export default {
   font-size: 24rpx;
   display: flex;
   align-items: center;
-  background: #fff;
+  background: var(--cr-surface);
   color: var(--text-color);
   border: 1rpx solid var(--border-color);
 }
@@ -2639,7 +2639,7 @@ export default {
   justify-content: center;
   font-size: 22rpx;
   line-height: 1;
-  color: #888;
+  color: var(--cr-text-muted);
 }
 
 /* ===== 底部提交 ===== */
@@ -2814,11 +2814,11 @@ export default {
 }
 
 .ph-close {
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .ph-cancel {
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .ph-confirm {
@@ -2944,7 +2944,7 @@ export default {
 
 .grid-desc {
   font-size: 20rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   max-width: 100%;
   overflow: hidden;
   white-space: nowrap;
@@ -2984,7 +2984,7 @@ export default {
 .hash-icon {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--cr-text);
   margin-right: 12rpx;
 }
 
@@ -2992,12 +2992,12 @@ export default {
   flex: 1;
   height: 88rpx;
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .topic-add-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   font-weight: 600;
   padding: 10rpx 0 10rpx 20rpx;
 }
@@ -3049,7 +3049,7 @@ export default {
 
 .section-label {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin: 30rpx 30rpx 20rpx;
 }
 
@@ -3069,13 +3069,13 @@ export default {
   font-size: 30rpx;
   font-weight: bold;
   margin-right: 12rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .item-name {
   flex: 1;
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .item-check {
@@ -3101,7 +3101,7 @@ export default {
 .mention-name {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .mention-picked {
@@ -3133,7 +3133,7 @@ export default {
 .product-pick-title {
   display: block;
   font-size: 28rpx;
-  color: #222;
+  color: var(--cr-text);
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3159,11 +3159,11 @@ export default {
 .link-input {
   height: 88rpx;
   border-radius: 18rpx;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
   padding: 0 24rpx;
   margin-bottom: 18rpx;
   font-size: 28rpx;
-  color: #222;
+  color: var(--cr-text);
 }
 
 .xhs-modal-mask {
@@ -3200,13 +3200,13 @@ export default {
   padding: 28rpx 28rpx 10rpx;
   font-size: 32rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .xhs-modal-content {
   padding: 0 28rpx 24rpx;
   font-size: 28rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.6;
 }
 
@@ -3220,11 +3220,11 @@ export default {
   text-align: center;
   padding: 24rpx 0;
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .xhs-btn.cancel {
-  color: #999;
+  color: var(--cr-text-muted);
   border-right: 1rpx solid #f1f1f1;
 }
 
@@ -3362,7 +3362,7 @@ export default {
 }
 
 .douyin-card .share-preview-sub {
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .douyin-panel {
@@ -3378,29 +3378,29 @@ export default {
   justify-content: space-between;
   margin-bottom: 16rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .douyin-tip .tip-hint {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 22rpx;
 }
 
 .douyin-input {
   height: 88rpx;
   border-radius: 18rpx;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #222;
+  color: var(--cr-text);
 }
 
 .douyin-preview {
   margin-top: 20rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   overflow: hidden;
-  border: 1rpx solid #eee;
+  border: 1rpx solid var(--cr-border);
 }
 
 .douyin-preview-video {
@@ -3451,7 +3451,7 @@ export default {
 .douyin-preview-info .preview-title {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3462,7 +3462,7 @@ export default {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .parse-btn {

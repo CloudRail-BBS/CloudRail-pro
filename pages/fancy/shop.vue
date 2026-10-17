@@ -1,5 +1,5 @@
 <template>
-  <view class="fancy-page">
+  <view class="fancy-page" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-row">
         <view class="nav-back" @click="goBack">
@@ -21,7 +21,7 @@
         <view class="asset-card-top">
           <view class="asset-card-brand">
             <view class="brand-mark"></view>
-            <text class="brand-name">白鸽·尊享</text>
+            <text class="brand-name">CloudRail-pro · 尊享</text>
           </view>
         </view>
 
@@ -491,7 +491,7 @@ export default {
 </script>
 <style scoped>
 .fancy-page {
-  background: #F5F6F8;
+  background: var(--cr-surface-alt);
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
 }
@@ -697,7 +697,7 @@ export default {
 }
 .lh-sub {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .lh-pill {
   background: rgba(214, 168, 84, 0.1);
@@ -725,8 +725,8 @@ export default {
 .filter-item {
   padding: 14rpx 28rpx;
   border-radius: 999rpx;
-  background: #fff;
-  border: 1rpx solid #EBEBEB;
+  background: var(--cr-surface);
+  border: 1rpx solid var(--cr-border);
   display: inline-flex;
   align-items: center;
   transition: all 0.2s;
@@ -776,7 +776,7 @@ export default {
 }
 .loading-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .spin {
   width: 44rpx; height: 44rpx;
@@ -959,7 +959,7 @@ export default {
 }
 .lm-text {
   font-size: 23rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .loading-more {
   display: flex; justify-content: center;
@@ -988,7 +988,7 @@ export default {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .buy-sheet {
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 32rpx 32rpx 0 0;
   padding: 0 36rpx calc(36rpx + env(safe-area-inset-bottom));
   transform: translateY(100%);
@@ -1016,7 +1016,7 @@ export default {
 .sheet-close-btn {
   width: 52rpx; height: 52rpx;
   border-radius: 50%;
-  background: #F5F5F5;
+  background: var(--cr-surface-alt);
   display: flex; align-items: center; justify-content: center;
 }
 .close-x {
@@ -1086,7 +1086,7 @@ export default {
 
 /* 订单明细 */
 .sheet-rows {
-  background: #F8F9FA;
+  background: var(--cr-surface-alt);
   border-radius: 20rpx;
   padding: 0 28rpx;
   margin-bottom: 20rpx;
@@ -1119,7 +1119,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  background: #F8F9FA;
+  background: var(--cr-surface-alt);
   border-radius: 20rpx;
   padding: 0 24rpx;
   height: 96rpx;
@@ -1241,7 +1241,7 @@ export default {
 }
 .xm-panel {
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 28rpx;
   overflow: hidden;
   padding: 52rpx 40rpx 0;
@@ -1265,7 +1265,7 @@ export default {
 }
 .xm-footer {
   display: flex;
-  border-top: 1px solid #F0F0F0;
+  border-top: 1px solid var(--cr-border);
   margin: 0 -40rpx;
 }
 .xm-btn {

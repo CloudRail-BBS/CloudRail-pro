@@ -1,5 +1,5 @@
 <template>
-  <view class="report-container">
+  <view class="report-container" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
         <view class="nav-icon" @click="goBack"><image src="/static/icon/x-gray.svg" class="nav-icon-img" mode="aspectFit"></image></view>
         <view class="nav-title">举报{{ typeText }}</view>
@@ -148,24 +148,24 @@ export default {
 </script>
 
 <style scoped>
-.report-container { background: #fff; min-height: 100vh; }
+.report-container { background: var(--cr-surface); min-height: 100vh; }
 .nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 0 30rpx; height: 88rpx; border-bottom: 1rpx solid #f5f5f5; }
-.nav-title { font-size: 32rpx; font-weight: bold; color: #333; }
+.nav-title { font-size: 32rpx; font-weight: bold; color: var(--cr-text); }
 .nav-icon { padding: 10rpx; width: 60rpx; display: flex; align-items: center; justify-content: center; }
 .nav-icon-img { width: 36rpx; height: 36rpx; }
 .content-body { padding: 40rpx 30rpx; }
-.section-title { font-size: 28rpx; font-weight: bold; color: #333; margin-bottom: 24rpx; }
+.section-title { font-size: 28rpx; font-weight: bold; color: var(--cr-text); margin-bottom: 24rpx; }
 .mt-40 { margin-top: 40rpx; }
 .reason-grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
-.reason-item { width: 48%; background: #f8f8f8; color: #666; font-size: 26rpx; height: 80rpx; display: flex; align-items: center; justify-content: center; border-radius: 8rpx; margin-bottom: 20rpx; border: 1px solid transparent; transition: all 0.2s; }
+.reason-item { width: 48%; background: var(--cr-surface-alt); color: #666; font-size: 26rpx; height: 80rpx; display: flex; align-items: center; justify-content: center; border-radius: 8rpx; margin-bottom: 20rpx; border: 1px solid transparent; transition: all 0.2s; }
 .reason-item.active { background: #fff5f6; color: #ff2442; border-color: #ff2442; font-weight: 600; }
-.textarea-wrap { background: #f8f8f8; padding: 24rpx; border-radius: 12rpx; position: relative; }
-.desc-input { width: 100%; height: 200rpx; font-size: 28rpx; color: #333; line-height: 1.5; }
-.word-count { text-align: right; font-size: 22rpx; color: #ccc; margin-top: 10rpx; }
+.textarea-wrap { background: var(--cr-surface-alt); padding: 24rpx; border-radius: 12rpx; position: relative; }
+.desc-input { width: 100%; height: 200rpx; font-size: 28rpx; color: var(--cr-text); line-height: 1.5; }
+.word-count { text-align: right; font-size: 22rpx; color: var(--cr-border-strong); margin-top: 10rpx; }
 .submit-btn { margin-top: 60rpx; height: 88rpx; background: #ff2442; color: #fff; font-size: 30rpx; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 44rpx; }
 .submit-btn:active { transform: scale(0.98); }
 .submit-btn.disabled { background: #e0e0e0; color: #aaa; pointer-events: none; }
-.tips { margin-top: 30rpx; text-align: center; font-size: 22rpx; color: #ccc; }
+.tips { margin-top: 30rpx; text-align: center; font-size: 22rpx; color: var(--cr-border-strong); }
 
 .hud-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; align-items: center; justify-content: center; background: transparent; }
 .hud-box { width: 240rpx; height: 240rpx; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px); border-radius: 24rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; animation: fadeInScale 0.2s ease-out; }

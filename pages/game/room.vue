@@ -1,5 +1,5 @@
 <template>
-  <view class="rm-page">
+  <view class="rm-page" :class="themeClass">
     <!-- 自定义导航 -->
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-back" @click="goBack">
@@ -238,34 +238,34 @@ export default {
 </script>
 
 <style scoped>
-.rm-page { min-height: 100vh; background: #f6f7f9; }
-.nav { position: relative; display: flex; align-items: center; justify-content: center; height: 88rpx; background: #fff; }
-.nav-title { font-size: 32rpx; font-weight: bold; color: #333; }
+.rm-page { min-height: 100vh; background: var(--cr-canvas); }
+.nav { position: relative; display: flex; align-items: center; justify-content: center; height: 88rpx; background: var(--cr-surface); }
+.nav-title { font-size: 32rpx; font-weight: bold; color: var(--cr-text); }
 .nav-back { position: absolute; left: 24rpx; bottom: 0; height: 88rpx; width: 60rpx; display: flex; align-items: center; }
 .back-icon { width: 36rpx; height: 36rpx; }
 
-.join-box { margin: 80rpx 40rpx 0; padding: 48rpx 40rpx; background: #fff; border-radius: 24rpx; }
-.join-tip { font-size: 28rpx; color: #666; margin-bottom: 28rpx; text-align: center; }
-.join-in { height: 88rpx; background: #f5f6f8; border-radius: 16rpx; padding: 0 28rpx; font-size: 32rpx; margin-bottom: 24rpx; text-align: center; }
+.join-box { margin: 80rpx 40rpx 0; padding: 48rpx 40rpx; background: var(--cr-surface); border-radius: 24rpx; }
+.join-tip { font-size: 28rpx; color: var(--cr-text-muted); margin-bottom: 28rpx; text-align: center; }
+.join-in { height: 88rpx; background: var(--cr-surface-alt); border-radius: 16rpx; padding: 0 28rpx; font-size: 32rpx; margin-bottom: 24rpx; text-align: center; }
 .join-btn { height: 88rpx; line-height: 88rpx; text-align: center; background: #ff6b81; color: #fff; border-radius: 44rpx; font-size: 32rpx; font-weight: bold; margin-top: 12rpx; }
-.join-note { margin-top: 28rpx; font-size: 24rpx; color: #999; text-align: center; line-height: 1.6; }
+.join-note { margin-top: 28rpx; font-size: 24rpx; color: var(--cr-text-muted); text-align: center; line-height: 1.6; }
 
 .room-box { padding: 40rpx; }
 .room-no { display: flex; align-items: center; justify-content: center; margin-bottom: 8rpx; }
-.room-no-label { font-size: 26rpx; color: #999; margin-right: 12rpx; }
+.room-no-label { font-size: 26rpx; color: var(--cr-text-muted); margin-right: 12rpx; }
 .room-no-val { font-size: 52rpx; font-weight: bold; color: #ff6b81; letter-spacing: 4rpx; }
 .room-no-copy { font-size: 24rpx; color: #576b95; margin-left: 20rpx; padding: 4rpx 16rpx; border: 1rpx solid #576b95; border-radius: 20rpx; }
-.room-name { text-align: center; font-size: 26rpx; color: #999; margin-bottom: 48rpx; }
+.room-name { text-align: center; font-size: 26rpx; color: var(--cr-text-muted); margin-bottom: 48rpx; }
 
 .seats { display: flex; justify-content: space-between; }
-.seat { flex: 1; margin: 0 12rpx; background: #fff; border-radius: 20rpx; padding: 32rpx 0; display: flex; flex-direction: column; align-items: center; }
+.seat { flex: 1; margin: 0 12rpx; background: var(--cr-surface); border-radius: 20rpx; padding: 32rpx 0; display: flex; flex-direction: column; align-items: center; }
 .seat.on { background: #fff5f7; }
 .seat-ava { width: 110rpx; height: 110rpx; border-radius: 50%; background: #eee; }
 .seat-empty { width: 110rpx; height: 110rpx; border-radius: 50%; background: #f0f1f3; color: #c8c9cc; font-size: 44rpx; display: flex; align-items: center; justify-content: center; }
-.seat-name { margin-top: 16rpx; font-size: 24rpx; color: #666; max-width: 160rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.seat-name { margin-top: 16rpx; font-size: 24rpx; color: var(--cr-text-muted); max-width: 160rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
-.room-status { margin: 48rpx 0 32rpx; text-align: center; font-size: 26rpx; color: #999; }
+.room-status { margin: 48rpx 0 32rpx; text-align: center; font-size: 26rpx; color: var(--cr-text-muted); }
 .room-start { height: 92rpx; line-height: 92rpx; text-align: center; background: #ff6b81; color: #fff; border-radius: 46rpx; font-size: 32rpx; font-weight: bold; }
 .room-wait { height: 92rpx; line-height: 92rpx; text-align: center; background: #f0f1f3; color: #999; border-radius: 46rpx; font-size: 30rpx; }
-.room-leave { margin-top: 32rpx; text-align: center; font-size: 26rpx; color: #999; }
+.room-leave { margin-top: 32rpx; text-align: center; font-size: 26rpx; color: var(--cr-text-muted); }
 </style>

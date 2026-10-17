@@ -1,5 +1,5 @@
 ﻿<template>
-  <view class="xhs-register">
+  <view class="xhs-register" :class="themeClass">
     <view class="logo-box">
       <image src="/static/logo.png" mode="aspectFit" class="logo-img" />
     </view>
@@ -217,19 +217,19 @@ export default {
 </script>
 
 <style scoped>
-.xhs-register { min-height: 100vh; background-color: #ffffff; padding: 0 60rpx; display: flex; flex-direction: column; }
+.xhs-register { min-height: 100vh; background-color: var(--cr-surface); padding: 0 60rpx; display: flex; flex-direction: column; }
 .logo-box { margin-top: 80rpx; margin-bottom: 48rpx; display: flex; justify-content: center; }
 .logo-img { width: 120rpx; height: 120rpx; }
 .text-header { margin-bottom: 48rpx; text-align: center; }
-.h1 { display: block; font-size: 44rpx; color: #111827; font-weight: 900; margin-bottom: 12rpx; }
-.h2 { font-size: 26rpx; color: #9ca3af; }
+.h1 { display: block; font-size: 44rpx; color: var(--cr-text); font-weight: 900; margin-bottom: 12rpx; }
+.h2 { font-size: 26rpx; color: var(--cr-text-muted); }
 .input-group { background-color: #f6f6f6; border-radius: 44rpx; height: 92rpx; display: flex; align-items: center; padding: 0 36rpx; margin-bottom: 20rpx; border: 2rpx solid transparent; transition: all 0.25s; position: relative; }
-.input-group.active { background-color: #fff; border-color: #ff2442; }
+.input-group.active { background-color: var(--cr-surface); border-color: #ff2442; }
 .sms-group { padding-right: 16rpx; }
-.xhs-input { flex: 1; font-size: 30rpx; color: #111827; height: 100%; }
+.xhs-input { flex: 1; font-size: 30rpx; color: var(--cr-text); height: 100%; }
 .code-input { flex: 1; }
 .ph-style { color: #c4c4c4; }
-.count-tip { font-size: 22rpx; color: #bbb; }
+.count-tip { font-size: 22rpx; color: var(--cr-text-muted); }
 .send-code-btn { flex-shrink: 0; padding: 14rpx 24rpx; background: #111827; border-radius: 28rpx; }
 .send-code-btn.disabled { background: #d1d5db; }
 .send-code-btn text { font-size: 22rpx; color: #fff; font-weight: 700; white-space: nowrap; }
@@ -237,6 +237,6 @@ export default {
 .xhs-btn::after { border: none; }
 .xhs-btn.disabled { background: #fca5a5; box-shadow: none; }
 .login-row { margin-top: 36rpx; display: flex; justify-content: center; font-size: 28rpx; }
-.login-tip { color: #9ca3af; }
+.login-tip { color: var(--cr-text-muted); }
 .login-link { color: #2b4c7e; margin-left: 10rpx; font-weight: 600; }
 </style>

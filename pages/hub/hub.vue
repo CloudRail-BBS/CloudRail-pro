@@ -1,5 +1,5 @@
 <template>
-  <view class="hub-page">
+  <view class="hub-page" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
         <view class="nav-left" @click="goBack">
@@ -206,7 +206,7 @@ export default {
 <style scoped>
 .hub-page {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: var(--cr-surface-alt);
   padding-bottom: 60rpx;
 }
 
@@ -308,7 +308,7 @@ export default {
 /* ── 分组卡片 ── */
 .section-card {
   margin: 0 24rpx 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 32rpx 28rpx 12rpx;
   box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.03);
@@ -419,7 +419,7 @@ export default {
 .app-desc {
   display: block;
   font-size: 23rpx;
-  color: #9ca3af;
+  color: var(--cr-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -1,5 +1,5 @@
 <template>
-  <view class="chat-page" :style="pageBgStyle">
+  <view class="chat-page" :class="themeClass" :style="pageBgStyle">
     <OnlineNotifyCard />
     <view class="top-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
@@ -1041,17 +1041,17 @@ export default {
 
     parseEmoticons(content) {
       if (!content) return [{ type: 'text', text: '' }]
-      
+
       const parts = []
       const regex = /\[表情(\d+)\]|\[([^\]]+)\]/g
       let lastIndex = 0
       let match
-      
+
       while ((match = regex.exec(content)) !== null) {
         if (match.index > lastIndex) {
           parts.push({ type: 'text', text: content.substring(lastIndex, match.index) })
         }
-        
+
         let emoji = null
         if (match[1]) {
           const emojiId = parseInt(match[1])
@@ -1059,20 +1059,20 @@ export default {
         } else if (match[2]) {
           emoji = this.defaultEmoticons.find(e => e.code === match[0])
         }
-        
+
         if (emoji) {
           parts.push({ type: 'emoticon', url: emoji.url })
         } else {
           parts.push({ type: 'text', text: match[0] })
         }
-        
+
         lastIndex = regex.lastIndex
       }
-      
+
       if (lastIndex < content.length) {
         parts.push({ type: 'text', text: content.substring(lastIndex) })
       }
-      
+
       return parts
     },
 
@@ -1885,7 +1885,7 @@ export default {
         }
 
         this.msgList = this.msgList.filter(m => m.tempId !== tempId)
-        
+
         if (res.code === -101) {
           this.showWarning('内容违规警告', res.msg)
           uni.vibrateShort()
@@ -2671,7 +2671,7 @@ export default {
 }
 .more-icon{
   font-size:48rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
 }
 .nav-center{
   flex:1;
@@ -2761,13 +2761,13 @@ export default {
 .loading-box{
   padding:120rpx 0;
   text-align:center;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
   font-size:26rpx;
 }
 .loading-tip{
   text-align:center;
   padding:14rpx 0;
-  color:#999;
+  color: var(--cr-text-muted);
   font-size:24rpx;
 }
 
@@ -2785,13 +2785,13 @@ export default {
 }
 .welcome-name{
   font-size:30rpx;
-  color:#333;
+  color: var(--cr-text);
   font-weight:600;
   margin-bottom:8rpx;
 }
 .welcome-hint{
   font-size:26rpx;
-  color:#999;
+  color: var(--cr-text-muted);
 }
 
 .msg-item{
@@ -2805,7 +2805,7 @@ export default {
 .msg-time{
   text-align:center;
   font-size:22rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
   margin-bottom:16rpx;
   padding:8rpx 20rpx;
   background:rgba(0,0,0,0.03);
@@ -2818,7 +2818,7 @@ export default {
 .recalled{ display:flex; justify-content:center; margin:12rpx 0; }
 .recalled-txt{
   font-size:24rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
   background:rgba(0,0,0,0.06);
   padding:8rpx 18rpx;
   border-radius:999rpx;
@@ -2848,7 +2848,7 @@ export default {
   font-size:30rpx;
   line-height:1.6;
   word-break:break-word;
-  background:#fff;
+  background: var(--cr-surface);
   color:#15171a;
   box-shadow:0 4rpx 16rpx rgba(0,0,0,.06);
 }
@@ -2868,7 +2868,7 @@ export default {
   height:480rpx;
   border-radius:24rpx;
   display:block;
-  background:#f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .msg-row.is-me .bubble-content.bubble-default{
   background:linear-gradient(135deg,#ff4d6d 0%,#ff2442 100%);
@@ -2877,7 +2877,7 @@ export default {
   box-shadow:0 6rpx 20rpx rgba(255,77,109,.28);
 }
 .msg-row:not(.is-me) .bubble-content.bubble-default{
-  background:#fff;
+  background: var(--cr-surface);
   color:#15171a;
   border-bottom-left-radius:8rpx;
 }
@@ -2908,7 +2908,7 @@ export default {
 }
 @keyframes rotate{ to{ transform:rotate(360deg); } }
 
-.card-tip{ display:block; font-size:22rpx; color:#666; margin-bottom:10rpx; }
+.card-tip{ display:block; font-size:22rpx; color: var(--cr-text-muted); margin-bottom:10rpx; }
 .card-box{ background:rgba(0,0,0,0.05); border-radius:14rpx; padding:14rpx; display:flex; align-items:center; gap:14rpx; }
 .card-ava{ width:70rpx; height:70rpx; border-radius:14rpx; background:#eee; }
 .card-meta{ flex:1; min-width:0; }
@@ -2916,7 +2916,7 @@ export default {
 .card-sub{ display:block; margin-top:6rpx; font-size:24rpx; color:#7b7b7b; }
 .group-card-box{ background:linear-gradient(135deg,#fff5f6 0%,#fff 100%); border:1rpx solid #ffe0e4; padding:18rpx; }
 .group-card-box .card-name{ color:#ff2442; }
-.group-card-box .card-sub{ color:#9ca3af; }
+.group-card-box .card-sub{ color: var(--cr-text-muted); }
 .group-card-arrow{ font-size:36rpx; color:#d1d5db; font-weight:300; line-height:1; }
 .invite-card{ background:linear-gradient(135deg,#f0f9ff 0%,#fff 100%); border:1rpx solid #dbeafe; padding:18rpx; margin-bottom:12rpx; }
 /* 关系申请卡片：粉色系，和群邀请的蓝色区分开 */
@@ -2938,9 +2938,9 @@ export default {
 .call-card-title{ font-size:26rpx; font-weight:600; color:#1f2430; }
 .call-card-sub{ font-size:24rpx; color:#8b93a5; }
 /* 未适配消息类型的兜底提示 */
-.msg-unknown{ font-size:24rpx; color:#9ca3af; padding:8rpx 4rpx; }
+.msg-unknown{ font-size:24rpx; color: var(--cr-text-muted); padding:8rpx 4rpx; }
 .invite-card .card-name{ color:#1e90ff; font-size:28rpx; font-weight:600; }
-.invite-card .card-sub{ color:#9ca3af; }
+.invite-card .card-sub{ color: var(--cr-text-muted); }
 .invite-card .card-code{ color:#1e90ff; font-size:24rpx; margin-top:4rpx; }
 .invite-actions{ display:flex; gap:16rpx; margin-top:4rpx; }
 .invite-status{ margin-top:8rpx; text-align:center; font-size:26rpx; padding:12rpx 0; border-radius:10rpx; background:#ecfdf5; color:#10b981; }
@@ -2951,7 +2951,7 @@ export default {
 .invite-done.pending{ background:#eff6ff; color:#3b82f6; }
 .invite-btn{ flex:1; text-align:center; font-size:26rpx; padding:14rpx 0; border-radius:10rpx; }
 .invite-btn.accept{ background:linear-gradient(135deg,#4facfe 0%,#00c6fb 100%); color:#fff; }
-.invite-btn.decline{ background:#f3f4f6; color:#6b7280; border:1rpx solid #e5e7eb; }
+.invite-btn.decline{ background:#f3f4f6; color:#6b7280; border: 1rpx solid var(--cr-border); }
 
 .transfer-card{
   width:430rpx;
@@ -2988,7 +2988,7 @@ export default {
   margin-top:20rpx;
   height:64rpx;
   border-radius:16rpx;
-  background:#fff;
+  background: var(--cr-surface);
   color:#ff7a1a;
   display:flex;
   align-items:center;
@@ -3129,7 +3129,7 @@ export default {
 .rp-amount-placeholder{ color:rgba(255,255,255,.85); }
 /* 底部白色卡片 */
 .rp-modal-body{
-  background:#fff;
+  background: var(--cr-surface);
   padding:8rpx 40rpx 40rpx;
 }
 .rp-field-row{
@@ -3140,7 +3140,7 @@ export default {
 .rp-field-label{
   width:160rpx;
   font-size:28rpx;
-  color:#333;
+  color: var(--cr-text);
   flex-shrink:0;
   font-weight:400;
 }
@@ -3148,12 +3148,12 @@ export default {
   flex:1;
   height:100%;
   font-size:28rpx;
-  color:#333;
+  color: var(--cr-text);
   font-weight:400;
 }
 .rp-divider{
   height:1rpx;
-  background:#f0f0f0;
+  background: var(--cr-surface-alt);
 }
 .rp-send-btn{
   width:100%;
@@ -3199,7 +3199,7 @@ export default {
   align-items:center;
   justify-content:center;
   font-size:40rpx;
-  color:#666;
+  color: var(--cr-text-muted);
   box-shadow:0 4rpx 16rpx rgba(0,0,0,.1);
   z-index:10;
 }
@@ -3230,7 +3230,7 @@ export default {
   width:80rpx;
   height:80rpx;
   border-radius:50%;
-  background:#fff;
+  background: var(--cr-surface);
   overflow:hidden;
   margin-right:16rpx;
   border:4rpx solid rgba(255,255,255,.5);
@@ -3283,7 +3283,7 @@ export default {
   color:#8b4513;
   font-family:'STKaiti','KaiTi',serif;
 }
-.rp-claim-open-btn.loading .rp-claim-open-text{ color:#888; }
+.rp-claim-open-btn.loading .rp-claim-open-text{ color: var(--cr-text-muted); }
 
 .rp-claim-result{ animation:resultAppear .3s ease-out; }
 @keyframes resultAppear{
@@ -3314,16 +3314,16 @@ export default {
 .rp-result-body{
   padding:100rpx 32rpx 48rpx;
   text-align:center;
-  background:#fff;
+  background: var(--cr-surface);
 }
 .rp-result-amount{ margin-bottom:16rpx; }
 .rp-result-symbol{ font-size:48rpx; font-weight:bold; color:#e83a3a; }
 .rp-result-value{ font-size:88rpx; font-weight:bold; color:#e83a3a; line-height:1; }
-.rp-result-desc{ font-size:28rpx; color:#666; display:block; }
+.rp-result-desc{ font-size:28rpx; color: var(--cr-text-muted); display:block; }
 .rp-result-footer{
   padding:0 32rpx 80rpx;
   margin-top:auto;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:0 0 24rpx 24rpx;
 }
 .rp-result-btn{
@@ -3339,7 +3339,7 @@ export default {
   left:0; right:0;
   bottom:0;
   z-index:2000;
-  background:#f7f8fa;
+  background: var(--cr-surface-alt);
   border-top:1rpx solid rgba(0,0,0,.08);
   transition: all .18s ease;
 }
@@ -3359,7 +3359,7 @@ export default {
   flex-shrink:0;
   transition:all 0.2s;
 }
-.tool-btn:active{ 
+.tool-btn:active{
   opacity:0.7;
 }
 .tool-icon-img{
@@ -3368,7 +3368,7 @@ export default {
 }
 .input-box{
   flex:1;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:999rpx;
   padding:10rpx 24rpx;
   min-height:56rpx;
@@ -3393,7 +3393,7 @@ export default {
 }
 .voice-text{
   font-size:30rpx;
-  color:#374151;
+  color: var(--cr-text);
   font-weight:500;
   letter-spacing:4rpx;
 }
@@ -3423,7 +3423,7 @@ export default {
 }
 .rich-input-h5:empty::before{
   content:attr(data-placeholder);
-  color:#999;
+  color: var(--cr-text-muted);
   font-size:28rpx;
   pointer-events:none;
 }
@@ -3502,7 +3502,7 @@ export default {
 }
 .sheet{
   width:100%;
-  background:#fff;
+  background: var(--cr-surface);
   border-top-left-radius:32rpx;
   border-top-right-radius:32rpx;
   overflow:hidden;
@@ -3530,7 +3530,7 @@ export default {
   padding:32rpx 24rpx;
   text-align:center;
   font-size:32rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
   font-weight:700;
   background:#f9fafb;
   margin-top:8rpx;
@@ -3551,7 +3551,7 @@ export default {
 .modal, .confirm, .modal-box{
   width:100%;
   max-width:650rpx;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:28rpx;
   overflow:hidden;
   padding:24rpx;
@@ -3573,7 +3573,7 @@ export default {
   display:block;
   text-align:center;
   font-size:28rpx;
-  color:#666;
+  color: var(--cr-text-muted);
   line-height:1.6;
 }
 .modal-input{
@@ -3617,16 +3617,16 @@ export default {
 
 .sr{ margin-top:18rpx; max-height:520rpx; overflow:auto; }
 .sr-item{ padding:16rpx 0; border-bottom:1rpx solid #f3f4f6; }
-.sr-time{ display:block; font-size:22rpx; color:#999; margin-bottom:6rpx; }
+.sr-time{ display:block; font-size:22rpx; color: var(--cr-text-muted); margin-bottom:6rpx; }
 .sr-txt{ font-size:28rpx; color:#111; }
-.sr-empty{ text-align:center; font-size:26rpx; color:#999; margin-top:14rpx; }
+.sr-empty{ text-align:center; font-size:26rpx; color: var(--cr-text-muted); margin-top:14rpx; }
 
 .friends{ max-height:560rpx; overflow:auto; margin-top:12rpx; }
 .f-item{ display:flex; align-items:center; gap:16rpx; padding:18rpx 0; border-bottom:1rpx solid #f3f4f6; }
 .f-ava{ width:72rpx; height:72rpx; border-radius:18rpx; background:#eee; }
 .f-meta{ flex:1; min-width:0; }
 .f-name{ display:block; font-size:30rpx; font-weight:900; color:#111; }
-.f-sub{ display:block; font-size:24rpx; color:#999; margin-top:4rpx; }
+.f-sub{ display:block; font-size:24rpx; color: var(--cr-text-muted); margin-top:4rpx; }
 .f-go{ padding:10rpx 18rpx; background:#ff4d6d; color:#fff; border-radius:999rpx; font-size:24rpx; font-weight:900; }
 
 .modal-box{ padding:0; }
@@ -3643,11 +3643,11 @@ export default {
 .ban-badge{ background:linear-gradient(135deg,#ff3b30 0%,#d70015 100%); }
 
 .modal-body{ padding:20rpx 40rpx 40rpx; display:flex; flex-direction:column; align-items:center; }
-.modal-desc{ font-size:28rpx; color:#666; line-height:1.6; text-align:center; margin-bottom:24rpx; }
-.modal-tip{ font-size:24rpx; color:#999; text-align:center; padding:16rpx 24rpx; background:#f8f8f8; border-radius:12rpx; margin-top:12rpx; }
+.modal-desc{ font-size:28rpx; color: var(--cr-text-muted); line-height:1.6; text-align:center; margin-bottom:24rpx; }
+.modal-tip{ font-size:24rpx; color: var(--cr-text-muted); text-align:center; padding:16rpx 24rpx; background: var(--cr-surface-alt); border-radius:12rpx; margin-top:12rpx; }
 .ban-stats{ width:100%; margin:24rpx 0; }
 .stat-row{ display:flex; justify-content:space-between; align-items:center; padding:20rpx 28rpx; background:#f9fafb; border-radius:16rpx; margin-bottom:12rpx; }
-.stat-label{ font-size:28rpx; color:#666; font-weight:600; }
+.stat-label{ font-size:28rpx; color: var(--cr-text-muted); font-weight:600; }
 .stat-value{ font-size:32rpx; font-weight:900; }
 .stat-value.red{ color:#ff3b30; }
 .stat-value.orange{ color:#ff9500; }
@@ -3691,7 +3691,7 @@ export default {
   position:fixed;
   left:0; right:0;
   bottom:0;
-  background:#f7f8fa;
+  background: var(--cr-surface-alt);
   border-top:1rpx solid #f3f4f6;
   box-shadow:0 -4rpx 20rpx rgba(0,0,0,0.08);
   z-index:1999;
@@ -3724,7 +3724,7 @@ export default {
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:24rpx;
   box-shadow:0 4rpx 12rpx rgba(0,0,0,0.06);
   transition:transform .15s ease;
@@ -3738,7 +3738,7 @@ export default {
 }
 .more-action-label{
   font-size:24rpx;
-  color:#374151;
+  color: var(--cr-text);
   line-height:1;
 }
 
@@ -3849,7 +3849,7 @@ export default {
   justify-content: center;
   position: relative;
   border-radius: 20rpx;
-  background: #ffffff;
+  background: var(--cr-surface);
   border: 1rpx solid #f0f1f4;
   box-shadow: 0 2rpx 6rpx rgba(17, 17, 26, 0.04);
   transition: transform .14s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
@@ -3910,8 +3910,8 @@ export default {
   line-height: 72rpx;
   text-align: center;
   border-radius: 36rpx;
-  background: #fff;
-  color: #333;
+  background: var(--cr-surface);
+  color: var(--cr-text);
   font-size: 28rpx;
   border: 2rpx solid transparent;
   user-select: none;

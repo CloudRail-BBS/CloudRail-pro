@@ -1,5 +1,5 @@
 <template>
-  <view class="add-friend-page">
+  <view class="add-friend-page" :class="themeClass">
     <view class="top-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-inner">
         <view class="nav-left" @click="goBack">
@@ -556,12 +556,12 @@ export default {
 <style scoped>
 .add-friend-page {
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--cr-surface);
   overflow: hidden;
 }
 
 .top-nav {
-  background: #fff;
+  background: var(--cr-surface);
   position: relative;
   z-index: 20;
 }
@@ -573,7 +573,7 @@ export default {
   justify-content: space-between;
   padding: 0 24rpx;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .nav-left,
@@ -594,7 +594,7 @@ export default {
 
 .back-icon {
   font-size: 54rpx;
-  color: #222;
+  color: var(--cr-text);
   line-height: 1;
   font-weight: 300;
   margin-left: 2rpx;
@@ -604,19 +604,19 @@ export default {
   flex: 1;
   text-align: center;
   font-size: 38rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
   letter-spacing: 1rpx;
 }
 
 .page-scroll {
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .search-wrap {
   padding: 10rpx 24rpx 12rpx;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .search-box {
@@ -640,7 +640,7 @@ export default {
   flex: 1;
   height: 74rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .search-placeholder {
@@ -663,7 +663,7 @@ export default {
 }
 
 .search-results {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 12rpx;
   margin-top: 16rpx;
   overflow: hidden;
@@ -731,7 +731,7 @@ export default {
   display: block;
   font-size: 28rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -743,7 +743,7 @@ export default {
   align-items: center;
   gap: 4rpx;
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -760,12 +760,12 @@ export default {
   padding: 40rpx;
   text-align: center;
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .entry-card {
   margin-top: 18rpx;
-  background: #fff;
+  background: var(--cr-surface);
   padding-left: 24rpx;
   box-sizing: border-box;
 }
@@ -776,7 +776,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1rpx solid #f2f2f2;
+  border-bottom: 1rpx solid var(--cr-border);
   box-sizing: border-box;
 }
 
@@ -817,7 +817,7 @@ export default {
 
 .recommend-section {
   margin-top: 18rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-top: 18rpx solid #f6f6f8;
 }
 
@@ -832,7 +832,7 @@ export default {
 .recommend-empty {
   padding: 40rpx 24rpx 60rpx;
   text-align: center;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 26rpx;
 }
 
@@ -842,7 +842,7 @@ export default {
   justify-content: space-between;
   padding: 18rpx 24rpx 20rpx;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .user-left {
@@ -944,7 +944,7 @@ export default {
   height: 30rpx;
   padding: 0 10rpx;
   border-radius: 8rpx;
-  background: #f2f2f2;
+  background: var(--cr-surface-alt);
   color: #8b8b92;
   font-size: 20rpx;
   display: inline-flex;
@@ -964,7 +964,7 @@ export default {
 }
 
 .meta-pill {
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
   padding: 6rpx 10rpx;
   border-radius: 8rpx;
 }
@@ -1013,11 +1013,11 @@ export default {
 }
 
 .follow-btn.followed text {
-  color: #888;
+  color: var(--cr-text-muted);
 }
 
 .follow-btn.follow-back {
-  background: #fff;
+  background: var(--cr-surface);
   border: 2rpx solid #ff2f68;
 }
 

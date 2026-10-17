@@ -1,5 +1,5 @@
 <template>
-  <view class="easy-scancode" v-if="visible">
+  <view class="easy-scancode" :class="themeClass" v-if="visible">
     <!-- H5 扫码容器 -->
     <!-- #ifdef H5 -->
     <view class="reader" :id="domId"></view>

@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-bar">
         <view class="nav-back" @click="goBack">返回</view>
@@ -220,7 +220,7 @@ export default {
 <style scoped>
 .page{
   min-height:100vh;
-  background:#f5f6f8;
+  background: var(--cr-surface-alt);
   padding-bottom:40rpx;
 }
 .nav{
@@ -228,7 +228,7 @@ export default {
   left:0;
   right:0;
   top:0;
-  background:#f5f6f8;
+  background: var(--cr-surface-alt);
   z-index:20;
 }
 .nav-bar{
@@ -241,16 +241,16 @@ export default {
 .nav-back,.nav-placeholder{
   width:120rpx;
   font-size:28rpx;
-  color:#374151;
+  color: var(--cr-text);
 }
 .nav-title{
   font-size:32rpx;
   font-weight:800;
-  color:#111827;
+  color: var(--cr-text);
 }
 .card{
   margin:24rpx;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:16rpx;
   padding:28rpx;
 }
@@ -264,14 +264,14 @@ export default {
 .guard-title{
   display:block;
   font-size:28rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:800;
 }
 .guard-desc{
   display:block;
   margin-top:10rpx;
   font-size:24rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
   line-height:1.7;
 }
 .avatar-row{
@@ -293,14 +293,14 @@ export default {
 }
 .section-title{
   font-size:30rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:800;
 }
 .section-desc,
 .section-tip,
 .switch-desc{
   font-size:24rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
   line-height:1.6;
 }
 .field{
@@ -309,7 +309,7 @@ export default {
 .field-label{
   display:block;
   font-size:28rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:700;
 }
 .field-input{
@@ -319,7 +319,7 @@ export default {
   border-radius:12rpx;
   padding:0 24rpx;
   font-size:28rpx;
-  color:#111827;
+  color: var(--cr-text);
 }
 .switch-row{
   margin-top:28rpx;
@@ -360,18 +360,18 @@ export default {
 }
 .friend-name{
   font-size:28rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:700;
 }
 .friend-sub{
   font-size:22rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
 }
 .friend-check{
   width:40rpx;
   height:40rpx;
   border-radius:50%;
-  border:2rpx solid #d1d5db;
+  border: 2rpx solid var(--cr-border);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -393,7 +393,7 @@ export default {
 }
 .empty-text{
   font-size:24rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
   line-height:1.6;
 }
 .submit-wrap{

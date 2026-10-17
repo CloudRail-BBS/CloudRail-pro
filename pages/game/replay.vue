@@ -1,5 +1,5 @@
 <template>
-  <view class="pg">
+  <view class="pg" :class="themeClass">
     <view class="pg-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="pg-nav-bar">
         <view class="pg-back" @click="goBack">‹</view>

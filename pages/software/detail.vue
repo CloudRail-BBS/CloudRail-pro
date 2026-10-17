@@ -1,5 +1,5 @@
 <template>
-  <view class="detail-page">
+  <view class="detail-page" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-btn" @click="goBack">
         <image src="/static/icon/fanhui.png" class="nav-icon" mode="aspectFit"></image>
@@ -418,7 +418,7 @@ export default {
     },
     copyShareLink() {
       const title = this.safeInfo.name || '这个软件不错'
-      const text = `我在星域社区发现一个不错的软件，快来看看：\n${title}\n${this.getShareLink()}`
+      const text = `我在CloudRail-pro发现一个不错的软件，快来看看：\n${title}\n${this.getShareLink()}`
       uni.setClipboardData({
         data: text,
         success: () => uni.showToast({ title: '分享链接已复制', icon: 'none' })
@@ -732,7 +732,7 @@ export default {
 <style scoped>
 .detail-page {
   min-height: 100vh;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
 }
 
 .nav-bar {
@@ -743,7 +743,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 24rpx 18rpx;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .nav-btn {
@@ -769,7 +769,7 @@ export default {
   width: 70rpx;
   height: 70rpx;
   border-radius: 50%;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   transition: background 0.2s;
 }
 
@@ -811,7 +811,7 @@ export default {
   width: 140rpx;
   height: 140rpx;
   border-radius: 28rpx;
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.2);
 }
 
@@ -849,7 +849,7 @@ export default {
 }
 
 .tag-item.primary {
-  background: #fff;
+  background: var(--cr-surface);
   color: #667eea;
 }
 
@@ -859,7 +859,7 @@ export default {
   align-items: center;
   justify-content: space-around;
   padding: 32rpx 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   margin: 0 16rpx 16rpx;
   border-radius: 20rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
@@ -896,22 +896,22 @@ export default {
 
 .stat-label {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .stat-divider {
   width: 1rpx;
   height: 60rpx;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
 }
 
 /* Tab切换 */
 .tabs-bar {
   display: flex;
-  background: #fff;
+  background: var(--cr-surface);
   padding: 0 32rpx;
   margin-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 
 .tab-item {
@@ -923,7 +923,7 @@ export default {
   gap: 8rpx;
   padding: 28rpx 0;
   font-size: 32rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   transition: all 0.3s;
 }
 
@@ -975,7 +975,7 @@ export default {
   width: 360rpx;
   height: 240rpx;
   border-radius: 16rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 
 .disclaimer-box {
@@ -993,7 +993,7 @@ export default {
 
 .intro-section {
   padding: 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   margin-bottom: 16rpx;
 }
@@ -1002,20 +1002,20 @@ export default {
   display: block;
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 16rpx;
 }
 
 .intro-text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.8;
 }
 
 /* 评论预览 */
 .review-preview {
   padding: 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
 }
 
@@ -1034,7 +1034,7 @@ export default {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 
 .review-content {
@@ -1045,13 +1045,13 @@ export default {
   display: block;
   font-size: 24rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 8rpx;
 }
 
 .review-text {
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.5;
 }
 
@@ -1084,14 +1084,14 @@ export default {
   align-items: center;
   gap: 20rpx;
   padding: 20rpx 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   margin-bottom: 16rpx;
 }
 
 .rating-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
 }
 
@@ -1113,14 +1113,14 @@ export default {
 
 .rating-text {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .comment-input-box {
   display: flex;
   gap: 16rpx;
   padding: 16rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   align-items: flex-end;
@@ -1132,7 +1132,7 @@ export default {
   max-height: 200rpx;
   font-size: 28rpx;
   padding: 16rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 12rpx;
   line-height: 1.5;
 }
@@ -1144,7 +1144,7 @@ export default {
   background: #e8e8e8;
   border-radius: 36rpx;
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .send-btn.active {
@@ -1153,7 +1153,7 @@ export default {
 }
 
 .comment-list {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   padding: 16rpx;
 }
@@ -1173,7 +1173,7 @@ export default {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 
 .comment-body {
@@ -1191,7 +1191,7 @@ export default {
 .comment-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .comment-rating {
@@ -1207,25 +1207,25 @@ export default {
 
 .comment-time {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .comment-text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.6;
 }
 
 .empty-comments {
   padding: 80rpx 0;
   text-align: center;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
 }
 
 .empty-comments text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 底部操作栏 */
@@ -1239,7 +1239,7 @@ export default {
   gap: 20rpx;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
@@ -1263,7 +1263,7 @@ export default {
 
 .reward-text {
   font-size: 20rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .download-btn {
@@ -1293,25 +1293,25 @@ export default {
 
 /* 打赏弹窗样式 */
 .reward-mask { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
-.reward-box { width: 580rpx; background: #fff; border-radius: 28rpx; padding: 44rpx 36rpx 32rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; }
+.reward-box { width: 580rpx; background: var(--cr-surface); border-radius: 28rpx; padding: 44rpx 36rpx 32rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; }
 .reward-title-row { display: flex; align-items: center; gap: 12rpx; }
 .reward-title-svg-img { width: 40rpx; height: 40rpx; flex-shrink: 0; }
-.reward-title { font-size: 34rpx; font-weight: 900; color: #111827; }
-.reward-author { font-size: 26rpx; color: #6b7280; }
+.reward-title { font-size: 34rpx; font-weight: 900; color: var(--cr-text); }
+.reward-author { font-size: 26rpx; color: var(--cr-text-muted); }
 
 .reward-amount-grid { display: flex; flex-wrap: wrap; gap: 20rpx; width: 100%; justify-content: center; }
 .reward-amount-chip { width: 220rpx; height: 80rpx; border-radius: 16rpx; background: #f3f4f6; display: flex; align-items: center; justify-content: center; border: 3rpx solid transparent; }
 .reward-amount-chip.active { background: #fff0f0; border-color: #ff2442; }
-.reward-amount-chip text { font-size: 28rpx; color: #374151; font-weight: 700; }
+.reward-amount-chip text { font-size: 28rpx; color: var(--cr-text); font-weight: 700; }
 .reward-amount-chip.active text { color: #ff2442; }
-.reward-amount-chip.custom-chip { border: 3rpx dashed #d1d5db; }
+.reward-amount-chip.custom-chip { border: 3rpx dashed var(--cr-border); }
 .reward-amount-chip.custom-chip.active { border-style: solid; border-color: #ff2442; background: #fff0f0; }
-.custom-reward-input { width: 100%; height: 100%; text-align: center; font-size: 28rpx; font-weight: 700; color: #374151; }
-.reward-chip-ph { color: #9ca3af; font-weight: 400; }
-.reward-balance { font-size: 24rpx; color: #9ca3af; }
+.custom-reward-input { width: 100%; height: 100%; text-align: center; font-size: 28rpx; font-weight: 700; color: var(--cr-text); }
+.reward-chip-ph { color: var(--cr-text-muted); font-weight: 400; }
+.reward-balance { font-size: 24rpx; color: var(--cr-text-muted); }
 .reward-btns { display: flex; width: 100%; gap: 16rpx; margin-top: 12rpx; }
 .reward-cancel { flex: 1; height: 80rpx; border-radius: 20rpx; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
-.reward-cancel text { font-size: 28rpx; color: #6b7280; font-weight: 700; }
+.reward-cancel text { font-size: 28rpx; color: var(--cr-text-muted); font-weight: 700; }
 .reward-confirm { flex: 1; height: 80rpx; border-radius: 20rpx; background: linear-gradient(135deg, #ff2442, #ef4444); display: flex; align-items: center; justify-content: center; }
 .reward-confirm.disabled { opacity: 0.5; }
 .reward-confirm text { font-size: 28rpx; color: #fff; font-weight: 800; }
@@ -1331,7 +1331,7 @@ export default {
 
 .action-menu-text {
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .action-menu-text.danger-text {

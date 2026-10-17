@@ -1,5 +1,5 @@
 <template>
-  <view class="follows-page">
+  <view class="follows-page" :class="themeClass">
     <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px', height: navBarHeight + 'px' }">
         <view class="nav-back" @click="goBack" :style="{ top: (statusBarHeight + (navBarHeight-32)/2) + 'px' }">
             <image src="/static/icon/arrow-left-dark.svg" class="back-icon" mode="aspectFit"></image>
@@ -143,22 +143,22 @@ export default {
 </script>
 
 <style scoped>
-.follows-page { min-height: var(--tcy-vh, 100vh); background: #fff; }
-.custom-nav-bar { position: fixed; top: 0; left: 0; width: 100%; z-index: 999; display: flex; align-items: center; justify-content: center; background: #fff; border-bottom: 1rpx solid #f7f7f7; }
-.nav-title { font-size: 32rpx; font-weight: bold; color: #333; }
+.follows-page { min-height: var(--tcy-vh, 100vh); background: var(--cr-surface); }
+.custom-nav-bar { position: fixed; top: 0; left: 0; width: 100%; z-index: 999; display: flex; align-items: center; justify-content: center; background: var(--cr-surface); border-bottom: 1rpx solid #f7f7f7; }
+.nav-title { font-size: 32rpx; font-weight: bold; color: var(--cr-text); }
 .nav-back { position: fixed; left: 24rpx; z-index: 1000; width: 60rpx; height: 60rpx; display: flex; align-items: center; justify-content: center; }
-.back-icon { font-size: 36rpx; color: #333; font-weight: bold; padding-bottom: 4rpx; }
+.back-icon { font-size: 36rpx; color: var(--cr-text); font-weight: bold; padding-bottom: 4rpx; }
 
 .list-container { padding-bottom: 40rpx; }
 .user-item { display: flex; align-items: center; padding: 24rpx 30rpx; border-bottom: 1rpx solid #f9f9f9; }
 
 .avatar-box { position: relative; width: 100rpx; height: 100rpx; margin-right: 24rpx; flex-shrink: 0; }
-.u-avatar { width: 100%; height: 100%; border-radius: 50%; border: 1rpx solid #f0f0f0; }
+.u-avatar { width: 100%; height: 100%; border-radius: 50%; border: 1rpx solid var(--cr-border); }
 .u-frame { position: absolute; width: 130%; height: 130%; top: -15%; left: -15%; pointer-events: none; }
 
 .u-info { flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden; margin-right: 20rpx; }
 .u-top-row { display: flex; align-items: center; margin-bottom: 6rpx; }
-.u-nickname { font-size: 30rpx; font-weight: 600; color: #333; margin-right: 12rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 260rpx; }
+.u-nickname { font-size: 30rpx; font-weight: 600; color: var(--cr-text); margin-right: 12rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 260rpx; }
 
 .title-tag {
     font-size: 18rpx;
@@ -175,25 +175,25 @@ export default {
     box-shadow: 0 2rpx 4rpx rgba(246, 211, 101, 0.2);
 }
 
-.u-sub-row { font-size: 24rpx; color: #999; margin-bottom: 8rpx; display: flex; align-items: center; }
+.u-sub-row { font-size: 24rpx; color: var(--cr-text-muted); margin-bottom: 8rpx; display: flex; align-items: center; }
 .divider { margin: 0 10rpx; font-size: 20rpx; color: #ddd; }
-.u-bio { font-size: 24rpx; color: #666; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.u-bio { font-size: 24rpx; color: var(--cr-text-muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 .action-btn { flex-shrink: 0; }
 .btn-inner { width: 140rpx; height: 56rpx; border-radius: 28rpx; display: flex; align-items: center; justify-content: center; font-size: 26rpx; font-weight: 600; transition: all 0.2s; }
 .btn-red { background: #ff2442; color: #fff; }
-.btn-gray { background: #f5f5f5; color: #999; border: 1rpx solid #eee; }
+.btn-gray { background: var(--cr-surface-alt); color: #999; border: 1rpx solid var(--cr-border); }
 .btn-mutual { background: #e8f5e9; color: #4caf50; border: 1rpx solid #c8e6c9; }
-.btn-back { background: #fff; color: #ff2442; border: 2rpx solid #ff2442; }
+.btn-back { background: var(--cr-surface); color: #ff2442; border: 2rpx solid #ff2442; }
 .btn-inner:active { transform: scale(0.95); opacity: 0.8; }
 
-.empty-holder { padding-top: 200rpx; display: flex; flex-direction: column; align-items: center; color: #ccc; }
+.empty-holder { padding-top: 200rpx; display: flex; flex-direction: column; align-items: center; color: var(--cr-border-strong); }
 .emp-emoji { font-size: 80rpx; margin-bottom: 20rpx; opacity: 0.6; }
-.emp-txt { font-size: 28rpx; color: #999; }
+.emp-txt { font-size: 28rpx; color: var(--cr-text-muted); }
 
 .loading-state { padding: 30rpx; display: flex; justify-content: center; }
-.loading-circle { width: 36rpx; height: 36rpx; border: 4rpx solid #e0e0e0; border-top-color: #ff2442; border-radius: 50%; animation: rotate 0.8s linear infinite; }
-.no-more { text-align: center; color: #ccc; font-size: 24rpx; padding: 30rpx; }
+.loading-circle { width: 36rpx; height: 36rpx; border: 4rpx solid var(--cr-border); border-top-color: #ff2442; border-radius: 50%; animation: rotate 0.8s linear infinite; }
+.no-more { text-align: center; color: var(--cr-border-strong); font-size: 24rpx; padding: 30rpx; }
 @keyframes rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 .fancy-num {
   display: flex;

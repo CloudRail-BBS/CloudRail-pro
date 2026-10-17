@@ -1,5 +1,5 @@
 <template>
-  <view class="market-page">
+  <view class="market-page" :class="themeClass">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
     <scroll-view class="main-scroll" scroll-y>
 
@@ -649,24 +649,24 @@ export default {
 .tab-bar {
   display: flex;
   margin: 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 6rpx 24rpx rgba(102,126,234,0.08);
 }
 .tab-item { flex: 1; text-align: center; padding: 26rpx 0; position: relative; transition: all 0.25s; }
 .tab-item:active { transform: scale(0.98); }
-.tab-item.active { 
+.tab-item.active {
   background: linear-gradient(135deg, #667eea, #764ba2);
   box-shadow: 0 4rpx 16rpx rgba(102,126,234,0.3);
 }
 .tab-item.active .tab-text { color: #fff; font-weight: 700; }
-.tab-text { font-size: 30rpx; color: #666; }
+.tab-text { font-size: 30rpx; color: var(--cr-text-muted); }
 
 /* 统计 */
 .stats-row { display: flex; margin: 0 24rpx 24rpx; gap: 16rpx; }
 .stat-box {
-  flex: 1; background: #fff; border-radius: 24rpx; padding: 26rpx 16rpx; text-align: center;
+  flex: 1; background: var(--cr-surface); border-radius: 24rpx; padding: 26rpx 16rpx; text-align: center;
   box-shadow: 0 6rpx 24rpx rgba(0,0,0,0.06);
   position: relative; overflow: hidden;
 }
@@ -682,13 +682,13 @@ export default {
 .stat-box:nth-child(2)::before { background: linear-gradient(90deg, #27ae60, #00b894); }
 .stat-box:nth-child(3)::before { background: linear-gradient(90deg, #e67e22, #f39c12); }
 .stat-box:nth-child(4)::before { background: linear-gradient(90deg, #e74c3c, #c0392b); }
-.stat-value { display: block; font-size: 40rpx; font-weight: 800; color: #333; }
-.stat-label { font-size: 24rpx; color: #888; margin-top: 8rpx; display: block; }
+.stat-value { display: block; font-size: 40rpx; font-weight: 800; color: var(--cr-text); }
+.stat-label { font-size: 24rpx; color: var(--cr-text-muted); margin-top: 8rpx; display: block; }
 
 /* 搜索 */
 .search-bar { display: flex; margin: 0 24rpx 20rpx; gap: 16rpx; }
 .search-input {
-  flex: 1; height: 88rpx; background: #fff; border-radius: 44rpx;
+  flex: 1; height: 88rpx; background: var(--cr-surface); border-radius: 44rpx;
   padding: 0 32rpx; font-size: 28rpx; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06);
   border: 2rpx solid rgba(255,255,255,0.6);
 }
@@ -704,21 +704,21 @@ export default {
 .filter-scroll { white-space: nowrap; }
 .filter-items { display: flex; gap: 20rpx; }
 .filter-item {
-  display: inline-block; padding: 16rpx 32rpx; background: #fff;
-  border-radius: 34rpx; font-size: 26rpx; color: #666; font-weight: 600;
+  display: inline-block; padding: 16rpx 32rpx; background: var(--cr-surface);
+  border-radius: 34rpx; font-size: 26rpx; color: var(--cr-text-muted); font-weight: 600;
   box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
 }
 .filter-item:active { transform: scale(0.96); }
-.filter-item.active { 
-  background: linear-gradient(135deg, #667eea, #764ba2); 
-  color: #fff; 
+.filter-item.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
   box-shadow: 0 6rpx 24rpx rgba(102,126,234,0.4);
 }
 
 /* 列表 */
 .list { margin: 0 24rpx; }
 .list-item {
-  display: flex; align-items: flex-start; background: #fff;
+  display: flex; align-items: flex-start; background: var(--cr-surface);
   border-radius: 28rpx; padding: 24rpx; margin-bottom: 20rpx;
   box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.06);
   transition: all 0.3s ease;
@@ -726,16 +726,16 @@ export default {
 .list-item:active { transform: scale(0.99); box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.08); }
 .item-image { width: 130rpx; height: 130rpx; border-radius: 18rpx; flex-shrink: 0; background: linear-gradient(135deg, #f5f7fa, #e8ecf0); border: 2rpx solid #f0edff; box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08); }
 .item-info { flex: 1; margin-left: 20rpx; min-width: 0; }
-.item-title { font-size: 29rpx; font-weight: 600; color: #222; margin-bottom: 10rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-title { font-size: 29rpx; font-weight: 600; color: var(--cr-text); margin-bottom: 10rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item-meta { display: flex; align-items: center; gap: 12rpx; margin-bottom: 10rpx; flex-wrap: wrap; }
 .item-price { font-size: 30rpx; font-weight: 700; color: #e74c3c; }
-.item-type { font-size: 22rpx; color: #888; background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 6rpx 14rpx; border-radius: 12rpx; }
+.item-type { font-size: 22rpx; color: var(--cr-text-muted); background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 6rpx 14rpx; border-radius: 12rpx; }
 .item-status { font-size: 22rpx; padding: 6rpx 14rpx; border-radius: 12rpx; font-weight: 600; }
 .item-status.status-1 { background: linear-gradient(135deg, #eef9f0 0%, #d4edda 100%); color: #27ae60; }
 .item-status.status-0 { background: linear-gradient(135deg, #fef5e7 0%, #faebcc 100%); color: #e67e22; }
 .item-status.status-2 { background: linear-gradient(135deg, #fce8ec 0%, #f8d7da 100%); color: #e74c3c; }
 .item-status.status-3 { background: linear-gradient(135deg, #fce8ec 0%, #f8d7da 100%); color: #e74c3c; }
-.item-seller { font-size: 24rpx; color: #999; }
+.item-seller { font-size: 24rpx; color: var(--cr-text-muted); }
 .item-actions { display: flex; flex-direction: column; gap: 10rpx; margin-left: 16rpx; flex-shrink: 0; }
 .action-btn { padding: 12rpx 24rpx; border-radius: 22rpx; font-size: 24rpx; text-align: center; font-weight: 600; white-space: nowrap; transition: all 0.15s; }
 .action-btn:active { transform: scale(0.92); }
@@ -746,26 +746,26 @@ export default {
 
 /* 分类 */
 .cat-toolbar { display: flex; align-items: center; justify-content: space-between; margin: 0 24rpx 20rpx; }
-.cat-tip { font-size: 26rpx; color: #888; }
+.cat-tip { font-size: 26rpx; color: var(--cr-text-muted); }
 .add-cat-btn { padding: 16rpx 32rpx; }
 .cat-item { align-items: center; }
 
 /* 分类弹窗 */
-.cat-modal { width: 600rpx; background: #fff; border-radius: 24rpx; padding: 32rpx; }
-.cat-modal-title { font-size: 32rpx; font-weight: 700; color: #222; text-align: center; margin-bottom: 24rpx; }
+.cat-modal { width: 600rpx; background: var(--cr-surface); border-radius: 24rpx; padding: 32rpx; }
+.cat-modal-title { font-size: 32rpx; font-weight: 700; color: var(--cr-text); text-align: center; margin-bottom: 24rpx; }
 .cat-modal-row { display: flex; align-items: center; margin-bottom: 24rpx; }
-.cat-modal-label { width: 160rpx; font-size: 28rpx; color: #666; flex-shrink: 0; }
-.cat-modal-input { flex: 1; height: 80rpx; background: #f5f7fa; border-radius: 16rpx; padding: 0 24rpx; font-size: 28rpx; color: #222; }
+.cat-modal-label { width: 160rpx; font-size: 28rpx; color: var(--cr-text-muted); flex-shrink: 0; }
+.cat-modal-input { flex: 1; height: 80rpx; background: #f5f7fa; border-radius: 16rpx; padding: 0 24rpx; font-size: 28rpx; color: var(--cr-text); }
 .cat-modal-actions { display: flex; gap: 20rpx; margin-top: 16rpx; }
 .cat-modal-btn { flex: 1; height: 88rpx; border-radius: 44rpx; display: flex; align-items: center; justify-content: center; font-size: 30rpx; font-weight: 600; }
-.cat-modal-btn.cancel { background: #f0f1f6; color: #666; }
+.cat-modal-btn.cancel { background: var(--cr-surface-alt); color: #666; }
 .cat-modal-btn.confirm { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; box-shadow: 0 6rpx 24rpx rgba(102,126,234,0.4); }
 .cat-modal-btn:active { transform: scale(0.97); }
 
 /* 订单项 */
 .order-item { flex-direction: column; }
 .order-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 16rpx; padding-bottom: 16rpx; border-bottom: 2rpx solid #f0f1f6; }
-.order-no { font-size: 26rpx; color: #888; }
+.order-no { font-size: 26rpx; color: var(--cr-text-muted); }
 .order-status { font-size: 22rpx; padding: 6rpx 14rpx; border-radius: 12rpx; font-weight: 600; }
 .order-status.status-0 { background: linear-gradient(135deg, #fef5e7 0%, #faebcc 100%); color: #e67e22; }
 .order-status.status-1 { background: linear-gradient(135deg, #eef5ff 0%, #dbe4ff 100%); color: #337ecc; }
@@ -773,20 +773,20 @@ export default {
 .order-status.status-3 { background: linear-gradient(135deg, #fce8ec 0%, #f8d7da 100%); color: #e74c3c; }
 .order-body { width: 100%; }
 .order-product { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
-.product-title { font-size: 28rpx; font-weight: 600; color: #222; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.product-title { font-size: 28rpx; font-weight: 600; color: var(--cr-text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .product-price { font-size: 28rpx; font-weight: 700; color: #e74c3c; margin-left: 16rpx; }
 .order-users { display: flex; gap: 16rpx; margin-bottom: 8rpx; flex-wrap: wrap; }
-.user-tag { font-size: 24rpx; color: #888; }
-.order-time { font-size: 22rpx; color: #aaa; }
+.user-tag { font-size: 24rpx; color: var(--cr-text-muted); }
+.order-time { font-size: 22rpx; color: var(--cr-text-muted); }
 .order-item .item-actions { flex-direction: row; margin-top: 16rpx; margin-left: 0; width: 100%; justify-content: flex-end; gap: 12rpx; }
 
 .load-more { margin: 24rpx; text-align: center; }
-.load-btn { padding: 26rpx; background: #fff; border-radius: 44rpx; font-size: 28rpx; color: #888; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05); }
+.load-btn { padding: 26rpx; background: var(--cr-surface); border-radius: 44rpx; font-size: 28rpx; color: var(--cr-text-muted); box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05); }
 .load-btn:active { transform: scale(0.98); }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 160rpx 0; }
 .empty-icon-img { width: 96rpx; height: 96rpx; display: block; margin: 0 auto 20rpx; opacity: 0.6; }
-.empty-text { font-size: 28rpx; color: #999; }
+.empty-text { font-size: 28rpx; color: var(--cr-text-muted); }
 .footer-space { height: 60rpx; }
 
 .hud-mask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(10rpx); }

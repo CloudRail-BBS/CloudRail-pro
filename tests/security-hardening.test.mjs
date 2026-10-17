@@ -171,60 +171,13 @@ test('AI frontend does not embed or send a provider secret', async () => {
   assert.doesNotMatch(source, /api\.siliconflow\.cn|Authorization['"]\s*:/)
 })
 
-test('mini-program OAuth uses its cryptographic random API when Web Crypto is unavailable', async () => {
+test('mini-program third-party OAuth fails closed without a callback route', async () => {
   const source = await readRepoFile('utils/lyb-auth-uni.js')
   const loginPage = await readRepoFile('pages/login/login.vue')
-  assert.match(source, /getUserCryptoManager/, 'WeChat mini-programs expose secure RNG through UserCryptoManager')
-  assert.doesNotMatch(source, /Math\.random\(\)/, 'OAuth state must not use a non-cryptographic RNG')
-  assert.doesNotMatch(loginPage, /const state\s*=\s*Math\.random\(\)/, 'fallback OAuth state must not use a non-cryptographic RNG')
-  assert.match(loginPage, /const state\s*=\s*String\(sid\s*\|\|\s*''\)/, 'fallback uses the server-issued session as transaction state')
 
-  const savedWindow = globalThis.window
-  const savedUni = globalThis.uni
-  const savedWx = globalThis.wx
-  const savedCrypto = Object.getOwnPropertyDescriptor(globalThis, 'crypto')
-  const storage = new Map()
-  let navigatedUrl = ''
-
-  try {
-    Object.defineProperty(globalThis, 'crypto', { configurable: true, value: undefined })
-    globalThis.window = { crypto: undefined, location: { search: '', hash: '' }, history: { replaceState() {} } }
-    globalThis.uni = {
-      getStorageSync: (key) => storage.get(key) ?? '',
-      setStorageSync: (key, value) => storage.set(key, value),
-      removeStorageSync: (key) => storage.delete(key),
-      navigateTo: ({ url }) => { navigatedUrl = url }
-    }
-    globalThis.wx = {
-      getUserCryptoManager: () => ({
-        getRandomValues: ({ length, success }) => {
-          assert.equal(length, 32)
-          success({ randomValues: new Uint8Array(length).fill(0xCD).buffer })
-        }
-      })
-    }
-
-    const { default: auth } = await importSourceModule('utils/lyb-auth-uni.js')
-    auth.init({
-      platform: 'linyu',
-      client_id: 'client',
-      authorize_url: 'https://oauth.example.test/authorize',
-      token_url: 'https://oauth.example.test/token',
-      redirect_uri: 'https://app.example.test/callback'
-    })
-    auth._mpLogin()
-
-    const authUrl = decodeURIComponent(navigatedUrl.slice(navigatedUrl.indexOf('url=') + 4))
-    assert.match(authUrl, /state=(?:cd){32}/)
-    assert.match(storage.get('lyb_oauth_state'), /(?:cd){32}/)
-  } finally {
-    if (savedWindow === undefined) delete globalThis.window
-    else globalThis.window = savedWindow
-    if (savedUni === undefined) delete globalThis.uni
-    else globalThis.uni = savedUni
-    if (savedWx === undefined) delete globalThis.wx
-    else globalThis.wx = savedWx
-    if (savedCrypto) Object.defineProperty(globalThis, 'crypto', savedCrypto)
-    else delete globalThis.crypto
-  }
+  assert.match(source, /_mpLogin: function \(\) \{[\s\S]*?小程序暂不支持第三方账号登录/)
+  assert.doesNotMatch(source, /pages\/lyb-webview\/lyb-webview/)
+  assert.doesNotMatch(source, /Math\.random\(\)/)
+  assert.doesNotMatch(loginPage, /const state\s*=\s*Math\.random\(\)/)
+  assert.match(loginPage, /const state\s*=\s*String\(sid\s*\|\|\s*''\)/)
 })

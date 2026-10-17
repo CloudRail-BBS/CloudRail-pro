@@ -1,5 +1,5 @@
 <template>
-  <view class="video-page">
+  <view class="video-page" :class="themeClass">
     <!-- 自定义导航栏 -->
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
@@ -543,7 +543,7 @@ export default {
 <style lang="scss" scoped>
 .video-page {
   min-height: 100vh;
-  background-color: #fff;
+  background-color: var(--cr-surface);
 }
 
 .nav-bar {
@@ -551,7 +551,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 20rpx;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   position: fixed;
   top: 0;
   left: 0;
@@ -570,7 +570,7 @@ export default {
 
 .back-icon {
   font-size: 48rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 300;
 }
 
@@ -582,7 +582,7 @@ export default {
 
 .nav-title text {
   font-size: 34rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: bold;
 }
 
@@ -608,7 +608,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 20rpx 30rpx;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   gap: 16rpx;
 }
 
@@ -641,7 +641,7 @@ export default {
 
 .search-placeholder {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .search-right-icons {
@@ -670,13 +670,13 @@ export default {
 
 .history-label {
   font-size: 18rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .video-tabs-scroll {
   width: 100%;
-  background-color: #fff;
-  border-bottom: 1px solid #eee;
+  background-color: var(--cr-surface);
+  border-bottom: 1px solid var(--cr-border);
 }
 
 .video-tabs {
@@ -698,7 +698,7 @@ export default {
 
 .video-tab-item text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   font-weight: 500;
   transition: all 0.2s;
   white-space: nowrap;
@@ -719,7 +719,7 @@ export default {
 }
 
 .sub-filter-section {
-  background-color: #fff;
+  background-color: var(--cr-surface);
   padding: 20rpx 30rpx;
   border-bottom: 16rpx solid #f5f5f5;
   width: 100%;
@@ -739,7 +739,7 @@ export default {
 .filter-label {
   width: 80rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   flex-shrink: 0;
 }
 
@@ -755,7 +755,7 @@ export default {
 
 .filter-item {
   padding: 8rpx 24rpx;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   border-radius: 8rpx;
   white-space: nowrap;
   flex-shrink: 0;
@@ -763,7 +763,7 @@ export default {
 
 .filter-item text {
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .filter-item.active {
@@ -782,7 +782,7 @@ export default {
 .video-empty {
   text-align: center;
   padding: 150rpx 0;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
 }
 
@@ -810,7 +810,7 @@ export default {
   padding-bottom: 135%;
   border-radius: 8rpx;
   overflow: hidden;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   flex-shrink: 0;
 }
 
@@ -846,7 +846,7 @@ export default {
 
 .video-name {
   font-size: 20rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -856,7 +856,7 @@ export default {
 
 .video-actors {
   font-size: 16rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -867,7 +867,7 @@ export default {
 .no-more {
   text-align: center;
   padding: 30rpx 0;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 26rpx;
 }
 
@@ -888,7 +888,7 @@ export default {
 .history-content {
   width: 90%;
   max-height: 70vh;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   border-radius: 20rpx;
   overflow: hidden;
   display: flex;
@@ -900,18 +900,18 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 
 .history-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .history-close {
   font-size: 40rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   padding: 10rpx 20rpx;
 }
 
@@ -923,7 +923,7 @@ export default {
 .history-empty {
   text-align: center;
   padding: 80rpx 0;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
 }
 
@@ -940,7 +940,7 @@ export default {
   height: 160rpx;
   border-radius: 8rpx;
   flex-shrink: 0;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
 }
 
 .history-info {
@@ -953,7 +953,7 @@ export default {
 
 .history-name {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: bold;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -962,7 +962,7 @@ export default {
 
 .history-actors {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -970,7 +970,7 @@ export default {
 
 .history-time {
   font-size: 22rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
 }
 
 .history-delete {

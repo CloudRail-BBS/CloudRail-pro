@@ -1,5 +1,5 @@
 ﻿<template>
-  <view class="container">
+  <view class="container" :class="themeClass">
     <video
       id="playerVideo"
       class="video"

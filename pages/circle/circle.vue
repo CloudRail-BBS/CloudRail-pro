@@ -1,5 +1,5 @@
 <template>
-  <view class="circle-page">
+  <view class="circle-page" :class="themeClass">
     <OnlineNotifyCard />
     <view class="top-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="header-row">
@@ -617,7 +617,7 @@ export default {
   flex-direction: column;
   height: var(--tcy-vh, 100vh);
   overflow: hidden;
-  background: #F6F7F9;
+  background: var(--cr-canvas);
 }
 
 /* ── Top Bar ── */
@@ -649,13 +649,13 @@ export default {
 }
 .nav-tab text {
   font-size: 30rpx;
-  color: #999999;
+  color: var(--cr-text-muted);
   font-weight: 400;
   transition: all 0.2s;
 }
 .nav-tab.active text {
   font-size: 34rpx;
-  color: #333333;
+  color: var(--cr-text);
   font-weight: 800;
   transform: scale(1.05);
 }
@@ -702,7 +702,7 @@ export default {
 
 /* ── Discover Section ── */
 .discover-section {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -728,13 +728,13 @@ export default {
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s;
 }
-.sort-tab text { font-size: 24rpx; color: #888; font-weight: 500; }
-.sort-tab.active { background: #fff; box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.08); }
+.sort-tab text { font-size: 24rpx; color: var(--cr-text-muted); font-weight: 500; }
+.sort-tab.active { background: var(--cr-surface); box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.08); }
 .sort-tab.active text { color: #111; font-weight: 600; }
 
 /* ── 分类栏 ── */
 .cat-bar {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   margin-bottom: 20rpx;
   padding: 20rpx 0;
@@ -749,10 +749,10 @@ export default {
   background: #F2F3F5;
   transition: all 0.2s;
 }
-.cat-item text { font-size: 24rpx; color: #666; }
+.cat-item text { font-size: 24rpx; color: var(--cr-text-muted); }
 .cat-item.active { background: linear-gradient(135deg, #ff2442, #ff4d6a); }
 .cat-item.active text { color: #fff; font-weight: 600; }
-.cat-count { font-size: 20rpx; color: #999; }
+.cat-count { font-size: 20rpx; color: var(--cr-text-muted); }
 .cat-item.active .cat-count { color: rgba(255,255,255,0.85); }
 
 /* ── 分类区块 ── */
@@ -768,14 +768,14 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  background: #F8F8F8;
+  background: var(--cr-surface-alt);
   border-radius: 28rpx;
   padding: 24rpx;
   box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08), 0 2rpx 8rpx rgba(0,0,0,0.04);
-  border: 2rpx solid #E5E5E5;
+  border: 2rpx solid var(--cr-border);
 }
-.circle-card:active { 
-  background: #F0F0F0; 
+.circle-card:active {
+  background: var(--cr-surface-alt);
   transform: scale(0.98);
   box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06);
   border-color: #D0D0D0;
@@ -788,7 +788,7 @@ export default {
   overflow: hidden;
   flex-shrink: 0;
   margin-right: 16rpx;
-  background: #F5F5F5;
+  background: var(--cr-surface-alt);
 }
 .card-icon {
   width: 100%;
@@ -866,7 +866,7 @@ export default {
 .loading-dot {
   width: 28rpx; height: 28rpx;
   border-radius: 50%;
-  border: 3rpx solid #EBEBEB;
+  border: 3rpx solid var(--cr-border);
   border-top-color: #FF4D6A;
   animation: spin 0.8s linear infinite;
 }
@@ -875,13 +875,13 @@ export default {
   display: flex; align-items: center; justify-content: center;
   padding: 32rpx 0;
 }
-.no-more-txt { font-size: 22rpx; color: #CCC; letter-spacing: 2rpx; }
+.no-more-txt { font-size: 22rpx; color: var(--cr-border-strong); letter-spacing: 2rpx; }
 .empty-wrap {
   padding: 80rpx 0 60rpx;
   display: flex; flex-direction: column; align-items: center;
 }
 .empty-img { width: 180rpx; height: 180rpx; opacity: 0.55; }
-.empty-title { margin-top: 24rpx; font-size: 28rpx; color: #333; font-weight: 600; }
+.empty-title { margin-top: 24rpx; font-size: 28rpx; color: var(--cr-text); font-weight: 600; }
 .empty-sub { margin-top: 8rpx; font-size: 24rpx; color: #AAB0BB; }
 
 /* ── Toast ── */
@@ -902,7 +902,7 @@ export default {
 
 /* ── Skeleton ── */
 .sk-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx 24rpx;
   margin-bottom: 20rpx;
@@ -943,7 +943,7 @@ export default {
 
 /* ── 关注/发现 tab：参考图样式 ── */
 .rec-section {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx 24rpx 12rpx;
   margin-bottom: 20rpx;
@@ -965,11 +965,11 @@ export default {
 }
 .rec-more-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .rec-more-arrow {
   font-size: 28rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
   margin-left: 4rpx;
 }
 .rec-grid {
@@ -988,7 +988,7 @@ export default {
   border-radius: 16rpx;
   flex-shrink: 0;
   margin-right: 16rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .rec-info {
   flex: 1;
@@ -1006,7 +1006,7 @@ export default {
 
 /* 排行榜 */
 .rank-section {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx 24rpx 12rpx;
   margin-bottom: 20rpx;
@@ -1025,7 +1025,7 @@ export default {
   width: 48rpx;
   font-size: 32rpx;
   font-weight: 700;
-  color: #ccc;
+  color: var(--cr-border-strong);
   text-align: center;
   flex-shrink: 0;
   font-style: italic;
@@ -1037,7 +1037,7 @@ export default {
   border-radius: 16rpx;
   flex-shrink: 0;
   margin: 0 20rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .rank-info {
   flex: 1;
@@ -1056,7 +1056,7 @@ export default {
 .rank-author {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .rank-heat {
   display: flex;
@@ -1067,17 +1067,17 @@ export default {
 .heat-num {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   margin-right: 6rpx;
 }
 .heat-icon {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 推荐用户 */
 .user-section {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 28rpx 24rpx 12rpx;
   margin-bottom: 20rpx;
@@ -1096,7 +1096,7 @@ export default {
   border-radius: 50%;
   flex-shrink: 0;
   margin-right: 20rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .user-info {
   flex: 1;
@@ -1112,7 +1112,7 @@ export default {
 .user-bio {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1121,16 +1121,16 @@ export default {
   flex-shrink: 0;
   padding: 12rpx 36rpx;
   border-radius: 999rpx;
-  border: 2rpx solid #ddd;
+  border: 2rpx solid var(--cr-border);
 }
 .user-btn.followed {
-  border-color: #eee;
-  background: #f5f5f5;
+  border-color: var(--cr-border);
+  background: var(--cr-surface-alt);
 }
-.user-btn.followed .user-btn-text { color: #999; }
+.user-btn.followed .user-btn-text { color: var(--cr-text-muted); }
 .user-btn-text {
   font-size: 24rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 /* 圈子 tab：参考图样式 */
@@ -1174,7 +1174,7 @@ export default {
 .cat-card {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   padding: 24rpx 20rpx;
 }
@@ -1184,7 +1184,7 @@ export default {
   border-radius: 16rpx;
   flex-shrink: 0;
   margin-right: 18rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .cat-card-info {
   flex: 1;
@@ -1203,7 +1203,7 @@ export default {
 .cat-card-stat {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

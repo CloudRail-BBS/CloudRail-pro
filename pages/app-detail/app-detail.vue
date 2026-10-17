@@ -1,5 +1,5 @@
 <template>
-  <view class="detail-page">
+  <view class="detail-page" :class="themeClass">
     <!-- 顶部导航 -->
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-btn" @click="goBack">
@@ -715,7 +715,7 @@ export default {
 
 <style scoped>
 .detail-page {
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
   min-height: 100vh;
 }
 
@@ -728,7 +728,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 0 20rpx 20rpx;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .nav-btn {
@@ -759,14 +759,14 @@ export default {
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 应用头部信息 */
 .app-header {
   display: flex;
   padding: 30rpx;
-  background: #fff;
+  background: var(--cr-surface);
   gap: 30rpx;
 }
 
@@ -775,7 +775,7 @@ export default {
   height: 180rpx;
   border-radius: 40rpx;
   flex-shrink: 0;
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
 }
 
 .app-basic-info {
@@ -794,7 +794,7 @@ export default {
 .app-slogan {
   display: block;
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   margin-bottom: 12rpx;
 }
 
@@ -807,7 +807,7 @@ export default {
 .app-category,
 .app-size {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .app-rating {
@@ -830,7 +830,7 @@ export default {
 
 .rating-count {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 下载区域 */
@@ -839,7 +839,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx 30rpx;
-  background: #fff;
+  background: var(--cr-surface);
   margin-bottom: 20rpx;
 }
 
@@ -851,12 +851,12 @@ export default {
 
 .download-count {
   font-size: 24rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .app-version {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .download-btn {
@@ -880,7 +880,7 @@ export default {
 
 /* 预览图 */
 .screenshots-section {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 30rpx 0;
   margin-bottom: 20rpx;
 }
@@ -909,7 +909,7 @@ export default {
   height: 480rpx;
   border-radius: 20rpx;
   flex-shrink: 0;
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
 }
 
 /* 免责声明 */
@@ -928,7 +928,7 @@ export default {
 
 /* 应用介绍 */
 .description-section {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 30rpx;
   margin-bottom: 20rpx;
 }
@@ -944,7 +944,7 @@ export default {
 
 .description-text {
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.7;
   white-space: pre-line;
 }
@@ -958,7 +958,7 @@ export default {
 
 /* 应用信息 */
 .info-section {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 30rpx 0;
   margin-bottom: 20rpx;
 }
@@ -981,13 +981,13 @@ export default {
 
 .info-label {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   flex-shrink: 0;
 }
 
 .info-value {
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
   max-width: 440rpx;
   text-align: right;
   word-break: break-all;
@@ -995,7 +995,7 @@ export default {
 
 /* 评价 */
 .reviews-section {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 30rpx 0;
   margin-bottom: 20rpx;
 }
@@ -1009,7 +1009,7 @@ export default {
 
 .reviews-count {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .rating-overview {
@@ -1040,7 +1040,7 @@ export default {
 
 .big-count {
   font-size: 20rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .rating-bars {
@@ -1059,14 +1059,14 @@ export default {
 
 .bar-label {
   font-size: 20rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   width: 44rpx;
 }
 
 .bar-track {
   flex: 1;
   height: 8rpx;
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
   border-radius: 4rpx;
   overflow: hidden;
 }
@@ -1092,7 +1092,7 @@ export default {
 
 .write-label {
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
   margin-right: 8rpx;
 }
 
@@ -1108,7 +1108,7 @@ export default {
 
 .write-score {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-left: 8rpx;
 }
 
@@ -1123,7 +1123,7 @@ export default {
   min-height: 72rpx;
   max-height: 200rpx;
   padding: 16rpx;
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
   border-radius: 12rpx;
   font-size: 26rpx;
   line-height: 1.5;
@@ -1138,7 +1138,7 @@ export default {
   background: #e8e8e8;
   border-radius: 36rpx;
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .send-btn.active {
@@ -1167,7 +1167,7 @@ export default {
   height: 68rpx;
   border-radius: 50%;
   flex-shrink: 0;
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
 }
 
 .review-body {
@@ -1202,12 +1202,12 @@ export default {
 
 .review-date {
   font-size: 20rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .review-content {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.6;
 }
 
@@ -1220,12 +1220,12 @@ export default {
 
 .empty-reviews text {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 类似应用 */
 .similar-section {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 30rpx 0 10rpx;
 }
 
@@ -1250,7 +1250,7 @@ export default {
   border-radius: 24rpx;
   margin-right: 20rpx;
   flex-shrink: 0;
-  background: #f5f5f7;
+  background: var(--cr-surface-alt);
 }
 
 .similar-info {
@@ -1269,7 +1269,7 @@ export default {
 .similar-category {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-bottom: 8rpx;
 }
 
@@ -1287,12 +1287,12 @@ export default {
 
 .similar-score {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .similar-arrow {
   font-size: 40rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
   margin-left: 16rpx;
 }
 
@@ -1307,7 +1307,7 @@ export default {
   gap: 20rpx;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
+  background: var(--cr-surface);
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
@@ -1328,7 +1328,7 @@ export default {
 
 .reward-text {
   font-size: 20rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .bottom-download {
@@ -1373,7 +1373,7 @@ export default {
 
 .reward-box {
   width: 580rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 28rpx;
   padding: 44rpx 36rpx 32rpx;
   display: flex;
@@ -1397,12 +1397,12 @@ export default {
 .reward-title {
   font-size: 34rpx;
   font-weight: 900;
-  color: #111827;
+  color: var(--cr-text);
 }
 
 .reward-author {
   font-size: 26rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
 }
 
 .reward-amount-grid {
@@ -1431,7 +1431,7 @@ export default {
 
 .reward-amount-chip text {
   font-size: 28rpx;
-  color: #374151;
+  color: var(--cr-text);
   font-weight: 700;
 }
 
@@ -1440,7 +1440,7 @@ export default {
 }
 
 .reward-amount-chip.custom-chip {
-  border: 3rpx dashed #d1d5db;
+  border: 3rpx dashed var(--cr-border);
 }
 
 .reward-amount-chip.custom-chip.active {
@@ -1455,17 +1455,17 @@ export default {
   text-align: center;
   font-size: 28rpx;
   font-weight: 700;
-  color: #374151;
+  color: var(--cr-text);
 }
 
 .reward-chip-ph {
-  color: #9ca3af;
+  color: var(--cr-text-muted);
   font-weight: 400;
 }
 
 .reward-balance {
   font-size: 24rpx;
-  color: #9ca3af;
+  color: var(--cr-text-muted);
 }
 
 .reward-btns {
@@ -1487,7 +1487,7 @@ export default {
 
 .reward-cancel text {
   font-size: 28rpx;
-  color: #6b7280;
+  color: var(--cr-text-muted);
   font-weight: 700;
 }
 

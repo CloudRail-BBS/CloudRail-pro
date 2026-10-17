@@ -1,5 +1,5 @@
 ﻿<template>
-  <view class="cancellation-page">
+  <view class="cancellation-page" :class="themeClass">
     <!-- 导航栏 -->
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
@@ -237,7 +237,7 @@ export default {
 <style scoped>
 .cancellation-page {
   min-height: 100vh;
-  background: #f6f7f9;
+  background: var(--cr-canvas);
 }
 
 .nav-bar {
@@ -249,9 +249,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
+  background: var(--cr-surface);
   z-index: 100;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--cr-border);
 }
 
 .nav-left, .nav-right {
@@ -270,7 +270,7 @@ export default {
 .nav-title {
   font-size: 17px;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .content {
@@ -279,7 +279,7 @@ export default {
 
 /* 状态卡片 */
 .status-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 16px;
@@ -291,13 +291,13 @@ export default {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--cr-border);
 }
 
 .status-title {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .status-badge {
@@ -333,13 +333,13 @@ export default {
 
 .info-label {
   width: 80px;
-  color: #999;
+  color: var(--cr-text-muted);
   flex-shrink: 0;
 }
 
 .info-value {
   flex: 1;
-  color: #333;
+  color: var(--cr-text);
   word-break: break-all;
 }
 
@@ -352,8 +352,8 @@ export default {
   height: 44px;
   line-height: 44px;
   text-align: center;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--cr-surface-alt);
+  color: var(--cr-text-muted);
   border-radius: 22px;
   font-size: 15px;
 }
@@ -404,7 +404,7 @@ export default {
 
 /* 表单 */
 .form-group {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
@@ -413,7 +413,7 @@ export default {
 .form-label {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   display: block;
   margin-bottom: 12px;
 }
@@ -445,7 +445,7 @@ export default {
 .radio-box {
   width: 20px;
   height: 20px;
-  border: 2px solid #ddd;
+  border: 2px solid var(--cr-border);
   border-radius: 50%;
   margin-right: 10px;
   display: flex;
@@ -467,23 +467,23 @@ export default {
 
 .reason-text {
   font-size: 14px;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .form-textarea {
   width: 100%;
   min-height: 100px;
   padding: 12px;
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border-radius: 8px;
   font-size: 14px;
-  color: #333;
+  color: var(--cr-text);
   box-sizing: border-box;
 }
 
 .char-count {
   font-size: 12px;
-  color: #999;
+  color: var(--cr-text-muted);
   text-align: right;
   display: block;
   margin-top: 6px;
@@ -493,10 +493,10 @@ export default {
   width: 100%;
   height: 44px;
   padding: 0 12px;
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border-radius: 8px;
   font-size: 14px;
-  color: #333;
+  color: var(--cr-text);
   box-sizing: border-box;
 }
 
@@ -511,7 +511,7 @@ export default {
 .checkbox {
   width: 20px;
   height: 20px;
-  border: 2px solid #ddd;
+  border: 2px solid var(--cr-border);
   border-radius: 4px;
   margin-right: 10px;
   display: flex;
@@ -533,7 +533,7 @@ export default {
 
 .confirm-text {
   font-size: 13px;
-  color: #666;
+  color: var(--cr-text-muted);
   line-height: 1.5;
   flex: 1;
 }

@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <!-- 顶部导航 -->
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-bar">
@@ -636,7 +636,7 @@ export default {
 .search-input-wrap {
   display: flex;
   align-items: center;
-  background: #FFFFFF;
+  background: var(--cr-surface);
   border-radius: 10rpx;
   padding: 0 20rpx;
   height: 64rpx;
@@ -652,7 +652,7 @@ export default {
 }
 .search-clear {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   padding: 0 8rpx;
 }
 
@@ -664,7 +664,7 @@ export default {
 
 /* 分组 */
 .section {
-  background: #FFFFFF;
+  background: var(--cr-surface);
   margin: 20rpx 24rpx;
   border-radius: 16rpx;
   overflow: hidden;
@@ -677,12 +677,12 @@ export default {
 }
 .section-title {
   font-size: 26rpx;
-  color: #888;
+  color: var(--cr-text-muted);
   font-weight: 500;
 }
 .section-count {
   font-size: 24rpx;
-  color: #BBB;
+  color: var(--cr-text-muted);
 }
 
 /* 成员列表 */
@@ -693,7 +693,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 .member-item:last-child {
   border-bottom: none;
@@ -749,7 +749,7 @@ export default {
 .member-sub {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-top: 4rpx;
 }
 
@@ -802,7 +802,7 @@ export default {
 }
 .divider-text {
   font-size: 22rpx;
-  color: #BBB;
+  color: var(--cr-text-muted);
   padding: 0 20rpx;
   white-space: nowrap;
 }
@@ -814,7 +814,7 @@ export default {
 }
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 加载更多 */
@@ -824,7 +824,7 @@ export default {
 }
 .load-more-text, .no-more-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .bottom-gap {
   height: 140rpx;
@@ -836,8 +836,8 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #FFFFFF;
-  border-top: 1rpx solid #E0E0E0;
+  background: var(--cr-surface);
+  border-top: 1rpx solid var(--cr-border);
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   flex-shrink: 0;
@@ -868,7 +868,7 @@ export default {
 }
 .modal-text {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.6;
 }
 .invite-search {
@@ -877,7 +877,7 @@ export default {
 .invite-search-input {
   width: 100%;
   height: 72rpx;
-  background: #F5F5F5;
+  background: var(--cr-surface-alt);
   border-radius: 10rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
@@ -891,7 +891,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 .modal-avatar {
   width: 72rpx;
@@ -911,13 +911,13 @@ export default {
 .modal-sub {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .check-dot {
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
-  border: 2rpx solid #DDD;
+  border: 2rpx solid var(--cr-border);
 }
 .check-dot.active {
   background: #07C160;
@@ -927,7 +927,7 @@ export default {
   text-align: center;
   padding: 60rpx;
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* 成员管理操作菜单 */
@@ -937,12 +937,12 @@ export default {
 .action-sheet-item {
   padding: 28rpx 32rpx;
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   text-align: center;
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 .action-sheet-item:active {
-  background: #F5F5F5;
+  background: var(--cr-surface-alt);
 }
 .action-sheet-item.danger {
   color: #FF2442;
@@ -955,12 +955,12 @@ export default {
 .mute-option {
   padding: 28rpx 32rpx;
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   text-align: center;
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 .mute-option:active {
-  background: #F5F5F5;
+  background: var(--cr-surface-alt);
 }
 .mute-option:last-child {
   border-bottom: none;

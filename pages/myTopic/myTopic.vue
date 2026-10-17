@@ -1,5 +1,5 @@
 <template>
-  <view class="mall-page">
+  <view class="mall-page" :class="themeClass">
     <view class="custom-nav" :style="{ paddingTop: statusBarHeight + 'px', height: navBarHeight + 'px' }">
       <view class="nav-content" :style="{ height: menuButtonHeight + 'px' }">
         <view class="nav-back" @click="goBack">
@@ -245,13 +245,13 @@ export default {
 </script>
 
 <style scoped>
-.mall-page { min-height: 100vh; background-color: #F6F7F9; padding-bottom: 40rpx; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif; }
+.mall-page { min-height: 100vh; background-color: var(--cr-canvas); padding-bottom: 40rpx; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif; }
 
 .custom-nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 999; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); }
 .nav-content { display: flex; align-items: center; justify-content: space-between; padding: 0 30rpx; }
 .nav-back { width: 60rpx; height: 100%; display: flex; align-items: center; }
 .back-arrow { width: 38rpx; height: 38rpx; }
-.nav-title { font-size: 32rpx; font-weight: 600; color: #333; }
+.nav-title { font-size: 32rpx; font-weight: 600; color: var(--cr-text); }
 .nav-placeholder { width: 60rpx; }
 
 .header-section { padding: 0 30rpx; margin-bottom: 30rpx; }
@@ -270,15 +270,15 @@ export default {
 .coin-img { width: 100rpx; height: 100rpx; opacity: 0.8; }
 
 .tab-container { display: flex; justify-content: center; margin-bottom: 30rpx; }
-.tab-item { margin: 0 30rpx; font-size: 30rpx; color: #999; position: relative; padding-bottom: 12rpx; transition: all 0.3s; }
-.tab-item.active { color: #333; font-weight: bold; font-size: 32rpx; }
+.tab-item { margin: 0 30rpx; font-size: 30rpx; color: var(--cr-text-muted); position: relative; padding-bottom: 12rpx; transition: all 0.3s; }
+.tab-item.active { color: var(--cr-text); font-weight: bold; font-size: 32rpx; }
 .tab-line { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) scaleX(0); width: 40rpx; height: 6rpx; background: #ff2442; border-radius: 4rpx; transition: transform 0.3s; }
 .tab-item.active .tab-line { transform: translateX(-50%) scaleX(1); }
 
 .goods-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24rpx; padding: 0 30rpx; }
 
 .goods-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 24rpx;
   display: flex;
@@ -290,18 +290,18 @@ export default {
 .goods-card:active { transform: scale(0.98); }
 
 .preview-wrap { position: relative; width: 160rpx; height: 160rpx; margin-bottom: 20rpx; display: flex; align-items: center; justify-content: center; }
-.user-base-avatar { width: 130rpx; height: 130rpx; border-radius: 50%; border: 2rpx solid #f2f2f2; z-index: 1; }
+.user-base-avatar { width: 130rpx; height: 130rpx; border-radius: 50%; border: 2rpx solid var(--cr-border); z-index: 1; }
 .frame-overlay { position: absolute; top: -14%; left: -14%; width: 128%; height: 128%; z-index: 2; pointer-events: none; }
 
-.owned-tag { 
-  position: absolute; bottom: 0; right: -10rpx; 
-  background: rgba(0,0,0,0.6); color: #fff; 
+.owned-tag {
+  position: absolute; bottom: 0; right: -10rpx;
+  background: rgba(0,0,0,0.6); color: #fff;
   font-size: 20rpx; padding: 4rpx 10rpx; border-radius: 10rpx;
   backdrop-filter: blur(2px); z-index: 3;
 }
-.no-frame-mask { position: absolute; font-size: 24rpx; color: #999; background: rgba(255,255,255,0.8); padding: 4rpx 10rpx; border-radius: 8rpx; z-index: 3; }
+.no-frame-mask { position: absolute; font-size: 24rpx; color: var(--cr-text-muted); background: rgba(255,255,255,0.8); padding: 4rpx 10rpx; border-radius: 8rpx; z-index: 3; }
 
-.goods-name { font-size: 28rpx; color: #333; font-weight: 600; margin-bottom: 16rpx; text-align: center; }
+.goods-name { font-size: 28rpx; color: var(--cr-text); font-weight: 600; margin-bottom: 16rpx; text-align: center; }
 
 .action-area { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12rpx; }
 
@@ -311,7 +311,7 @@ export default {
 
 .action-btn {
   width: 100%; height: 60rpx; line-height: 60rpx;
-  font-size: 26rpx; font-weight: 600; 
+  font-size: 26rpx; font-weight: 600;
   border-radius: 30rpx; margin: 0; padding: 0;
 }
 .action-btn::after { border: none; }
@@ -322,16 +322,16 @@ export default {
   box-shadow: 0 4rpx 10rpx rgba(255, 36, 66, 0.2);
 }
 .btn-owned {
-  background: #f5f5f5; color: #999; font-weight: 500;
+  background: var(--cr-surface-alt); color: #999; font-weight: 500;
 }
 .btn-use {
-  background: #fff; color: #333; border: 2rpx solid #333;
+  background: var(--cr-surface); color: #333; border: 2rpx solid #333;
 }
 .btn-wearing {
   background: #333; color: #f0c386; opacity: 1;
 }
 
-.empty-box { grid-column: span 2; padding: 100rpx 0; text-align: center; color: #999; font-size: 26rpx; }
+.empty-box { grid-column: span 2; padding: 100rpx 0; text-align: center; color: var(--cr-text-muted); font-size: 26rpx; }
 
 .custom-modal-mask {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -354,8 +354,8 @@ export default {
 
 .modal-content { padding: 40rpx 40rpx 40rpx; display: flex; flex-direction: column; align-items: center; }
 .m-title { font-size: 34rpx; font-weight: bold; color: #000; margin-bottom: 20rpx; }
-.m-desc { font-size: 28rpx; color: #333; text-align: center; line-height: 1.5; }
-.m-desc-sub { font-size: 28rpx; color: #666; text-align: center; margin-bottom: 30rpx; }
+.m-desc { font-size: 28rpx; color: var(--cr-text); text-align: center; line-height: 1.5; }
+.m-desc-sub { font-size: 28rpx; color: var(--cr-text-muted); text-align: center; margin-bottom: 30rpx; }
 .highlight { color: #ff9800; font-weight: bold; margin: 0 8rpx; font-size: 32rpx; }
 
 .m-preview { position: relative; width: 120rpx; height: 120rpx; margin-top: 10rpx; display: flex; align-items: center; justify-content: center; }
@@ -368,6 +368,6 @@ export default {
   font-size: 32rpx;
 }
 .m-btn:active { background: rgba(0,0,0,0.05); }
-.m-btn.cancel { color: #666; border-right: 1rpx solid rgba(0,0,0,0.1); }
+.m-btn.cancel { color: var(--cr-text-muted); border-right: 1rpx solid rgba(0,0,0,0.1); }
 .m-btn.confirm { color: #007aff; font-weight: 600; }
 </style>

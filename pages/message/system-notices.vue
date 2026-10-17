@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
         <view class="back-btn"><view class="back-arrow"></view></view>
@@ -214,7 +214,7 @@ export default {
 }
 .nav-left { width: 80rpx; display: flex; align-items: center; }
 .nav-right { width: 80rpx; display: flex; align-items: center; justify-content: flex-end; }
-.nav-title { font-size: 34rpx; font-weight: 800; color: #111827; }
+.nav-title { font-size: 34rpx; font-weight: 800; color: var(--cr-text); }
 .back-btn { width: 64rpx; height: 64rpx; border-radius: 50%; background: rgba(17,24,39,0.06); display: flex; align-items: center; justify-content: center; }
 .back-arrow { width: 18rpx; height: 18rpx; border-left: 4rpx solid #111827; border-bottom: 4rpx solid #111827; transform: rotate(45deg); margin-left: 6rpx; }
 .clear-btn { font-size: 26rpx; color: #ff2442; font-weight: 600; }
@@ -223,19 +223,19 @@ export default {
 
 .empty-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 160rpx 0; gap: 20rpx; }
 .empty-icon { font-size: 80rpx; }
-.empty-text { font-size: 28rpx; color: #9ca3af; }
-.spinner { width: 60rpx; height: 60rpx; border-radius: 50%; border: 6rpx solid #e5e7eb; border-top-color: #111827; animation: spin 0.8s linear infinite; }
+.empty-text { font-size: 28rpx; color: var(--cr-text-muted); }
+.spinner { width: 60rpx; height: 60rpx; border-radius: 50%; border: 6rpx solid var(--cr-border); border-top-color: #111827; animation: spin 0.8s linear infinite; }
 
 .list { padding: 20rpx 28rpx 0; display: flex; flex-direction: column; gap: 16rpx; }
 
-.notice-card { background: #fff; border-radius: 20rpx; padding: 28rpx; }
+.notice-card { background: var(--cr-surface); border-radius: 20rpx; padding: 28rpx; }
 .notice-header { display: flex; align-items: center; gap: 18rpx; margin-bottom: 14rpx; }
 .notice-icon-wrap { width: 72rpx; height: 72rpx; border-radius: 20rpx; background: linear-gradient(135deg, #ff2442, #ef4444); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .notice-icon { font-size: 34rpx; }
 .notice-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
-.notice-title { font-size: 28rpx; font-weight: 800; color: #111827; }
-.notice-time { font-size: 22rpx; color: #9ca3af; }
-.notice-preview { font-size: 26rpx; color: #6b7280; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.notice-title { font-size: 28rpx; font-weight: 800; color: var(--cr-text); }
+.notice-time { font-size: 22rpx; color: var(--cr-text-muted); }
+.notice-preview { font-size: 26rpx; color: var(--cr-text-muted); line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* 删除按钮 */
 .notice-del-btn {
@@ -261,18 +261,18 @@ export default {
 .del-icon-x::before { transform: translate(-50%, -50%) rotate(45deg); }
 .del-icon-x::after  { transform: translate(-50%, -50%) rotate(-45deg); }
 
-.no-more { text-align: center; padding: 24rpx; font-size: 22rpx; color: #9ca3af; }
+.no-more { text-align: center; padding: 24rpx; font-size: 22rpx; color: var(--cr-text-muted); }
 .loading-more { display: flex; justify-content: center; padding: 20rpx; }
-.spinner-sm { width: 40rpx; height: 40rpx; border-radius: 50%; border: 4rpx solid #e5e7eb; border-top-color: #6b7280; animation: spin 0.8s linear infinite; }
+.spinner-sm { width: 40rpx; height: 40rpx; border-radius: 50%; border: 4rpx solid var(--cr-border); border-top-color: #6b7280; animation: spin 0.8s linear infinite; }
 
 /* 详情弹窗 */
 .detail-mask { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; }
-.detail-box { width: 100%; background: #fff; border-radius: 32rpx 32rpx 0 0; padding: 36rpx 36rpx 0; max-height: 70vh; display: flex; flex-direction: column; }
+.detail-box { width: 100%; background: var(--cr-surface); border-radius: 32rpx 32rpx 0 0; padding: 36rpx 36rpx 0; max-height: 70vh; display: flex; flex-direction: column; }
 .detail-header { margin-bottom: 20rpx; }
-.detail-title { font-size: 32rpx; font-weight: 900; color: #111827; display: block; margin-bottom: 8rpx; }
-.detail-time { font-size: 22rpx; color: #9ca3af; }
+.detail-title { font-size: 32rpx; font-weight: 900; color: var(--cr-text); display: block; margin-bottom: 8rpx; }
+.detail-time { font-size: 22rpx; color: var(--cr-text-muted); }
 .detail-scroll { flex: 1; max-height: 50vh; }
-.detail-content { font-size: 28rpx; color: #374151; line-height: 1.9; white-space: pre-wrap; display: block; padding-bottom: 20rpx; }
+.detail-content { font-size: 28rpx; color: var(--cr-text); line-height: 1.9; white-space: pre-wrap; display: block; padding-bottom: 20rpx; }
 
 .detail-footer {
   display: flex; align-items: center;
@@ -283,7 +283,7 @@ export default {
 .detail-del-text { font-size: 28rpx; font-weight: 700; color: #ff2442; }
 .detail-divider { width: 1rpx; height: 40rpx; background: #f3f4f6; }
 .detail-close { flex: 1; padding: 28rpx 0; display: flex; align-items: center; justify-content: center; }
-.detail-close-text { font-size: 28rpx; font-weight: 700; color: #6b7280; }
+.detail-close-text { font-size: 28rpx; font-weight: 700; color: var(--cr-text-muted); }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <view class="topic-page">
+  <view class="topic-page" :class="themeClass">
     <!-- 自定义导航栏 -->
     <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-back" @click="goBack">
@@ -196,13 +196,13 @@ export default {
 <style scoped>
 .topic-page {
   min-height: 100vh;
-  background: #F6F7F9;
+  background: var(--cr-canvas);
 }
 .custom-nav-bar {
   position: fixed; top: 0; left: 0; width: 100%;
   z-index: 100;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: var(--cr-surface);
+  border-bottom: 1rpx solid var(--cr-border);
   display: flex;
   align-items: center;
   height: 88rpx;
@@ -212,7 +212,7 @@ export default {
   display: flex; align-items: center; justify-content: center;
 }
 .nav-back-icon {
-  font-size: 56rpx; color: #222; line-height: 1;
+  font-size: 56rpx; color: var(--cr-text); line-height: 1;
   margin-left: 10rpx;
 }
 .nav-title-wrap {
@@ -227,8 +227,8 @@ export default {
 
 .tab-bar {
   display: flex;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: var(--cr-surface);
+  border-bottom: 1rpx solid var(--cr-border);
   position: sticky;
   top: 88rpx;
   z-index: 90;
@@ -243,7 +243,7 @@ export default {
 }
 .tab-text {
   font-size: 28rpx;
-  color: #888;
+  color: var(--cr-text-muted);
 }
 .tab-item.active .tab-text {
   color: #2b6cb0;
@@ -268,7 +268,7 @@ export default {
 
 /* 帖子卡片 */
 .post-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   padding: 28rpx 24rpx;
   margin-bottom: 16rpx;
@@ -281,13 +281,13 @@ export default {
 .post-avatar {
   width: 56rpx; height: 56rpx;
   border-radius: 50%;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
   margin-right: 16rpx;
   flex-shrink: 0;
 }
 .post-author-name {
   font-size: 26rpx;
-  color: #222;
+  color: var(--cr-text);
   font-weight: 600;
   flex: 1;
   overflow: hidden;
@@ -296,7 +296,7 @@ export default {
 }
 .post-time {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .post-title {
   display: block;
@@ -336,13 +336,13 @@ export default {
 }
 .post-stat {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .empty-data {
   text-align: center;
   padding: 100rpx 40rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 26rpx;
 }
 </style>

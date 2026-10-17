@@ -1,5 +1,5 @@
 <template>
-  <view class="comments-page">
+  <view class="comments-page" :class="themeClass">
     <view class="status-bar-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
     <scroll-view class="main-scroll" scroll-y>
 
@@ -314,35 +314,35 @@ export default {
 
 /* 搜索 */
 .search-bar { display: flex; padding: 24rpx; gap: 16rpx; background: transparent; }
-.search-input { 
-  flex: 1; height: 88rpx; background: #fff; border-radius: 44rpx; padding: 0 32rpx; font-size: 28rpx; 
+.search-input {
+  flex: 1; height: 88rpx; background: var(--cr-surface); border-radius: 44rpx; padding: 0 32rpx; font-size: 28rpx;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06); border: 2rpx solid rgba(255,255,255,0.6);
 }
-.search-action { 
-  width: 130rpx; height: 88rpx; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 44rpx; 
+.search-action {
+  width: 130rpx; height: 88rpx; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 44rpx;
   display: flex; align-items: center; justify-content: center; color: #fff; font-size: 28rpx; font-weight: 600;
   box-shadow: 0 6rpx 24rpx rgba(102,126,234,0.4);
 }
 .search-action:active { transform: scale(0.96); }
 
 /* 筛选 */
-.filter-bar { background: #fff; padding: 20rpx 24rpx; margin-bottom: 20rpx; border-radius: 24rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+.filter-bar { background: var(--cr-surface); padding: 20rpx 24rpx; margin-bottom: 20rpx; border-radius: 24rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
 .filter-scroll { white-space: nowrap; }
 .filter-items { display: inline-flex; gap: 20rpx; }
-.filter-item { 
-  padding: 16rpx 32rpx; background: #f8f9fa; border-radius: 34rpx; font-size: 26rpx; color: #666; 
+.filter-item {
+  padding: 16rpx 32rpx; background: var(--cr-surface-alt); border-radius: 34rpx; font-size: 26rpx; color: var(--cr-text-muted);
   font-weight: 600; white-space: nowrap; transition: all 0.25s;
 }
 .filter-item:active { transform: scale(0.96); }
-.filter-item.active { 
-  background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; 
+.filter-item.active {
+  background: linear-gradient(135deg, #667eea, #764ba2); color: #fff;
   box-shadow: 0 6rpx 24rpx rgba(102,126,234,0.4);
 }
 
 /* 评论卡片 */
 .comment-list { padding: 0 24rpx; }
 .comment-card {
-  background: #fff; border-radius: 28rpx;
+  background: var(--cr-surface); border-radius: 28rpx;
   margin-bottom: 20rpx; overflow: hidden;
   box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.06);
   transition: all 0.3s ease;
@@ -350,26 +350,26 @@ export default {
 .comment-card:active { transform: scale(0.99); box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.08); }
 .cc-row { display: flex; align-items: center; padding: 24rpx; gap: 20rpx; }
 .cc-left { flex: 1; display: flex; gap: 20rpx; min-width: 0; }
-.cc-avatar { 
-  width: 96rpx; height: 96rpx; border-radius: 50%; flex-shrink: 0; 
+.cc-avatar {
+  width: 96rpx; height: 96rpx; border-radius: 50%; flex-shrink: 0;
   border: 4rpx solid #f0edff; box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
 }
 .cc-body { flex: 1; display: flex; flex-direction: column; gap: 10rpx; min-width: 0; }
 .cc-header { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
-.cc-author { font-size: 29rpx; font-weight: 600; color: #222; }
+.cc-author { font-size: 29rpx; font-weight: 600; color: var(--cr-text); }
 .cc-status { padding: 6rpx 16rpx; border-radius: 12rpx; font-size: 21rpx; flex-shrink: 0; font-weight: 600; white-space: nowrap; }
 .cc-status.active { background: linear-gradient(135deg, #eef9f0 0%, #d4edda 100%); color: #27ae60; }
 .cc-status.pending { background: linear-gradient(135deg, #fef5e7 0%, #faebcc 100%); color: #e67e22; }
 .cc-status.deleted { background: linear-gradient(135deg, #fce8ec 0%, #f8d7da 100%); color: #e74c3c; }
 .cc-text { font-size: 27rpx; color: #444; line-height: 1.6; word-break: break-all; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.cc-meta { display: flex; flex-wrap: wrap; gap: 14rpx; font-size: 23rpx; color: #888; }
-.cc-post { color: #666; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cc-post-id { font-size: 22rpx; color: #aaa; }
+.cc-meta { display: flex; flex-wrap: wrap; gap: 14rpx; font-size: 23rpx; color: var(--cr-text-muted); }
+.cc-post { color: var(--cr-text-muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-post-id { font-size: 22rpx; color: var(--cr-text-muted); }
 
 /* 操作按钮 - 右侧 */
 .cc-actions { display: flex; flex-direction: column; gap: 12rpx; flex-shrink: 0; justify-content: center; align-items: center; }
-.ca-btn { 
-  padding: 12rpx 28rpx; border-radius: 24rpx; font-size: 24rpx; text-align: center; 
+.ca-btn {
+  padding: 12rpx 28rpx; border-radius: 24rpx; font-size: 24rpx; text-align: center;
   white-space: nowrap; font-weight: 600; transition: all 0.15s; min-width: 80rpx;
 }
 .ca-btn:active { transform: scale(0.92); }
@@ -378,15 +378,15 @@ export default {
 .ca-btn.red { background: linear-gradient(135deg, #fce8ec 0%, #f8d7da 100%); color: #e74c3c; }
 
 .load-more { padding: 28rpx 24rpx; }
-.load-btn { 
-  background: #fff; padding: 26rpx; border-radius: 44rpx; text-align: center; 
-  font-size: 28rpx; color: #888; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
+.load-btn {
+  background: var(--cr-surface); padding: 26rpx; border-radius: 44rpx; text-align: center;
+  font-size: 28rpx; color: var(--cr-text-muted); box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
 }
 .load-btn:active { transform: scale(0.98); }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 160rpx 0; }
 .empty-icon-img { width: 96rpx; height: 96rpx; display: block; margin: 0 auto 20rpx; opacity: 0.6; }
-.empty-text { font-size: 28rpx; color: #999; margin-top: 20rpx; }
+.empty-text { font-size: 28rpx; color: var(--cr-text-muted); margin-top: 20rpx; }
 .footer-space { height: 60rpx; }
 
 .hud-mask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(10rpx); }

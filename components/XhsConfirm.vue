@@ -1,5 +1,5 @@
 <template>
-  <view class="confirm-overlay" v-if="visible" @touchmove.stop.prevent @click="handleOverlayClick">
+  <view class="confirm-overlay" :class="themeClass" v-if="visible" @touchmove.stop.prevent @click="handleOverlayClick">
     <view class="confirm-box" @click.stop>
       <view class="confirm-body">
         <text v-if="title" class="confirm-title">{{ title }}</text>
@@ -52,7 +52,7 @@ export default {
 
 .confirm-box {
   width: 560rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 28rpx;
   overflow: hidden;
   box-shadow: 0 24rpx 80rpx rgba(0, 0, 0, 0.18);
@@ -77,20 +77,20 @@ export default {
 
 .confirm-msg {
   font-size: 28rpx;
-  color: #888;
+  color: var(--cr-text-muted);
   line-height: 1.65;
   text-align: center;
 }
 
 .confirm-msg.no-title {
   font-size: 32rpx;
-  color: #333;
+  color: var(--cr-text);
   padding-top: 8rpx;
 }
 
 .confirm-divider {
   height: 1rpx;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
 }
 
 .confirm-actions {
@@ -111,7 +111,7 @@ export default {
 
 .confirm-btn-divider {
   width: 1rpx;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
   align-self: stretch;
 }
 
@@ -120,7 +120,7 @@ export default {
 }
 
 .cancel-text {
-  color: #999;
+  color: var(--cr-text-muted);
   font-weight: 400;
 }
 

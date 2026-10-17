@@ -117,12 +117,12 @@ onBeforeUnmount(() => optics?.dispose())
   <view
     ref="glassRoot"
     class="fg-glass"
-    :class="{
+    :class="[themeClass, {
       'fg-glass--pressed': pressed,
       'fg-glass--bouncing': bouncing,
       'fg-glass--disabled': interactive && disabled,
       'fg-glass--still': reducedMotion,
-    }"
+    }]"
     :style="frameStyle"
   >
     <!-- 单独的透明折射层：不支持 SVG 背景滤镜时不会破坏基础模糊。 -->

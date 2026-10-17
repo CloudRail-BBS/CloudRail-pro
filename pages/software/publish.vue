@@ -1,5 +1,5 @@
 <template>
-  <view class="page-container">
+  <view class="page-container" :class="themeClass">
     <view class="nav-bar-fixed">
       <view :style="{ height: statusBarHeight + 'px' }"></view>
       <view class="nav-content">
@@ -633,7 +633,7 @@ export default {
 <style scoped>
 .page-container {
   min-height: 100vh;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
 }
 
 .nav-bar-fixed {
@@ -641,9 +641,9 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   z-index: 99;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid var(--cr-border);
 }
 
 .nav-content {
@@ -679,7 +679,7 @@ export default {
   margin-bottom: 20rpx;
   padding: 24rpx;
   border-radius: 18rpx;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .type-tabs {
@@ -691,8 +691,8 @@ export default {
   padding: 12rpx 32rpx;
   border-radius: 30rpx;
   font-size: 28rpx;
-  color: #666;
-  background: #f5f5f5;
+  color: var(--cr-text-muted);
+  background: var(--cr-surface-alt);
   transition: all 0.3s;
 }
 
@@ -705,7 +705,7 @@ export default {
   margin-bottom: 18rpx;
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .logo-upload-box {
@@ -713,7 +713,7 @@ export default {
   height: 180rpx;
   border-radius: 28rpx;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 
 .logo-preview {
@@ -727,7 +727,7 @@ export default {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .logo-placeholder {
@@ -738,7 +738,7 @@ export default {
 .placeholder-strip {
   height: 160rpx;
   border-radius: 20rpx;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
 }
 
 .plus-symbol {
@@ -756,7 +756,7 @@ export default {
   display: block;
   margin-top: 16rpx;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .images-scroll {
@@ -772,7 +772,7 @@ export default {
   margin-right: 16rpx;
   border-radius: 22rpx;
   overflow: hidden;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
 }
 
 .uploaded-img {
@@ -832,12 +832,12 @@ export default {
   right: 0;
   bottom: 0;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .divider {
   height: 1rpx;
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
 }
 
 .meta-row {
@@ -855,7 +855,7 @@ export default {
   flex-shrink: 0;
   width: 140rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .cat-tabs {
@@ -868,10 +868,10 @@ export default {
 .cat-tab {
   flex: 0 0 auto;
   padding: 12rpx 24rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 30rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   transition: all 0.3s;
 }
 
@@ -891,7 +891,7 @@ export default {
   align-items: center;
   justify-content: flex-end;
   font-size: 28rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .cat-pick-val {
@@ -904,7 +904,7 @@ export default {
 .arrow-right {
   margin-left: 10rpx;
   font-size: 30rpx;
-  color: #bbb;
+  color: var(--cr-text-muted);
 }
 
 .link-input {
@@ -917,7 +917,7 @@ export default {
 }
 
 .ph-style {
-  color: #bbb;
+  color: var(--cr-text-muted);
 }
 
 .bottom-spacer {
@@ -931,7 +931,7 @@ export default {
   bottom: 0;
   padding: 18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.96);
-  border-top: 1rpx solid #eee;
+  border-top: 1rpx solid var(--cr-border);
 }
 
 .pub-btn {
@@ -970,7 +970,7 @@ export default {
   right: 20rpx;
   bottom: 20rpx;
   border-radius: 28rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   overflow: hidden;
   transform: translateY(110%);
   transition: transform 0.25s ease;
@@ -981,19 +981,19 @@ export default {
 }
 
 .cat-sheet-title-bar {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 26rpx 32rpx 18rpx;
   text-align: center;
 }
 
 .cat-sheet-title {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .cat-sheet-scroll {
   max-height: 58vh;
-  background: #fff;
+  background: var(--cr-surface);
 }
 
 .cat-sheet-item {
@@ -1036,15 +1036,15 @@ export default {
 
 .cat-sheet-gap {
   height: 14rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 
 .cat-sheet-cancel {
-  background: #fff;
+  background: var(--cr-surface);
   text-align: center;
   padding: 28rpx 0 calc(28rpx + env(safe-area-inset-bottom));
   font-size: 32rpx;
-  color: #222;
+  color: var(--cr-text);
 }
 
 .tags-container {
@@ -1075,7 +1075,7 @@ export default {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1091,9 +1091,9 @@ export default {
 .tag-grid-item {
   padding: 16rpx 32rpx;
   border-radius: 32rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   font-size: 28rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .tag-grid-item.tag-active {

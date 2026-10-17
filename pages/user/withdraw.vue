@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
         <view class="back-btn"><view class="back-arrow"></view></view>
@@ -122,7 +122,7 @@ export default {
   data() {
     return {
       // 货币名称（从后端动态获取，启动时填充）
-      currencyName: '星域豆',
+      currencyName: '余额',
       statusBarHeight: 20,
       token: '',
       availableBalance: '0.00',
@@ -247,10 +247,10 @@ export default {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #fff; }
+.page { min-height: 100vh; background: var(--cr-surface); }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  height: 44px; background: #fff; border-bottom: 1rpx solid #f5f5f5;
+  height: 44px; background: var(--cr-surface); border-bottom: 1rpx solid #f5f5f5;
   display: flex; align-items: center; justify-content: space-between; padding: 0 20rpx;
 }
 .nav-left, .nav-right { width: 80rpx; display: flex; align-items: center; }
@@ -258,7 +258,7 @@ export default {
 .nav-title { font-size: 34rpx; font-weight: 700; color: #111; }
 .back-btn { width: 64rpx; height: 64rpx; display: flex; align-items: center; justify-content: center; }
 .back-arrow { width: 18rpx; height: 18rpx; border-left: 4rpx solid #111827; border-bottom: 4rpx solid #111827; transform: rotate(45deg); margin-left: 6rpx; }
-.record-link { font-size: 26rpx; color: #6b7280; }
+.record-link { font-size: 26rpx; color: var(--cr-text-muted); }
 
 .body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
 
@@ -270,8 +270,8 @@ export default {
 .balance-val { font-size: 72rpx; font-weight: 900; color: #fff; letter-spacing: -2rpx; }
 .balance-hint { font-size: 22rpx; color: rgba(251,191,36,0.8); }
 
-.section { margin: 20rpx 28rpx 0; background: #fff; border-radius: 20rpx; padding: 28rpx; }
-.section-title { font-size: 28rpx; font-weight: 800; color: #111827; display: block; margin-bottom: 20rpx; }
+.section { margin: 20rpx 28rpx 0; background: var(--cr-surface); border-radius: 20rpx; padding: 28rpx; }
+.section-title { font-size: 28rpx; font-weight: 800; color: var(--cr-text); display: block; margin-bottom: 20rpx; }
 
 .channel-list { display: flex; flex-direction: column; gap: 0; }
 .channel-item { display: flex; align-items: center; gap: 18rpx; padding: 18rpx 0; border-bottom: 1rpx solid #f3f4f6; }
@@ -281,20 +281,20 @@ export default {
 .wxpay-bg { background: #07c160; }
 .bank-bg { background: #f59e0b; }
 .channel-icon-text { font-size: 26rpx; font-weight: 900; color: #fff; }
-.channel-name { flex: 1; font-size: 28rpx; font-weight: 700; color: #111827; }
-.channel-radio { width: 40rpx; height: 40rpx; border-radius: 50%; border: 3rpx solid #d1d5db; display: flex; align-items: center; justify-content: center; }
+.channel-name { flex: 1; font-size: 28rpx; font-weight: 700; color: var(--cr-text); }
+.channel-radio { width: 40rpx; height: 40rpx; border-radius: 50%; border: 3rpx solid var(--cr-border); display: flex; align-items: center; justify-content: center; }
 .channel-radio.checked { border: 0; background: #ef4444; }
-.radio-dot { width: 18rpx; height: 18rpx; border-radius: 50%; background: #fff; }
+.radio-dot { width: 18rpx; height: 18rpx; border-radius: 50%; background: var(--cr-surface); }
 
 .input-wrap { display: flex; align-items: center; background: #f8f9fb; border-radius: 16rpx; padding: 0 20rpx; height: 96rpx; }
-.input-prefix { font-size: 36rpx; font-weight: 900; color: #111827; margin-right: 8rpx; }
-.main-input { flex: 1; font-size: 40rpx; font-weight: 900; color: #111827; height: 96rpx; }
+.input-prefix { font-size: 36rpx; font-weight: 900; color: var(--cr-text); margin-right: 8rpx; }
+.main-input { flex: 1; font-size: 40rpx; font-weight: 900; color: var(--cr-text); height: 96rpx; }
 .input-all { font-size: 24rpx; font-weight: 700; color: #ef4444; padding: 8rpx 16rpx; }
 
 .input-row { display: flex; align-items: center; padding: 18rpx 0; border-bottom: 1rpx solid #f3f4f6; gap: 16rpx; }
 .input-row:last-child { border-bottom: none; }
-.input-label { font-size: 26rpx; color: #6b7280; width: 140rpx; flex-shrink: 0; }
-.line-input { flex: 1; font-size: 28rpx; color: #111827; height: 60rpx; }
+.input-label { font-size: 26rpx; color: var(--cr-text-muted); width: 140rpx; flex-shrink: 0; }
+.line-input { flex: 1; font-size: 28rpx; color: var(--cr-text); height: 60rpx; }
 .input-ph { color: #d1d5db; }
 
 .tips-box { margin: 20rpx 28rpx 0; padding: 24rpx; background: #fffbeb; border-radius: 20rpx; }
@@ -304,11 +304,11 @@ export default {
 
 .fee-info-box { margin-top: 18rpx; background: #f0fdf4; border-radius: 14rpx; padding: 18rpx 20rpx; display: flex; flex-direction: column; gap: 10rpx; }
 .fee-row { display: flex; align-items: center; justify-content: space-between; }
-.fee-label { font-size: 24rpx; color: #6b7280; }
+.fee-label { font-size: 24rpx; color: var(--cr-text-muted); }
 .fee-val { font-size: 24rpx; font-weight: 700; }
 .fee-deduct { color: #f59e0b; }
 .fee-settle-row { border-top: 1rpx solid #bbf7d0; padding-top: 10rpx; margin-top: 2rpx; }
-.fee-settle-label { font-size: 26rpx; font-weight: 700; color: #111827; }
+.fee-settle-label { font-size: 26rpx; font-weight: 700; color: var(--cr-text); }
 .fee-settle-val { font-size: 30rpx; font-weight: 900; color: #16a34a; }
 
 .submit-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 28rpx 32rpx; background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); border-top: 1rpx solid rgba(0,0,0,0.06); }
@@ -317,9 +317,9 @@ export default {
 .submit-text { font-size: 32rpx; font-weight: 900; color: #fff; }
 
 .alert-mask { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
-.alert-box { width: 560rpx; background: #fff; border-radius: 28rpx; padding: 40rpx 36rpx 28rpx; display: flex; flex-direction: column; align-items: center; gap: 16rpx; }
-.alert-title { font-size: 30rpx; font-weight: 900; color: #111827; }
-.alert-msg { font-size: 26rpx; color: #6b7280; text-align: center; line-height: 1.6; }
+.alert-box { width: 560rpx; background: var(--cr-surface); border-radius: 28rpx; padding: 40rpx 36rpx 28rpx; display: flex; flex-direction: column; align-items: center; gap: 16rpx; }
+.alert-title { font-size: 30rpx; font-weight: 900; color: var(--cr-text); }
+.alert-msg { font-size: 26rpx; color: var(--cr-text-muted); text-align: center; line-height: 1.6; }
 .alert-ok { margin-top: 12rpx; width: 100%; height: 80rpx; border-radius: 20rpx; background: #111827; display: flex; align-items: center; justify-content: center; }
 .alert-ok-text { font-size: 28rpx; font-weight: 800; color: #fff; }
 

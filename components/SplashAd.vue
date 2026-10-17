@@ -1,5 +1,5 @@
 <template>
-  <view v-if="visible" class="splash-ad">
+  <view v-if="visible" class="splash-ad" :class="themeClass">
     <image
       v-if="imgSrc"
       class="splash-img"

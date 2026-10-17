@@ -1,5 +1,5 @@
 <template>
-  <view class="publish-modal" :class="{ show: visible }" @click="onMaskClick">
+  <view class="publish-modal" :class="[themeClass, { show: visible }]" @click="onMaskClick">
     <view class="modal-mask" :class="{ show: visible }"></view>
     <view class="modal-content" :class="{ show: visible }" @click.stop>
       <view class="close-btn" @click="close">
@@ -172,7 +172,7 @@ export default {
 }
 
 .close-btn:active {
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   transform: scale(0.95);
 }
 
@@ -193,7 +193,7 @@ export default {
   display: block;
   font-size: 42rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 12rpx;
   letter-spacing: 1rpx;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
@@ -202,7 +202,7 @@ export default {
 .sub-title {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -228,17 +228,17 @@ export default {
 }
 
 .option-card.secondary {
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   box-shadow: none;
-  border: 1rpx solid #f0f0f0;
+  border: 1rpx solid var(--cr-border);
 }
 
 .option-card.secondary .option-title {
-  color: #333;
+  color: var(--cr-text);
 }
 
 .option-card.secondary .option-desc {
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .option-card.secondary .option-arrow {
@@ -265,7 +265,7 @@ export default {
 .option-icon-wrap.small {
   width: 72rpx;
   height: 72rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   margin-right: 0;
   margin-bottom: 12rpx;
@@ -313,7 +313,7 @@ export default {
 }
 
 .option-item {
-  background: #f8f8f8;
+  background: var(--cr-surface-alt);
   border-radius: 20rpx;
   padding: 28rpx 20rpx;
   text-align: center;
@@ -326,7 +326,7 @@ export default {
 }
 
 .option-item:active {
-  background: #f0f0f0;
+  background: var(--cr-surface-alt);
   transform: scale(0.98);
 }
 
@@ -334,14 +334,14 @@ export default {
   display: block;
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 6rpx;
 }
 
 .item-desc {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .footer-section {
@@ -351,6 +351,6 @@ export default {
 
 .footer-text {
   font-size: 24rpx;
-  color: #bbb;
+  color: var(--cr-text-muted);
 }
 </style>

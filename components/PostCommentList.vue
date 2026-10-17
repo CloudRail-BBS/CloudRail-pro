@@ -1,5 +1,5 @@
 <template>
-  <view class="comment-list-wrap">
+  <view class="comment-list-wrap" :class="themeClass">
     <view v-if="loading" class="comment-loading">
       <text>评论加载中...</text>
     </view>
@@ -230,7 +230,7 @@ export default {
 
 <style scoped>
 .comment-list {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 6rpx 20rpx;
 }
@@ -242,7 +242,7 @@ export default {
 
 .comment-loading,
 .empty-comment {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   padding: 60rpx 30rpx;
   text-align: center;
@@ -250,7 +250,7 @@ export default {
 
 .comment-loading text,
 .empty-comment text {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 25rpx;
 }
 
@@ -360,7 +360,7 @@ export default {
   line-height: 1.8;
 }
 
-.comment-text { color: #222; }
+.comment-text { color: var(--cr-text); }
 .comment-link { color: #3b82f6; }
 .comment-mention { color: #7c3aed; }
 
@@ -374,7 +374,7 @@ export default {
 .comment-time,
 .comment-reply,
 .comment-delete {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 22rpx;
   margin-right: 24rpx;
 }
@@ -402,7 +402,7 @@ export default {
 }
 
 .reply-to {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 22rpx;
   margin: 0 8rpx;
 }
@@ -410,7 +410,7 @@ export default {
 .sub-comment-content {
   margin-top: 8rpx;
   border-radius: 16rpx;
-  background: #f7f8fa;
+  background: var(--cr-surface-alt);
   padding: 14rpx 16rpx;
   word-break: break-word;
   white-space: pre-wrap;
@@ -423,7 +423,7 @@ export default {
 }
 
 .sub-actions text {
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 21rpx;
   margin-right: 22rpx;
 }

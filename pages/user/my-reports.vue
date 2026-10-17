@@ -1,5 +1,5 @@
 <template>
-  <view class="mr-page">
+  <view class="mr-page" :class="themeClass">
     <!-- 固定顶部: 导航 + 筛选 -->
     <view class="nav-fixed" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-inner">
@@ -179,24 +179,24 @@ export default {
 </script>
 
 <style scoped>
-.mr-page { min-height: 100vh; background: #f5f6fa; }
+.mr-page { min-height: 100vh; background: var(--cr-surface-alt); }
 
 /* 固定头部 */
-.nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #fff; box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.04); }
+.nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--cr-surface); box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.04); }
 .nav-inner { height: 88rpx; display: flex; align-items: center; justify-content: space-between; padding: 0 24rpx; }
-.nav-title { font-size: 33rpx; font-weight: 700; color: #222; }
+.nav-title { font-size: 33rpx; font-weight: 700; color: var(--cr-text); }
 .nav-icon { width: 60rpx; height: 60rpx; display: flex; align-items: center; justify-content: center; }
 .nav-icon-img { width: 38rpx; height: 38rpx; }
 
 .tab-bar { display: flex; border-top: 1rpx solid #f5f5f7; }
 .tab-item { flex: 1; padding: 20rpx 0; display: flex; align-items: center; justify-content: center; position: relative; }
-.tab-label { font-size: 28rpx; color: #999; }
+.tab-label { font-size: 28rpx; color: var(--cr-text-muted); }
 .tab-item.active .tab-label { color: #FF2442; font-weight: 700; }
 .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 44rpx; height: 5rpx; background: #FF2442; border-radius: 4rpx; }
 .tab-badge { margin-left: 8rpx; min-width: 30rpx; height: 30rpx; line-height: 30rpx; text-align: center; padding: 0 8rpx; background: #FF2442; color: #fff; font-size: 20rpx; border-radius: 15rpx; }
 
 .list-wrap { padding: 20rpx 24rpx calc(40rpx + env(safe-area-inset-bottom)); }
-.report-card { background: #fff; border-radius: 20rpx; padding: 24rpx; margin-bottom: 18rpx; box-shadow: 0 2rpx 14rpx rgba(0,0,0,0.03); }
+.report-card { background: var(--cr-surface); border-radius: 20rpx; padding: 24rpx; margin-bottom: 18rpx; box-shadow: 0 2rpx 14rpx rgba(0,0,0,0.03); }
 .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14rpx; }
 .type-tag { padding: 4rpx 16rpx; border-radius: 20rpx; font-size: 22rpx; font-weight: 600; background: #fff0f2; color: #FF2442; }
 .type-tag.user { background: #eef4ff; color: #2f6fed; }
@@ -206,16 +206,16 @@ export default {
 .status-tag.pending { background: #fff7e8; color: #e67e22; }
 .status-tag.handled { background: #eef9f0; color: #27ae60; }
 
-.target-name { font-size: 29rpx; font-weight: 600; color: #222; line-height: 1.45; margin-bottom: 12rpx; word-break: break-all; }
+.target-name { font-size: 29rpx; font-weight: 600; color: var(--cr-text); line-height: 1.45; margin-bottom: 12rpx; word-break: break-all; }
 .line { display: flex; margin-bottom: 8rpx; }
-.line-label { font-size: 25rpx; color: #aaa; flex-shrink: 0; }
-.line-value { font-size: 25rpx; color: #666; flex: 1; line-height: 1.5; word-break: break-all; }
+.line-label { font-size: 25rpx; color: var(--cr-text-muted); flex-shrink: 0; }
+.line-value { font-size: 25rpx; color: var(--cr-text-muted); flex: 1; line-height: 1.5; word-break: break-all; }
 .result-line .result-label { color: #27ae60; }
 .result-line .result-value { color: #27ae60; font-weight: 500; }
 .result-line .pending-value { color: #e67e22; }
 
 .card-foot { margin-top: 14rpx; padding-top: 14rpx; border-top: 1rpx solid #f5f6fa; }
-.time-text { font-size: 23rpx; color: #bbb; }
+.time-text { font-size: 23rpx; color: var(--cr-text-muted); }
 
 /* 管理员客服回复 */
 .reply-box { margin-top: 16rpx; padding: 16rpx 18rpx; background: #f2f6ff; border-left: 6rpx solid #2f6fed; border-radius: 12rpx; }
@@ -225,11 +225,11 @@ export default {
 .reply-text { font-size: 25rpx; color: #37507f; line-height: 1.6; word-break: break-all; }
 
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 160rpx 60rpx 0; }
-.empty-title { font-size: 29rpx; color: #999; margin-bottom: 14rpx; }
+.empty-title { font-size: 29rpx; color: var(--cr-text-muted); margin-bottom: 14rpx; }
 .empty-tip { font-size: 24rpx; color: #c8c8c8; text-align: center; line-height: 1.6; }
 .foot-tip { display: flex; align-items: center; justify-content: center; gap: 12rpx; padding: 26rpx 0 10rpx; }
-.foot-text { font-size: 24rpx; color: #bbb; }
-.mini-spinner { width: 26rpx; height: 26rpx; border: 3rpx solid #e5e5e5; border-top-color: #FF2442; border-radius: 50%; animation: mr-spin 0.8s linear infinite; }
+.foot-text { font-size: 24rpx; color: var(--cr-text-muted); }
+.mini-spinner { width: 26rpx; height: 26rpx; border: 3rpx solid var(--cr-border); border-top-color: #FF2442; border-radius: 50%; animation: mr-spin 0.8s linear infinite; }
 @keyframes mr-spin { to { transform: rotate(360deg); } }
 
 .hud-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; align-items: center; justify-content: center; }

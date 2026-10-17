@@ -1,5 +1,5 @@
 <template>
-  <view class="vip-page">
+  <view class="vip-page" :class="themeClass">
     <!-- 顶部导航 -->
     <view class="page-header" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="header-left" @click="goBack">
@@ -329,7 +329,7 @@ export default {
 /* ====== 页面框架 ====== */
 .vip-page {
   min-height: 100vh;
-  background: #f5f6fa;
+  background: var(--cr-surface-alt);
 }
 
 .page-header {
@@ -338,7 +338,7 @@ export default {
   justify-content: space-between;
   min-height: 88rpx;
   padding: 0 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   position: fixed;
   top: 0;
   left: 0;
@@ -363,7 +363,7 @@ export default {
 .header-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .header-right {
@@ -379,7 +379,7 @@ export default {
 .vip-status-card {
   margin: 20rpx 28rpx;
   border-radius: 24rpx;
-  background: #fff;
+  background: var(--cr-surface);
   padding: 28rpx 32rpx;
   box-shadow: 0 4rpx 24rpx rgba(100, 120, 200, 0.08);
 }
@@ -431,12 +431,12 @@ export default {
 .user-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #222;
+  color: var(--cr-text);
 }
 
 .status-desc {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 /* ====== 价格卡片（横排） ====== */
@@ -468,14 +468,14 @@ export default {
 
 .price-card {
   flex: 1;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   padding: 28rpx 16rpx 24rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  border: 2rpx solid #eee;
+  border: 2rpx solid var(--cr-border);
   transition: all 0.25s ease;
   overflow: visible;
 }
@@ -529,13 +529,13 @@ export default {
 
 .price-unit {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   margin-left: 4rpx;
 }
 
 .price-duration {
   font-size: 20rpx;
-  color: #bbb;
+  color: var(--cr-text-muted);
 }
 
 /* ====== 权益对比 ====== */
@@ -546,12 +546,12 @@ export default {
 .compare-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #222;
+  color: var(--cr-text);
   margin-bottom: 20rpx;
 }
 
 .compare-table {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   overflow: hidden;
   box-shadow: 0 4rpx 20rpx rgba(100, 120, 200, 0.06);
@@ -579,7 +579,7 @@ export default {
   padding: 20rpx 16rpx;
   font-size: 26rpx;
   font-weight: 500;
-  color: #666;
+  color: var(--cr-text-muted);
   box-sizing: border-box;
   border-right: 1rpx solid #f2f3f8;
 }
@@ -613,7 +613,7 @@ export default {
 
 /* 普通用户列灰色文字 */
 .dim {
-  color: #ccc;
+  color: var(--cr-border-strong);
   font-size: 24rpx;
 }
 
@@ -632,7 +632,7 @@ export default {
 
 .hl-desc {
   font-size: 20rpx;
-  color: #aaa;
+  color: var(--cr-text-muted);
   display: block;
   text-align: center;
 }
@@ -641,7 +641,7 @@ export default {
 .buy-action-wrap {
   margin: 36rpx 28rpx 0;
   padding: 28rpx 32rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   box-shadow: 0 4rpx 20rpx rgba(100, 120, 200, 0.06);
 }
@@ -652,7 +652,7 @@ export default {
 
 .balance-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .balance-val {
@@ -686,7 +686,7 @@ export default {
 /* ====== 卡密兑换 ====== */
 .redeem-section {
   margin: 28rpx 28rpx 0;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 20rpx;
   padding: 24rpx 28rpx;
   box-shadow: 0 4rpx 20rpx rgba(100, 120, 200, 0.06);
@@ -699,7 +699,7 @@ export default {
 .redeem-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .redeem-form {
@@ -711,15 +711,15 @@ export default {
   flex: 1;
   height: 80rpx;
   padding: 0 28rpx;
-  border: 2rpx solid #eee;
+  border: 2rpx solid var(--cr-border);
   border-radius: 40rpx;
   font-size: 27rpx;
-  color: #333;
-  background: #fafafa;
+  color: var(--cr-text);
+  background: var(--cr-canvas);
 }
 
 .redeem-input::placeholder {
-  color: #ccc;
+  color: var(--cr-border-strong);
 }
 
 .redeem-btn {

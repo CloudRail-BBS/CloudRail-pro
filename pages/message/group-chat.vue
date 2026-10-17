@@ -1,5 +1,5 @@
 <template>
-  <view class="chat-page">
+  <view class="chat-page" :class="themeClass">
     <view class="top-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
         <view class="nav-left" @click="goBack">
@@ -1958,7 +1958,7 @@ export default {
 }
 .more-icon{
   font-size:48rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
 }
 .nav-center{
   flex:1;
@@ -1970,7 +1970,7 @@ export default {
 }
 .nav-title{
   font-size:34rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:800;
   max-width:400rpx;
   overflow:hidden;
@@ -2001,21 +2001,21 @@ export default {
   margin:0 auto 18rpx;
   padding:14rpx 0;
   text-align:center;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:999rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
   font-size:24rpx;
 }
 .loading-box{
   padding:120rpx 0;
   text-align:center;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
   font-size:26rpx;
 }
 .msg-time{
   margin: 14rpx auto 18rpx;
   text-align:center;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
   font-size:22rpx;
 }
 .notice-msg{
@@ -2025,7 +2025,7 @@ export default {
   text-align:center;
   background: rgba(17,24,39,.06);
   border-radius: 999rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
   font-size:22rpx;
   line-height:1.5;
 }
@@ -2050,7 +2050,7 @@ export default {
   width:76rpx;
   height:76rpx;
   border-radius:20rpx;
-  background:#fff;
+  background: var(--cr-surface);
   flex-shrink:0;
 }
 .msg-main{
@@ -2061,7 +2061,7 @@ export default {
 .sender-name{
   margin-bottom:10rpx;
   font-size:22rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
 }
 .bubble{
   display:inline-block;
@@ -2071,7 +2071,7 @@ export default {
   font-size:30rpx;
   line-height:1.6;
   word-break:break-word;
-  background:#fff;
+  background: var(--cr-surface);
   color:#15171a;
   box-shadow:0 4rpx 16rpx rgba(0,0,0,.06);
 }
@@ -2134,18 +2134,18 @@ export default {
 .card-name{
   font-size:28rpx;
   font-weight:700;
-  color:#111827;
+  color: var(--cr-text);
 }
 .card-tip{
   font-size:22rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
 }
 .input-wrapper{
   position:fixed;
   left:0; right:0;
   bottom:0;
   z-index:2000;
-  background:#f7f8fa;
+  background: var(--cr-surface-alt);
   border-top:1rpx solid rgba(0,0,0,.08);
   transition: all .18s ease;
 }
@@ -2157,7 +2157,7 @@ export default {
 }
 .rich-input{
   flex:1;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:999rpx;
   padding:10rpx 24rpx;
   min-height:56rpx;
@@ -2182,7 +2182,7 @@ export default {
 }
 .voice-text{
   font-size:30rpx;
-  color:#374151;
+  color: var(--cr-text);
   font-weight:500;
   letter-spacing:4rpx;
 }
@@ -2201,7 +2201,7 @@ export default {
 }
 .tool-icon{
   font-size:36rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
   line-height:1;
 }
 .tool-icon-img{
@@ -2234,7 +2234,7 @@ export default {
 }
 .rich-input-h5:empty::before{
   content:attr(data-placeholder);
-  color:#999;
+  color: var(--cr-text-muted);
   font-size:28rpx;
   pointer-events:none;
 }
@@ -2277,7 +2277,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #fff;
+  background: var(--cr-surface);
   border-top: 1rpx solid #f3f4f6;
   box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.08);
   z-index: 1999;
@@ -2293,16 +2293,16 @@ export default {
   display: flex;
   align-items: center;
   padding: 16rpx 20rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--cr-border);
   gap: 16rpx;
   flex-shrink: 0;
 }
 .emoji-tab {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   padding: 8rpx 20rpx;
   border-radius: 20rpx;
-  background: #f5f6fa;
+  background: var(--cr-surface-alt);
   transition: all 0.2s;
   flex-shrink: 0;
 }
@@ -2329,7 +2329,7 @@ export default {
   justify-content: center;
   position: relative;
   border-radius: 12rpx;
-  background: #f8f9fa;
+  background: var(--cr-surface-alt);
   transition: all 0.2s;
 }
 .emoji-item:active {
@@ -2347,12 +2347,12 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 60rpx 0;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 26rpx;
 }
 .empty-tip .hint {
   font-size: 24rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
   margin-top: 16rpx;
 }
 .action-sheet{
@@ -2364,7 +2364,7 @@ export default {
   align-items:center;
   justify-content:center;
   font-size: 30rpx;
-  color:#111827;
+  color: var(--cr-text);
   border-radius: 18rpx;
 }
 .action-sheet-item + .action-sheet-item{
@@ -2380,7 +2380,7 @@ export default {
   padding: 24rpx 0 8rpx;
   text-align:center;
   font-size: 24rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
 }
 .modal-list{
   max-height:540rpx;
@@ -2405,20 +2405,20 @@ export default {
 }
 .modal-name{
   font-size:26rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight:700;
 }
 .modal-sub{
   display:block;
   margin-top:6rpx;
   font-size:22rpx;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
 }
 .check-dot{
   width:32rpx;
   height:32rpx;
   border-radius:50%;
-  border:2rpx solid #d1d5db;
+  border: 2rpx solid var(--cr-border);
 }
 .check-dot.active{
   background:#ff2442;
@@ -2427,7 +2427,7 @@ export default {
 .modal-empty{
   padding:40rpx 0;
   text-align:center;
-  color:#9ca3af;
+  color: var(--cr-text-muted);
   font-size:24rpx;
 }
 .announcement-popup{
@@ -2450,7 +2450,7 @@ export default {
   display:block;
   text-align:center;
   font-size: 32rpx;
-  color:#111827;
+  color: var(--cr-text);
   font-weight: 800;
 }
 .announcement-scroll{
@@ -2483,7 +2483,7 @@ export default {
   position:fixed;
   left:0; right:0;
   bottom:0;
-  background:#f7f8fa;
+  background: var(--cr-surface-alt);
   border-top:1rpx solid #f3f4f6;
   box-shadow:0 -4rpx 20rpx rgba(0,0,0,0.08);
   z-index:1999;
@@ -2516,7 +2516,7 @@ export default {
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:24rpx;
   box-shadow:0 4rpx 12rpx rgba(0,0,0,0.06);
   transition:transform .15s ease;
@@ -2530,7 +2530,7 @@ export default {
 }
 .more-action-label{
   font-size:24rpx;
-  color:#374151;
+  color: var(--cr-text);
   line-height:1;
 }
 
@@ -2665,12 +2665,12 @@ export default {
 }
 /* 底部白色卡片 */
 .grp-rp-send-body{
-  background:#fff;
+  background: var(--cr-surface);
   padding:32rpx 40rpx 40rpx;
 }
 .grp-rp-type-tabs{
   display:flex;
-  background:#f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius:12rpx;
   padding:6rpx;
   margin-bottom:28rpx;
@@ -2680,13 +2680,13 @@ export default {
   text-align:center;
   padding:18rpx 0;
   font-size:28rpx;
-  color:#999;
+  color: var(--cr-text-muted);
   border-radius:8rpx;
   transition:all .2s;
   font-weight:400;
 }
 .grp-rp-type-tab.active{
-  background:#fff;
+  background: var(--cr-surface);
   color:#E54D42;
   font-weight:500;
   box-shadow:0 2rpx 8rpx rgba(0,0,0,.06);
@@ -2699,7 +2699,7 @@ export default {
 .grp-rp-field-label{
   width:160rpx;
   font-size:28rpx;
-  color:#333;
+  color: var(--cr-text);
   flex-shrink:0;
   font-weight:400;
 }
@@ -2712,28 +2712,28 @@ export default {
   flex:1;
   height:100%;
   font-size:32rpx;
-  color:#333;
+  color: var(--cr-text);
   font-weight:400;
 }
-.grp-rp-count-unit{ font-size:28rpx; color:#999; font-weight:400; }
+.grp-rp-count-unit{ font-size:28rpx; color: var(--cr-text-muted); font-weight:400; }
 .grp-rp-calc{ padding:8rpx 0 4rpx; }
-.grp-rp-calc-txt{ font-size:22rpx; color:#999; font-weight:400; }
+.grp-rp-calc-txt{ font-size:22rpx; color: var(--cr-text-muted); font-weight:400; }
 .grp-rp-divider{
   height:1rpx;
-  background:#f0f0f0;
+  background: var(--cr-surface-alt);
 }
 .grp-rp-greeting-input{
   flex:1;
   height:100%;
   font-size:28rpx;
-  color:#333;
+  color: var(--cr-text);
   font-weight:400;
 }
 .grp-rp-password-input{
   flex:1;
   height:100%;
   font-size:28rpx;
-  color:#333;
+  color: var(--cr-text);
   font-weight:400;
 }
 .grp-rp-send-btn{
@@ -2780,7 +2780,7 @@ export default {
   align-items:center;
   justify-content:center;
   font-size:40rpx;
-  color:#666;
+  color: var(--cr-text-muted);
   box-shadow:0 4rpx 16rpx rgba(0,0,0,.1);
   z-index:10;
 }
@@ -2811,7 +2811,7 @@ export default {
   width:80rpx;
   height:80rpx;
   border-radius:50%;
-  background:#fff;
+  background: var(--cr-surface);
   overflow:hidden;
   margin-right:16rpx;
   border:4rpx solid rgba(255,255,255,.5);
@@ -2865,7 +2865,7 @@ export default {
   color:#8b4513;
   font-family:'STKaiti','KaiTi',serif;
 }
-.grp-rp-claim-open-btn.loading .grp-rp-claim-open-text{ color:#888; }
+.grp-rp-claim-open-btn.loading .grp-rp-claim-open-text{ color: var(--cr-text-muted); }
 .grp-rp-claim-info{ font-size:24rpx; color:rgba(255,255,255,.85); }
 
 .grp-rp-claim-result{ animation:grpResultAppear .3s ease-out; }
@@ -2897,16 +2897,16 @@ export default {
 .grp-rp-result-body{
   padding:100rpx 32rpx 48rpx;
   text-align:center;
-  background:#fff;
+  background: var(--cr-surface);
 }
 .grp-rp-result-amount{ margin-bottom:16rpx; }
 .grp-rp-result-symbol{ font-size:48rpx; font-weight:bold; color:#e83a3a; }
 .grp-rp-result-value{ font-size:88rpx; font-weight:bold; color:#e83a3a; line-height:1; }
-.grp-rp-result-desc{ font-size:28rpx; color:#666; display:block; }
+.grp-rp-result-desc{ font-size:28rpx; color: var(--cr-text-muted); display:block; }
 .grp-rp-result-footer{
   padding:0 32rpx 80rpx;
   margin-top:auto;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:0 0 24rpx 24rpx;
 }
 .grp-rp-result-btn{
@@ -2923,8 +2923,8 @@ export default {
   line-height: 72rpx;
   text-align: center;
   border-radius: 36rpx;
-  background: #fff;
-  color: #333;
+  background: var(--cr-surface);
+  color: var(--cr-text);
   font-size: 28rpx;
   border: 2rpx solid transparent;
   user-select: none;

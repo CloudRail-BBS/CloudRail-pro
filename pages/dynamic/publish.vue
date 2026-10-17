@@ -1,5 +1,5 @@
 <template>
-  <view class="publish-container">
+  <view class="publish-container" :class="themeClass">
     <view class="custom-nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="handleCancel">
         <text class="nav-text">取消</text>
@@ -318,14 +318,14 @@ export default {
 <style scoped>
 .publish-container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 
 .custom-nav-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
-  background: #fff;
+  background: var(--cr-surface);
   display: flex;
   align-items: center;
   height: 88rpx;
@@ -338,9 +338,9 @@ export default {
   align-items: center;
 }
 .nav-right { justify-content: flex-end; }
-.nav-text { font-size: 30rpx; color: #666; }
+.nav-text { font-size: 30rpx; color: var(--cr-text-muted); }
 .nav-title-wrap { flex: 1; text-align: center; }
-.nav-title { font-size: 32rpx; font-weight: 600; color: #333; }
+.nav-title { font-size: 32rpx; font-weight: 600; color: var(--cr-text); }
 
 .login-auth-wrap {
   display: flex;
@@ -349,7 +349,7 @@ export default {
   padding: 120rpx 40rpx;
 }
 .auth-logo { width: 120rpx; height: 120rpx; margin-bottom: 32rpx; }
-.auth-title { font-size: 30rpx; color: #999; margin-bottom: 48rpx; }
+.auth-title { font-size: 30rpx; color: var(--cr-text-muted); margin-bottom: 48rpx; }
 .auth-btn.login {
   background: linear-gradient(135deg, #4A7FE0, #3A6FD0);
   color: #fff;
@@ -363,7 +363,7 @@ export default {
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12rpx); } }
 
 .editor-main {
-  background: #fff;
+  background: var(--cr-surface);
   margin: 16rpx;
   border-radius: 24rpx;
   padding: 32rpx 24rpx;
@@ -381,15 +381,15 @@ export default {
   height: 72rpx;
   border-radius: 50%;
   flex-shrink: 0;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .author-meta {
   margin-left: 16rpx;
   display: flex;
   flex-direction: column;
 }
-.author-name { font-size: 28rpx; font-weight: 600; color: #333; }
-.author-hint { font-size: 22rpx; color: #999; margin-top: 4rpx; }
+.author-name { font-size: 28rpx; font-weight: 600; color: var(--cr-text); }
+.author-hint { font-size: 22rpx; color: var(--cr-text-muted); margin-top: 4rpx; }
 
 .title-block {
   margin-bottom: 20rpx;
@@ -401,9 +401,9 @@ export default {
   height: 72rpx;
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
-.placeholder-title { color: #ccc; font-weight: 400; }
+.placeholder-title { color: var(--cr-border-strong); font-weight: 400; }
 
 .content-block {
   margin-bottom: 24rpx;
@@ -413,16 +413,16 @@ export default {
   width: 100%;
   min-height: 200rpx;
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.6;
 }
-.placeholder-content { color: #ccc; }
+.placeholder-content { color: var(--cr-border-strong); }
 .counter {
   position: absolute;
   bottom: 0;
   right: 0;
   font-size: 22rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
 }
 
 /* Topic Setting Row */
@@ -447,7 +447,7 @@ export default {
 .setting-dot.topic { background: #4A7FE0; }
 .setting-title {
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 500;
 }
 .setting-value {
@@ -456,12 +456,12 @@ export default {
 }
 .setting-text {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
 }
-.setting-text.placeholder { color: #999; }
+.setting-text.placeholder { color: var(--cr-text-muted); }
 .setting-arrow {
   font-size: 32rpx;
-  color: #ccc;
+  color: var(--cr-border-strong);
   margin-left: 8rpx;
 }
 
@@ -536,16 +536,16 @@ export default {
 .add-image-btn {
   width: 200rpx;
   height: 200rpx;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   border-radius: 12rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2rpx dashed #ddd;
+  border: 2rpx dashed var(--cr-border);
 }
-.add-icon { font-size: 56rpx; color: #ccc; line-height: 1; }
-.add-text { font-size: 22rpx; color: #999; margin-top: 8rpx; }
+.add-icon { font-size: 56rpx; color: var(--cr-border-strong); line-height: 1; }
+.add-text { font-size: 22rpx; color: var(--cr-text-muted); margin-top: 8rpx; }
 
 /* Toast */
 .toast {
@@ -609,7 +609,7 @@ export default {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -622,7 +622,7 @@ export default {
 .progress-percent {
   font-size: 96rpx;
   font-weight: 800;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.2;
   font-family: 'DIN Alternate', 'SF Pro Display', sans-serif;
   letter-spacing: 2rpx;
@@ -631,12 +631,12 @@ export default {
   font-size: 40rpx;
   margin-left: 6rpx;
   font-weight: 500;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 .progress-note {
   display: block;
   margin-top: 14rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 24rpx;
   letter-spacing: 1rpx;
 }

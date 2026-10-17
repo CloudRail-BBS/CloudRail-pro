@@ -1,5 +1,5 @@
 <template>
-  <view class="msg-page">
+  <view class="msg-page" :class="themeClass">
     <OnlineNotifyCard />
     <view class="fixed-header">
       <view class="header-row">
@@ -891,7 +891,7 @@ export default {
 
 <style scoped>
 .msg-page {
-  background:#f5f6f8;
+  background: var(--cr-surface-alt);
   height:var(--tcy-vh, 100vh);
   display:flex;
   flex-direction:column;
@@ -899,7 +899,7 @@ export default {
 }
 
 .fixed-header{
-  background:#fff;
+  background: var(--cr-surface);
   flex-shrink:0;
   position:relative;
   z-index:10;
@@ -909,14 +909,14 @@ export default {
 .main-scroll{
   flex:1;
   min-height:0;
-  background:#fff;
+  background: var(--cr-surface);
   box-sizing:border-box;
   padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
 }
 
 .page-card{
   margin:0;
-  background:#fff;
+  background: var(--cr-surface);
   border-radius:0;
   overflow:hidden;
 }
@@ -930,9 +930,9 @@ export default {
 }
 .page-title{ font-size:44rpx; font-weight:900; color:#15171a; }
 .header-actions{ display:flex; gap:28rpx; }
-.search-entry-btn { width: 52rpx; height: 52rpx; display: flex; align-items: center; justify-content: center; cursor: pointer; color:#6b7280; }
+.search-entry-btn { width: 52rpx; height: 52rpx; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--cr-text-muted); }
 .search-entry-btn:active { opacity: .65; }
-.add-entry-btn { width: 52rpx; height: 52rpx; display: flex; align-items: center; justify-content: center; cursor: pointer; color:#6b7280; }
+.add-entry-btn { width: 52rpx; height: 52rpx; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--cr-text-muted); }
 .add-entry-btn:active { opacity: .65; }
 .header-icon-img { width: 44rpx; height: 44rpx; display: block; }
 
@@ -1067,7 +1067,7 @@ export default {
 .notice-tab:active .notice-icon{
   box-shadow:0 4rpx 10rpx rgba(255,138,61,0.28);
 }
-.tab-label{ font-size:26rpx; color:#374151; font-weight:600; letter-spacing:1rpx; }
+.tab-label{ font-size:26rpx; color: var(--cr-text); font-weight:600; letter-spacing:1rpx; }
 .tab-badge{
   position:absolute;
   top:-2rpx;
@@ -1152,10 +1152,10 @@ export default {
   gap:12rpx;
   flex-shrink:0;
 }
-.time{ font-size:24rpx; color:#9ca3af; flex-shrink:0; }
+.time{ font-size:24rpx; color: var(--cr-text-muted); flex-shrink:0; }
 .preview{
   font-size:28rpx;
-  color:#6b7280;
+  color: var(--cr-text-muted);
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -1187,7 +1187,7 @@ export default {
   box-shadow:0 4rpx 12rpx rgba(255,36,66,0.35);
 }
 
-.empty{ padding:140rpx; text-align:center; color:#9ca3af; font-size:28rpx; }
+.empty{ padding:140rpx; text-align:center; color: var(--cr-text-muted); font-size:28rpx; }
 .footer{ text-align:center; font-size:22rpx; color:#d1d5db; padding:36rpx 0 32rpx; }
 
 .skeleton-container{ animation:fadeIn .3s ease; padding:0 32rpx 20rpx; }

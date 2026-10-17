@@ -1,5 +1,5 @@
 <template>
-  <view class="video-search-page">
+  <view class="video-search-page" :class="themeClass">
     <!-- 自定义导航栏 -->
     <view class="nav-bar">
       <view class="nav-back" @click="goBack">
@@ -219,7 +219,7 @@ export default {
 <style lang="scss" scoped>
 .video-search-page {
   min-height: 100vh;
-  background-color: #fff;
+  background-color: var(--cr-surface);
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
@@ -231,7 +231,7 @@ export default {
   align-items: center;
   padding: 10rpx 20rpx;
   padding-top: calc(10rpx + var(--status-bar-height));
-  background-color: #fff;
+  background-color: var(--cr-surface);
   position: sticky;
   top: 0;
   z-index: 99;
@@ -247,7 +247,7 @@ export default {
 
 .back-icon {
   font-size: 56rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: 300;
   line-height: 1;
 }
@@ -257,7 +257,7 @@ export default {
   display: flex;
   align-items: center;
   height: 60rpx;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   border-radius: 30rpx;
   padding: 0 20rpx;
   margin: 0 20rpx;
@@ -272,13 +272,13 @@ export default {
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   height: 100%;
   line-height: 60rpx;
 }
 
 .search-placeholder {
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .search-btn {
@@ -319,12 +319,12 @@ export default {
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .loading-state text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .history-section {
@@ -340,13 +340,13 @@ export default {
 
 .history-title {
   font-size: 30rpx;
-  color: #333;
+  color: var(--cr-text);
   font-weight: bold;
 }
 
 .clear-history {
   font-size: 26rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .history-list {
@@ -357,13 +357,13 @@ export default {
 
 .history-item {
   padding: 14rpx 28rpx;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   border-radius: 40rpx;
 }
 
 .history-item text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
 }
 
 .result-section {
@@ -398,7 +398,7 @@ export default {
   padding-bottom: 135%;
   border-radius: 8rpx;
   overflow: hidden;
-  background-color: #f5f5f5;
+  background-color: var(--cr-surface-alt);
   flex-shrink: 0;
 }
 
@@ -432,7 +432,7 @@ export default {
 
 .result-name {
   font-size: 24rpx;
-  color: #333;
+  color: var(--cr-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -440,7 +440,7 @@ export default {
 
 .result-actor {
   font-size: 22rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="header" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav">
         <view class="nav-btn" @click="goBack">
@@ -254,13 +254,13 @@ export default {
 .page { min-height: 100vh; background: #faf9fb; }
 .header { background: linear-gradient(180deg, #ffe4ec 0%, #fff5f8 100%); padding-bottom: 50px; }
 .nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; }
-.nav-btn { width: 38px; height: 38px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(255,94,138,0.12); }
+.nav-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--cr-surface); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(255,94,138,0.12); }
 .nav-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
 
 .hero { padding: 28px 0 10px; display: flex; flex-direction: column; align-items: center; }
 .pair { display: flex; align-items: center; gap: 20px; }
 .pair-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.ava-ring { width: 72px; height: 72px; border-radius: 50%; padding: 3px; background: #fff; box-shadow: 0 4px 16px rgba(255,94,138,0.2); }
+.ava-ring { width: 72px; height: 72px; border-radius: 50%; padding: 3px; background: var(--cr-surface); box-shadow: 0 4px 16px rgba(255,94,138,0.2); }
 .pair-ava { width: 100%; height: 100%; border-radius: 50%; }
 .pair-name { font-size: 13px; color: #555; font-weight: 500; max-width: 90px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .pair-heart { position: relative; display: flex; align-items: center; justify-content: center; }
@@ -284,13 +284,13 @@ export default {
 .hero-days { font-size: 12px; color: #b9b9b9; margin-top: 10px; }
 
 .body { padding: 0 16px 40px; margin-top: -30px; position: relative; }
-.card { background: #fff; border-radius: 18px; padding: 18px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+.card { background: var(--cr-surface); border-radius: 18px; padding: 18px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
 
 .level-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .level-badge-big { font-size: 20px; font-weight: 800; color: #ff3b6c; background: linear-gradient(135deg, #fff0f3, #ffe4ec); padding: 8px 16px; border-radius: 12px; }
 .level-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
 .level-num { font-size: 14px; color: #1a1a1a; font-weight: 700; }
-.level-next { font-size: 11px; color: #aaa; }
+.level-next { font-size: 11px; color: var(--cr-text-muted); }
 .track { height: 8px; background: #fff0f3; border-radius: 4px; overflow: hidden; }
 .track-fill { height: 100%; background: linear-gradient(90deg, #ff3b6c, #ff8fb1); border-radius: 4px; }
 .level-lvname { display: block; font-size: 11px; color: #ff8fb1; text-align: center; margin-top: 10px; }
@@ -299,9 +299,9 @@ export default {
 .checkin-icon { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #ffe4ec, #ffd0dd); color: #ff3b6c; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 .checkin-mid { flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .checkin-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
-.checkin-sub { font-size: 12px; color: #999; }
+.checkin-sub { font-size: 12px; color: var(--cr-text-muted); }
 .checkin-tag { font-size: 13px; font-weight: 700; color: #fff; padding: 7px 16px; border-radius: 20px; background: linear-gradient(135deg, #ff3b6c, #ff5e8a); box-shadow: 0 2px 8px rgba(255,59,108,0.3); }
-.checkin.off .checkin-tag { color: #bbb; background: #f5f5f5; box-shadow: none; }
+.checkin.off .checkin-tag { color: var(--cr-text-muted); background: #f5f5f5; box-shadow: none; }
 
 .section { display: block; font-size: 14px; font-weight: 700; color: #1a1a1a; margin: 20px 4px 10px; }
 .task-card { padding: 4px 18px; }
@@ -309,17 +309,17 @@ export default {
 .task:last-child { border-bottom: none; }
 .task-mid { display: flex; flex-direction: column; gap: 3px; }
 .task-name { font-size: 14px; color: #1a1a1a; font-weight: 500; }
-.task-sub { font-size: 12px; color: #999; }
+.task-sub { font-size: 12px; color: var(--cr-text-muted); }
 .task-coin { font-size: 14px; color: #ff3b6c; font-weight: 700; }
 
-.empty-sub { font-size: 13px; color: #bbb; display: block; }
+.empty-sub { font-size: 13px; color: var(--cr-text-muted); display: block; }
 .empty-sub.center { text-align: center; padding-top: 40px; }
 
 .modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 999; display: flex; align-items: flex-end; }
-.modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px 16px 40px; width: 100%; }
+.modal { background: var(--cr-surface); border-radius: 20px 20px 0 0; padding: 20px 16px 40px; width: 100%; }
 .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .modal-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
-.modal-close { font-size: 18px; color: #999; padding: 4px 8px; }
+.modal-close { font-size: 18px; color: var(--cr-text-muted); padding: 4px 8px; }
 .level-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #f5f5f5; }
 .level-item:last-child { border-bottom: none; }
 .level-badge { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
@@ -328,5 +328,5 @@ export default {
 .level-badge.l3 { background: linear-gradient(135deg, #ff3b6c, #c9184a); }
 .level-info { flex: 1; }
 .level-name { font-size: 15px; font-weight: 600; color: #1a1a1a; display: block; margin-bottom: 4px; }
-.level-desc { font-size: 12px; color: #888; line-height: 1.5; }
+.level-desc { font-size: 12px; color: var(--cr-text-muted); line-height: 1.5; }
 </style>

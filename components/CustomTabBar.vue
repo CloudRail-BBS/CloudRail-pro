@@ -1,5 +1,5 @@
 <template>
-  <view class="custom-tab-bar" :style="{ paddingBottom: safeAreaBottom + 'px' }">
+  <view class="custom-tab-bar" :class="themeClass" :style="{ paddingBottom: safeAreaBottom + 'px' }">
     <view class="tab-bar-wrapper">
       <view class="tab-bar-panel" :class="{ 'tab-bar-panel--dark': isDarkMode }">
         <view class="tab-bar-content">
@@ -185,8 +185,8 @@ export default {
   width: 100%;
 }
 .tab-bar-panel {
-  background: #fff;
-  border-top: 1rpx solid #eee;
+  background: var(--cr-surface);
+  border-top: 1rpx solid var(--cr-border);
 }
 .tab-bar-content {
   display: flex;
@@ -205,7 +205,7 @@ export default {
 }
 .tab-text-large {
   font-size: 30rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   font-weight: 400;
 }
 .tab-text-large.active {

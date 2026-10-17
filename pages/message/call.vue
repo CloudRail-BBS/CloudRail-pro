@@ -1,5 +1,5 @@
 <template>
-  <view class="call-page">
+  <view class="call-page" :class="themeClass">
     <!-- App：web-view 加载通话引擎页 -->
     <!-- #ifdef APP-PLUS -->
     <web-view v-if="url" :src="url"></web-view>

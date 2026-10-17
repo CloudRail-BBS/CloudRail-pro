@@ -1,5 +1,5 @@
 <template>
-  <view class="user-edit-page">
+  <view class="user-edit-page" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-content">
         <view class="nav-back" @click="goBack">
@@ -395,33 +395,33 @@ export default {
 </script>
 
 <style scoped>
-.user-edit-page { min-height: 100vh; background: #f0f1f6; }
+.user-edit-page { min-height: 100vh; background: var(--cr-surface-alt); }
 
 /* 导航栏 */
-.nav-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: #fff; border-bottom: 1rpx solid #eee; }
+.nav-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--cr-surface); border-bottom: 1rpx solid #eee; }
 .nav-content { position: relative; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0 28rpx; }
 .nav-back { position: absolute; left: 20rpx; width: 64rpx; height: 64rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 .nav-back:active { background: rgba(0,0,0,0.05); }
-.back-icon { font-size: 40rpx; color: #333; font-weight: bold; }
-.nav-title { font-size: 34rpx; font-weight: 700; color: #333; letter-spacing: 2rpx; }
+.back-icon { font-size: 40rpx; color: var(--cr-text); font-weight: bold; }
+.nav-title { font-size: 34rpx; font-weight: 700; color: var(--cr-text); letter-spacing: 2rpx; }
 
 .main-scroll { height: 100vh; }
-.nav-placeholder { background: #fff; }
+.nav-placeholder { background: var(--cr-surface); }
 
 /* 用户头部 */
-.user-header { margin: 24rpx; background: #fff; border-radius: 22rpx; padding: 28rpx; display: flex; align-items: center; gap: 22rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.05); }
+.user-header { margin: 24rpx; background: var(--cr-surface); border-radius: 22rpx; padding: 28rpx; display: flex; align-items: center; gap: 22rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.05); }
 .avatar-wrapper { position: relative; }
 .user-avatar { width: 110rpx; height: 110rpx; border-radius: 50%; border: 3rpx solid #f0edff; }
 .user-badge { position: absolute; top: -6rpx; right: -6rpx; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; font-size: 19rpx; padding: 4rpx 11rpx; border-radius: 14rpx; font-weight: 500; }
 .user-badge.reviewer { background: linear-gradient(135deg, #e67e22, #f39c12); }
 .user-info { flex: 1; }
-.user-name { display: block; font-size: 32rpx; font-weight: 600; color: #222; }
-.user-id { font-size: 23rpx; color: #bbb; }
+.user-name { display: block; font-size: 32rpx; font-weight: 600; color: var(--cr-text); }
+.user-id { font-size: 23rpx; color: var(--cr-text-muted); }
 
 /* 保存按钮 */
 .save-btn-wrapper { display: flex; justify-content: center; margin: 0 24rpx 24rpx; }
-.save-btn { 
-  width: 100%; height: 96rpx; background: linear-gradient(135deg, #667eea, #764ba2); 
+.save-btn {
+  width: 100%; height: 96rpx; background: linear-gradient(135deg, #667eea, #764ba2);
   border-radius: 48rpx; display: flex; align-items: center; justify-content: center;
   font-size: 32rpx; font-weight: 700; color: #fff;
   box-shadow: 0 8rpx 32rpx rgba(102,126,234,0.4);
@@ -430,14 +430,14 @@ export default {
 
 /* 表单卡片 */
 .form-card { margin: 24rpx; }
-.card-section { background: #fff; border-radius: 22rpx; padding: 22rpx; margin-bottom: 20rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.04); }
+.card-section { background: var(--cr-surface); border-radius: 22rpx; padding: 22rpx; margin-bottom: 20rpx; box-shadow: 0 4rpx 20rpx rgba(102,126,234,0.04); }
 .section-title { font-size: 27rpx; font-weight: 600; color: #667eea; margin-bottom: 20rpx; padding-left: 14rpx; border-left: 5rpx solid #667eea; }
 
 .level-info-card { background: linear-gradient(135deg, #f0edff 0%, #ffffff 100%); }
 .level-info-content { padding: 14rpx 0; }
 .level-info-row { display: flex; align-items: center; justify-content: center; gap: 22rpx; }
 .level-info-label { font-size: 30rpx; font-weight: 600; color: #667eea; }
-.level-info-value { font-size: 27rpx; color: #888; }
+.level-info-value { font-size: 27rpx; color: var(--cr-text-muted); }
 
 .form-item { margin-bottom: 24rpx; }
 .form-item:last-child { margin-bottom: 0; }
@@ -455,18 +455,18 @@ export default {
 .form-item-row-4 { display: flex; gap: 14rpx; margin-bottom: 24rpx; }
 .form-item-row-4:last-child { margin-bottom: 0; }
 .form-item-quarter { flex: 1; }
-.status-option-small { padding: 7rpx 14rpx; border-radius: 10rpx; font-size: 22rpx; border: 2rpx solid #eee; }
+.status-option-small { padding: 7rpx 14rpx; border-radius: 10rpx; font-size: 22rpx; border: 2rpx solid var(--cr-border); }
 
 .form-label { display: block; font-size: 27rpx; font-weight: 600; color: #555; margin-bottom: 10rpx; }
-.form-input { width: 100%; height: 84rpx; background: #fff; border-radius: 14rpx; padding: 0 22rpx; font-size: 27rpx; border: 2rpx solid #eee; box-sizing: border-box; }
+.form-input { width: 100%; height: 84rpx; background: var(--cr-surface); border-radius: 14rpx; padding: 0 22rpx; font-size: 27rpx; border: 2rpx solid var(--cr-border); box-sizing: border-box; }
 .form-input:focus { border-color: #667eea; background: #fafbff; }
 
 .switch-wrapper { display: flex; align-items: center; gap: 14rpx; }
 .form-switch { transform: scale(0.82); }
-.switch-desc { font-size: 23rpx; color: #bbb; }
+.switch-desc { font-size: 23rpx; color: var(--cr-text-muted); }
 
 .status-options { display: flex; gap: 14rpx; }
-.status-option { flex: 1; padding: 18rpx; text-align: center; background: #f8f9fa; border-radius: 14rpx; font-size: 26rpx; color: #888; border: 2rpx solid transparent; }
+.status-option { flex: 1; padding: 18rpx; text-align: center; background: var(--cr-surface-alt); border-radius: 14rpx; font-size: 26rpx; color: var(--cr-text-muted); border: 2rpx solid transparent; }
 .status-option.active { background: #f0edff; border-color: #667eea; color: #667eea; font-weight: 500; }
 .status-option.danger.active { background: #fce8ec; border-color: #e74c3c; color: #e74c3c; }
 

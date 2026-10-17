@@ -1,5 +1,5 @@
 <template>
-  <view class="tb">
+  <view class="tb" :class="themeClass">
     <view class="tb-bg"></view>
 
     <!-- 顶栏 -->
@@ -675,7 +675,7 @@ export default {
 .tb-status { font-size: 19rpx; color: rgba(255,255,255,.6); }
 .tb-cards { display: flex; gap: 6rpx; }
 
-.pc { width: 78rpx; height: 110rpx; border-radius: 10rpx; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4rpx 12rpx rgba(0,0,0,.3); }
+.pc { width: 78rpx; height: 110rpx; border-radius: 10rpx; background: var(--cr-surface); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4rpx 12rpx rgba(0,0,0,.3); }
 .pc.sm { width: 52rpx; height: 74rpx; }
 .pc.back { background: linear-gradient(135deg, #2b6fd6, #17407f); }
 .pc-lb { font-size: 24rpx; font-weight: 800; color: #111; }

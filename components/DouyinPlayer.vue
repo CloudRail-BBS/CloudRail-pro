@@ -1,5 +1,5 @@
 <template>
-  <view v-if="show" class="douyin-player-mask" @tap="handleClose">
+  <view v-if="show" class="douyin-player-mask" :class="themeClass" @tap="handleClose">
     <view class="douyin-player-container" @tap.stop>
       <!-- #ifndef APP-PLUS -->
       <!-- 顶部栏（非 App：video 不是原生组件，普通 view 就能覆盖） -->
@@ -796,7 +796,7 @@ cover-image {
 }
 .comment-modal-box {
   width: 100%;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 32rpx 32rpx 0 0;
   max-height: 70vh;
   display: flex;
@@ -807,12 +807,12 @@ cover-image {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 2rpx solid #eee;
+  border-bottom: 2rpx solid var(--cr-border);
 }
 .comment-modal-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--cr-text);
 }
 .comment-modal-close {
   width: 56rpx;
@@ -842,18 +842,18 @@ cover-image {
 }
 .comment-name {
   font-size: 26rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   margin-right: 16rpx;
 }
 .comment-text {
   font-size: 28rpx;
-  color: #333;
+  color: var(--cr-text);
   line-height: 1.5;
 }
 .comment-empty {
   text-align: center;
   padding: 40rpx;
-  color: #999;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
 }
 .comment-input-area {
@@ -861,19 +861,19 @@ cover-image {
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   display: flex;
   gap: 20rpx;
-  border-top: 2rpx solid #eee;
-  background: #fafafa;
+  border-top: 2rpx solid var(--cr-border);
+  background: var(--cr-canvas);
 }
 .comment-input {
   flex: 1;
   height: 72rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 36rpx;
   padding: 0 28rpx;
   font-size: 28rpx;
 }
 .comment-placeholder {
-  color: #ccc;
+  color: var(--cr-border-strong);
 }
 .comment-submit {
   width: 100rpx;
@@ -955,14 +955,14 @@ cover-image {
 .reward-modal-title {
   font-size: 40rpx;
   font-weight: 700;
-  color: #333;
+  color: var(--cr-text);
   text-align: center;
   display: block;
   margin-bottom: 12rpx;
 }
 .reward-modal-author {
   font-size: 28rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   text-align: center;
   display: block;
 }
@@ -982,7 +982,7 @@ cover-image {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: var(--cr-surface);
   transition: all 0.3s ease;
 }
 .reward-amount-chip:active {
@@ -1004,7 +1004,7 @@ cover-image {
 }
 .custom-chip {
   border-style: dashed;
-  border-color: #ddd;
+  border-color: var(--cr-border);
 }
 .custom-chip.active {
   border-color: #ff2c55;
@@ -1019,7 +1019,7 @@ cover-image {
   font-weight: 600;
 }
 .reward-chip-ph {
-  color: #ccc;
+  color: var(--cr-border-strong);
 }
 .reward-balance {
   text-align: center;
@@ -1031,7 +1031,7 @@ cover-image {
 }
 .reward-balance text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 .reward-balance text .balance-num {
   color: #ff2c55;
@@ -1047,19 +1047,19 @@ cover-image {
   flex: 1;
   height: 88rpx;
   border-radius: 44rpx;
-  border: 2rpx solid #ddd;
+  border: 2rpx solid var(--cr-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: var(--cr-surface);
   transition: all 0.3s ease;
 }
 .reward-cancel:active {
-  background: #f5f5f5;
+  background: var(--cr-surface-alt);
 }
 .reward-cancel text {
   font-size: 32rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   font-weight: 500;
 }
 .reward-confirm {

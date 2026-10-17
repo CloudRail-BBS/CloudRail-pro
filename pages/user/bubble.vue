@@ -1,5 +1,5 @@
 <template>
-  <view class="store-container">
+  <view class="store-container" :class="themeClass">
     <custom-nav-bar
       title="气泡商城"
       :showBack="true"
@@ -336,7 +336,7 @@ export default {
 }
 
 .header-card {
-  background: #fff;
+  background: var(--cr-surface);
   padding: 40rpx 30rpx;
   margin-bottom: 20rpx;
 }
@@ -349,7 +349,7 @@ export default {
 
 .label {
   font-size: 28rpx;
-  color: #666;
+  color: var(--cr-text-muted);
   margin-right: 20rpx;
 }
 
@@ -361,7 +361,7 @@ export default {
 
 .tips {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .grid-container {
@@ -373,7 +373,7 @@ export default {
 }
 
 .bubble-card {
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 16rpx;
   padding: 30rpx 10rpx;
   display: flex;
@@ -407,7 +407,7 @@ export default {
 
 .name {
   font-size: 26rpx;
-  color: #333;
+  color: var(--cr-text);
   margin-bottom: 12rpx;
   font-weight: 500;
 }
@@ -422,7 +422,7 @@ export default {
 
 .price-tag {
   font-size: 24rpx;
-  color: #999;
+  color: var(--cr-text-muted);
 }
 
 .price-tag.cost {
@@ -436,7 +436,7 @@ export default {
   left: 0;
   width: 100%;
   min-height: 110rpx;
-  background: #fff;
+  background: var(--cr-surface);
   display: flex;
   align-items: center;
   padding: 0 30rpx;
@@ -454,7 +454,7 @@ export default {
 .s-name {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--cr-text);
 }
 
 .s-price {
@@ -500,7 +500,7 @@ export default {
 
 .modal-box {
   width: 600rpx;
-  background: #fff;
+  background: var(--cr-surface);
   border-radius: 24rpx;
   overflow: hidden;
   padding-top: 40rpx;
@@ -526,7 +526,7 @@ export default {
 .m-tip {
   display: block;
   text-align: center;
-  color: #666;
+  color: var(--cr-text-muted);
   font-size: 28rpx;
   margin-bottom: 30rpx;
 }
@@ -542,7 +542,7 @@ export default {
 
 .m-btns {
   display: flex;
-  border-top: 1rpx solid #eee;
+  border-top: 1rpx solid var(--cr-border);
   height: 100rpx;
 }
 
@@ -557,7 +557,7 @@ export default {
 .m-btn.confirm {
   color: #ff2442;
   font-weight: bold;
-  border-left: 1rpx solid #eee;
+  border-left: 1rpx solid var(--cr-border);
 }
 
 .hud-mask {
