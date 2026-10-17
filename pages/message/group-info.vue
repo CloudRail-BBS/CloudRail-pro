@@ -377,7 +377,7 @@ export default {
         if (msg.indexOf('auth') > -1 || msg.indexOf('authorize') > -1) {
           uni.showModal({
             title: '需要相册权限',
-            content: '请在系统设置中允许「栖屿社区」保存图片到相册，然后重试',
+            content: '请在系统设置中允许「CloudRail-pro」保存图片到相册，然后重试',
             showCancel: false
           })
         } else {
@@ -468,7 +468,7 @@ export default {
 
         ctx.setFillStyle('#B0B4BB')
         ctx.setFontSize(22)
-        ctx.fillText('栖屿社区 · 群聊', W / 2, 824)
+        ctx.fillText('CloudRail-pro · 群聊', W / 2, 824)
 
         /* 绘制完成后再导出画布 */
         ctx.draw(false, () => {

@@ -1,78 +1,12 @@
-const SILICONFLOW_API_KEY = 'sk-your-siliconflow-api-key'
-const MODEL_NAME = 'Qwen/Qwen3-8B'
 const MIN_RESPONSE_TIME = 1500
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
+// Provider credentials cannot be kept secret in a client bundle. Until an
+// authenticated server-side AI proxy is configured, use local help responses.
 export const chatWithDoubao = async (message, history = []) => {
-  const startTime = Date.now()
-  
-  if (!SILICONFLOW_API_KEY) {
-    await sleep(MIN_RESPONSE_TIME)
-    return generateMockResponse(message)
-  }
-
-  try {
-    const messages = [
-      {
-        role: 'system',
-        content: '你是一个友好的AI助手，请用中文回答问题，保持对话自然流畅。'
-      },
-      ...history.map(h => ({
-        role: h.role,
-        content: h.content
-      })),
-      {
-        role: 'user',
-        content: message
-      }
-    ]
-
-    return new Promise((resolve) => {
-      uni.request({
-        url: 'https://api.siliconflow.cn/v1/chat/completions',
-        method: 'POST',
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SILICONFLOW_API_KEY}`
-        },
-        data: {
-          model: MODEL_NAME,
-          messages,
-          temperature: 0.7,
-          max_tokens: 2048,
-          stream: false
-        },
-        timeout: 30000,
-        success: async (res) => {
-          const elapsed = Date.now() - startTime
-          if (elapsed < MIN_RESPONSE_TIME) {
-            await sleep(MIN_RESPONSE_TIME - elapsed)
-          }
-
-          if (res.data && res.data.choices && res.data.choices.length > 0) {
-            resolve(res.data.choices[0].message.content)
-          } else if (res.data && res.data.error) {
-            resolve(`抱歉，服务暂时不可用。(${res.data.error.message})`)
-          } else if (res.data && res.data.message) {
-            resolve(`抱歉，API调用失败：${res.data.message}`)
-          } else {
-            resolve('抱歉，无法获取AI响应，请检查API配置。')
-          }
-        },
-        fail: async () => {
-          const elapsed = Date.now() - startTime
-          if (elapsed < MIN_RESPONSE_TIME) {
-            await sleep(MIN_RESPONSE_TIME - elapsed)
-          }
-          resolve(generateMockResponse(message))
-        }
-      })
-    })
-  } catch (error) {
-    await sleep(MIN_RESPONSE_TIME)
-    return generateMockResponse(message)
-  }
+  await sleep(MIN_RESPONSE_TIME)
+  return generateMockResponse(String(message || ''))
 }
 
 const generateMockResponse = (question) => {

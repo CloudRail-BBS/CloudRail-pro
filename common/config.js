@@ -35,5 +35,5 @@ export const WEB_BASE = 'https://your-domain.com/'
 export const WS_ENABLED = false
 export const WS_URL = 'wss://your-domain.com/ws'
 
-export const SITE_NAME = '栖屿社区'
+export const SITE_NAME = 'CloudRail-pro'
 export const CURRENCY_NAME = '余额'

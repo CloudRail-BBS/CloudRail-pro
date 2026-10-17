@@ -1,6 +1,6 @@
-# 栖屿社区 · Qixi Community
+# CloudRail-pro
 
-> 基于 uni-app + Vue3 的移动端社区平台，支持 APP / 小程序 / H5 多端编译。
+> CloudRail-pro 是基于 uni-app + Vue 3 的移动端社区前端，支持 App / 小程序 / H5 多端编译。
 
 > 📖 详细的搭建 / 配置 / 运行说明请看 [开发文档.md](./开发文档.md)。
 
@@ -8,7 +8,7 @@
 
 ## 项目介绍
 
-栖屿社区是一个功能完整的移动端社区应用，涵盖社交、内容、交易、工具等核心模块。项目前端使用 uni-app + Vue3 开发，后端基于 PHP + MySQL，支持 WebSocket 实时通信。
+CloudRail-pro 提供社区、内容、交易和工具等前端页面，仓库也包含管理后台前端页面。本仓库只包含 uni-app + Vue 3 前端源码，不包含 API 服务、管理后台服务端、数据库或 WebSocket 服务。使用完整功能时，需要自行部署并配置兼容的后端服务。
 
 ### 核心功能
 
@@ -27,12 +27,12 @@
 | 扫码交友 | 个人二维码 / 扫一扫添加好友 |
 | 通知中心 | 点赞 / 评论 / 关注 / 打赏 / 红包通知 |
 | VIP 体系 | 会员卡 / 靓号 / 头像框 / 认证 |
-| 管理后台 | 用户管理 / 帖子审核 / 圈子管理 / 市场管理 / 系统设置 |
+| 管理后台前端 | 用户管理 / 帖子审核 / 圈子管理 / 市场管理 / 系统设置页面 |
 
 ### 技术栈
 
 - **前端**：uni-app + Vue3 + SCSS
-- **后端**：PHP + MySQL + WebSocket
+- **服务端依赖**：需另行部署兼容的 API、数据库及 WebSocket 服务；其代码不在本仓库中
 - **工具链**：HBuilderX
 - **多端支持**：Android / iOS / 微信小程序 / H5
 
@@ -41,14 +41,14 @@
 ## 目录结构
 
 ```
-社区项目/
+CloudRail-pro/
 ├── App.vue               # 全局样式与生命周期
 ├── main.js               # 应用入口
 ├── manifest.json         # 应用配置（appid、权限等）
 ├── pages.json            # 页面路由与 TabBar 配置
 ├── uni.scss              # 全局 SCSS 变量
 ├── common/               # 公共模块
-│   ├── config.js         #   ★ 后端域名配置（部署必改）
+│   ├── config.js         #   ★ 外部 API / WebSocket 地址配置
 │   ├── api.js            #   请求/上传封装
 │   ├── request.js        #   HTTP 请求层
 │   ├── api-map.js        #   接口路由映射
@@ -72,7 +72,7 @@
 │   ├── software/         #   软件库
 │   ├── login/            #   登录
 │   ├── register/         #   注册
-│   ├── admin/            #   管理后台
+│   ├── admin/            #   管理后台前端页面
 │   └── ...
 ├── static/              # 静态资源
 └── license.md           # MIT 开源协议
@@ -89,10 +89,12 @@
 ### 1. 克隆项目
 
 ```bash
-git clone https://gitee.com/bgkj520/baige.git
+git clone https://github.com/CloudRail-BBS/CloudRail-pro.git
 ```
 
-### 2. 修改后端配置
+### 2. 配置兼容的服务端
+
+本仓库包含管理后台前端页面，但不包含服务端代码。请先准备与前端接口约定兼容的 API 和（如需实时聊天）WebSocket 服务，再配置地址：
 
 编辑 `common/config.js`，将 API 地址改为你的后端：
 
@@ -101,6 +103,8 @@ export const API_BASE = 'https://你的域名/api/index.php/'
 export const ADMIN_BASE = 'https://你的域名'
 export const WEB_BASE = 'https://你的域名/'
 ```
+
+生产环境请使用 HTTPS（WebSocket 使用 WSS）；HTTP 仅用于本机开发。
 
 ### 3. 运行项目
 

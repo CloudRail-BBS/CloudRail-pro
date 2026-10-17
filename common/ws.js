@@ -135,7 +135,7 @@ class WebSocketManager {
       url,
       success: () => {},
       fail: (err) => {
-        console.error('[WS] 连接失败:', err)
+        console.error('[WS] 连接失败')
         if (!task || this.socketTask !== task) return
         this.socketTask = null
         this.connecting = false   // ★ 解锁
@@ -185,13 +185,13 @@ class WebSocketManager {
 
         this._emit(msg.type, msg.data || {}, msg)
       } catch (e) {
-        console.warn('[WS] 消息解析失败:', res.data)
+        console.warn('[WS] 消息解析失败')
       }
     })
 
     task.onClose((res) => {
       if (this.socketTask !== task) return   // 旧连接的关闭事件，忽略
-      console.log('[WS] 连接关闭', res)
+      console.log('[WS] 连接关闭')
       this.socketTask = null
       this.connecting = false     // ★ 解锁
       this._cleanup()
@@ -202,12 +202,12 @@ class WebSocketManager {
 
     task.onError((err) => {
       if (this.socketTask !== task) return   // 旧连接的错误事件，忽略
-      console.error('[WS] 连接错误:', err)
+      console.error('[WS] 连接错误')
       this.socketTask = null
       this.connected = false
       this.connecting = false     // ★ 解锁
       this._cleanup()
-      this._emit('error', err)
+      this._emit('error', { message: 'WebSocket connection error' })
       try { task.close({}) } catch (e) {}
       /* 关键：onError 之后不一定会跟着触发 onClose。
          如果这里不安排重连，连接已经断了但 connected 还停在 true，
@@ -248,7 +248,7 @@ class WebSocketManager {
     this.socketTask.send({
       data: JSON.stringify(data),
       fail: (err) => {
-        console.error('[WS] 发送失败:', err)
+        console.error('[WS] 发送失败')
       }
     })
     return true
@@ -337,7 +337,7 @@ class WebSocketManager {
     const cbs = this.listeners[type]
     if (cbs) {
       cbs.forEach(cb => {
-        try { cb(data, rawMsg) } catch (e) { console.error('[WS] 回调执行出错:', e) }
+        try { cb(data, rawMsg) } catch (e) { console.error('[WS] 回调执行出错') }
       })
     }
   }

@@ -16,6 +16,7 @@
 import ws from '@/common/ws.js'
 import { API_BASE } from '@/common/config.js'
 
+// Public client identifier only; never place a server secret in this bundle.
 export const API_KEY = 'YOUR-CALL-API-KEY'
 
 /** 直接打后端（带 token / api key），不做缓存、不进并发队列 */

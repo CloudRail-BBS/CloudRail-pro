@@ -16,7 +16,7 @@
       <text class="skip-text">跳过</text>
     </view>
     <view class="splash-brand">
-      <text class="brand-name">栖屿社区</text>
+      <text class="brand-name">CloudRail-pro</text>
       <text class="brand-slogan">年轻人的社交社区</text>
     </view>
   </view>

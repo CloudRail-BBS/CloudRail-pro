@@ -12,7 +12,14 @@ import { request, normalizeServerMessage } from '@/common/request.js'
 import ws from '@/common/ws.js'
 import { startOnlineNotify } from '@/common/online-notify.js'
 import { applyH5DocumentTitle, setupH5TitleSync } from '@/common/pageTitle.js'
-import { parseOauthCallbackUrl, saveOauthCallback, readOauthCallback, clearOauthCallback } from '@/common/oauthCallback.js'
+import {
+  parseOauthCallbackUrl,
+  saveOauthCallback,
+  readOauthCallback,
+  clearOauthCallback,
+  consumeTokenLoginCallback,
+  stripOauthCallbackParams
+} from '@/common/oauthCallback.js'
 import { saveLevelConfig } from '@/common/level.js'
 import { ensureCustomBubbleCss } from '@/common/bubble-style.js'
 import { initCall } from '@/common/call.js'
@@ -305,6 +312,14 @@ export default {
     async handleOauthCallbackPayload(payload, source = 'runtime') {
       if (!payload) return false
 
+      // Raw bearer-token redirects are accepted only after the H5 entry point
+      // consumes the matching one-time state from this browser tab.
+      if (payload.token && payload.stateValidated !== true) {
+        clearOauthCallback()
+        uni.$emit('global_login_fail', { msg: '登录回调校验失败，请重新发起登录' })
+        return false
+      }
+
       saveOauthCallback(payload)
 
       if (payload.token) {
@@ -406,19 +421,6 @@ export default {
       }
     },
 
-    getQueryParam(url, name) {
-      try {
-        const reg = new RegExp('(^|&|\\?)' + name + '=([^&]*)(&|$)')
-        const result = url.match(reg)
-        if (result != null) {
-          return decodeURIComponent(result[2])
-        }
-        return null
-      } catch (e) {
-        return null
-      }
-    },
-
     setupPushListener() {
       // #ifdef APP-PLUS
       uni.onPushMessage((res) => {
@@ -471,50 +473,31 @@ export default {
     checkH5Login() {
       try {
         const url = window.location.href
-        const token = this.getQueryParam(url, 'token')
-        const loginSuccess = this.getQueryParam(url, 'loginSuccess')
-        const loginError = this.getQueryParam(url, 'loginError')
+        const payload = parseOauthCallbackUrl(url)
+        if (!payload || (!payload.token && !payload.loginError)) return
+        if (this._h5LoginProcessed) return
 
-        if (token && loginSuccess) {
-          uni.setStorageSync('token', token)
+        // Remove credentials before any asynchronous request or page transition.
+        this._h5LoginProcessed = true
+        window.history.replaceState({}, document.title, stripOauthCallbackParams(url))
 
-          request('user.php', { action: 'getUserInfo' })
-            .then((res) => {
-              if (res.code === 0) {
-                setAuth(res.data, token)
-                uni.showToast({ title: '登录成功', icon: 'none' })
-              } else {
-                uni.removeStorageSync('token')
-                uni.showToast({ title: normalizeServerMessage(res.msg, '登录失败'), icon: 'none' })
-              }
-
-              const newUrl = url.replace(/[?&]token=[^&]*/g, '').replace(/[?&]loginSuccess=[^&]*/g, '')
-              this._h5LoginProcessed = true
-              window.history.replaceState({}, '', newUrl)
-              uni.reLaunch({ url: '/pages/index/index' })
-            })
-            .catch((e) => {
-              uni.removeStorageSync('token')
-              uni.showToast({ title: normalizeServerMessage(e?.msg, '网络连接失败'), icon: 'none' })
-
-              const newUrl = url.replace(/[?&]token=[^&]*/g, '').replace(/[?&]loginSuccess=[^&]*/g, '')
-              this._h5LoginProcessed = true
-              window.history.replaceState({}, '', newUrl)
-              uni.reLaunch({ url: '/pages/index/index' })
-            })
-        } else if (loginError) {
-          const msg = normalizeServerMessage(decodeURIComponent(loginError), '登录失败')
-          uni.$emit('global_login_fail', { msg })
-
-          const newUrl = url.replace(/[?&]loginError=[^&]*/g, '')
-          this._h5LoginProcessed = true
-          window.history.replaceState({}, '', newUrl)
-
-          const pages = getCurrentPages()
-          const current = pages[pages.length - 1]
-          if (!current || current.route.indexOf('login') === -1) {
-            uni.reLaunch({ url: '/pages/login/login' })
+        if (payload.token) {
+          if (!consumeTokenLoginCallback(payload)) {
+            clearOauthCallback()
+            uni.$emit('global_login_fail', { msg: '登录回调校验失败，请重新发起登录' })
+            return
           }
+
+          this.handleOauthCallbackPayload({ ...payload, stateValidated: true }, 'h5')
+          return
+        }
+
+        const msg = normalizeServerMessage(payload.loginError, '登录失败')
+        uni.$emit('global_login_fail', { msg })
+        const pages = getCurrentPages()
+        const current = pages[pages.length - 1]
+        if (!current || current.route.indexOf('login') === -1) {
+          uni.reLaunch({ url: '/pages/login/login' })
         }
       } catch (e) {
       }

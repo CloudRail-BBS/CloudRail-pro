@@ -78,7 +78,98 @@ function parseQuery(str) {
  * 生成随机 state
  */
 function randomState(prefix) {
-  return (prefix || 'lyb') + Date.now() + '_' + Math.random().toString(36).slice(2, 10)
+  try {
+    var cryptoApi = typeof window !== 'undefined' && window.crypto
+      ? window.crypto
+      : (typeof crypto !== 'undefined' ? crypto : null)
+    if (!cryptoApi || typeof cryptoApi.getRandomValues !== 'function') return ''
+    var bytes = new Uint8Array(32)
+    cryptoApi.getRandomValues(bytes)
+    return Array.prototype.map.call(bytes, function (byte) {
+      return byte.toString(16).padStart(2, '0')
+    }).join('')
+  } catch (e) {
+    return ''
+  }
+}
+
+function bytesToState(buffer) {
+  try {
+    var bytes = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : new Uint8Array(buffer || [])
+    if (bytes.length !== 32) return ''
+    return Array.prototype.map.call(bytes, function (byte) {
+      return byte.toString(16).padStart(2, '0')
+    }).join('')
+  } catch (e) {
+    return ''
+  }
+}
+
+function createMiniProgramState(callback) {
+  var state = randomState()
+  if (state) {
+    callback(state)
+    return
+  }
+
+  // Mini-program runtimes may expose their cryptographic RNG on the platform
+  // global instead of the browser Web Crypto API.
+  var platformApis = []
+  try {
+    if (typeof wx !== 'undefined') {
+      platformApis.push(wx)
+      if (typeof wx.getUserCryptoManager === 'function') platformApis.push(wx.getUserCryptoManager())
+    }
+  } catch (e) {}
+  try { if (typeof my !== 'undefined') platformApis.push(my) } catch (e) {}
+  try { if (typeof swan !== 'undefined') platformApis.push(swan) } catch (e) {}
+  try { if (typeof tt !== 'undefined') platformApis.push(tt) } catch (e) {}
+  try { if (typeof qq !== 'undefined') platformApis.push(qq) } catch (e) {}
+
+  var secureApi = platformApis.find(function (api) {
+    return api && typeof api.getRandomValues === 'function'
+  })
+  if (!secureApi) {
+    callback('')
+    return
+  }
+
+  var completed = false
+  var finish = function (value) {
+    if (completed) return
+    completed = true
+    callback(value)
+  }
+  try {
+    secureApi.getRandomValues({
+      length: 32,
+      success: function (result) { finish(bytesToState(result && result.randomValues)) },
+      fail: function () { finish('') }
+    })
+  } catch (e) {
+    finish('')
+  }
+}
+
+function saveOAuthState(state) {
+  ssSet('lyb_oauth_state', JSON.stringify({ state: state, issuedAt: Date.now() }))
+}
+
+function consumeOAuthState(candidate) {
+  var pending = null
+  try { pending = JSON.parse(ssGet('lyb_oauth_state') || 'null') } catch (e) {}
+
+  var issuedAt = Number(pending && pending.issuedAt)
+  var validShape = pending && /^[a-f0-9]{64}$/.test(pending.state || '') &&
+    Number.isFinite(issuedAt) && issuedAt <= Date.now() && Date.now() - issuedAt <= 10 * 60 * 1000
+  if (!validShape) {
+    ssDel('lyb_oauth_state')
+    return false
+  }
+
+  if (typeof candidate !== 'string' || !/^[a-f0-9]{64}$/.test(candidate) || candidate !== pending.state) return false
+  ssDel('lyb_oauth_state')
+  return true
 }
 
 /**
@@ -275,7 +366,7 @@ var LYBAuth = {
 
     // ★★★ 如果有旧的 pending session，先取消再创建新的，避免卡在旧会话上 ★★★
     if (_appAuthorizing && _sid) {
-      console.log('[SDK] 取消旧的授权会话，创建新会话, old_sid:', _sid)
+      console.log('[SDK] 取消旧的授权会话，创建新会话')
       this.cancel()
     }
 
@@ -303,7 +394,7 @@ var LYBAuth = {
       if (!pending) return
       var data = JSON.parse(pending)
       if (!data || !data.sid || !data.apiBase) return
-      console.log('[SDK] 恢复挂起的 OAuth 会话:', data.sid, '(等待 init 设置回调后启动轮询)')
+      console.log('[SDK] 恢复挂起的 OAuth 会话 (等待 init 设置回调后启动轮询)')
       _sid = data.sid
       _appAuthorizing = true
       _pollCount = 0
@@ -326,7 +417,7 @@ var LYBAuth = {
         onError: null
       }
     } catch (e) {
-      console.log('[SDK] 恢复会话失败:', e)
+      console.log('[SDK] 恢复会话失败')
     }
   },
 
@@ -423,14 +514,14 @@ var LYBAuth = {
       // ★★★ 所有平台统一：scheme 唤起外部 App ★★★
       // #ifdef APP-PLUS
       plus.runtime.openURL(appScheme, function (err) {
-        console.log('[SDK] 唤起 ' + platformConfig.name + ' App 失败：' + (err || '未安装'))
+        console.log('[SDK] 唤起 ' + platformConfig.name + ' App 失败')
         // App 未安装：降级到前端授权页（Session 模式），与 H5 一致
         var authUrl = '/pages/oauth/authorize?sid=' + encodeURIComponent(_sid) +
           '&appid=' + encodeURIComponent(_config.client_id) +
           '&app=' + encodeURIComponent(_config.app_name) +
           '&apiBase=' + encodeURIComponent(apiBase) +
           '&platform=' + encodeURIComponent(_config.platform)
-        console.log('[SDK] 降级到前端授权页:', authUrl);
+        console.log('[SDK] 降级到前端授权页')
         uni.navigateTo({ url: authUrl })
       })
       // #endif
@@ -472,7 +563,6 @@ var LYBAuth = {
         '&oauth=1'
 
       request(checkUrl, { method: 'GET' }).then(function (res) {
-        console.log('[SDK] 轮询结果:', JSON.stringify(res), 'sid:', _sid)
         if (!res || res.error !== true || !res.info) return
         if (res.info.status === 2) {
           clearInterval(_pollTimer)
@@ -512,7 +602,7 @@ var LYBAuth = {
     }).then(function (res) {
       if (res && res.error === true && res.info && res.info.code) {
         self._clearPendingSession()
-        console.log('[SDK] 换取授权码成功:', res.info.code)
+        console.log('[SDK] 换取授权码成功')
         // ★★★ 不自己换token了，直接把code传给页面，让后端去换 ★★★
         if (_config && typeof _config.onLogin === 'function') {
           _config.onLogin({ code: res.info.code })
@@ -541,15 +631,11 @@ var LYBAuth = {
       code: code,
       redirect_uri: redirectUri
     }
-    console.log('[SDK] 换token请求参数:', postData)
-
     request(_config.token_url, {
       method: 'POST',
       data: postData,
       headers: { 'Content-Type': 'application/json' }
     }).then(function (res) {
-      console.log('[SDK] token 换取完整结果:', JSON.stringify(res))
-
       var userInfo = null
       var infoObj = (res && res.info && typeof res.info === 'object') ? res.info : null
 
@@ -568,7 +654,7 @@ var LYBAuth = {
       }
       
       if (userInfo) {
-        console.log('[SDK] token 换取成功, 触发 onLogin:', userInfo)
+        console.log('[SDK] token 换取成功')
         if (_config && typeof _config.onLogin === 'function') {
           _config.onLogin(userInfo)
         }
@@ -581,12 +667,12 @@ var LYBAuth = {
         } else if (res && res.message) {
           errMsg = res.message
         }
-        console.error('[SDK] token 换取失败:', errMsg, res)
+        console.error('[SDK] token 换取失败')
         emitError(ERR.TOKEN_FAIL, errMsg)
       }
     }).catch(function (err) {
-      console.error('[SDK] token 网络错误:', err)
-      emitError(ERR.NETWORK_ERROR, '网络错误: ' + (err.message || err))
+      console.error('[SDK] token 网络错误')
+      emitError(ERR.NETWORK_ERROR, '网络错误')
     })
   },
 
@@ -602,6 +688,11 @@ var LYBAuth = {
     }
 
     var platformConfig = self._getPlatformConfig()
+    var state = randomState()
+    if (!state) {
+      emitError(ERR.STATE_MISMATCH, '当前浏览器无法安全发起登录')
+      return
+    }
     var createUrl = apiBase + platformConfig.createSession
 
     // 1. 创建登录会话（与 App 模式相同）
@@ -634,7 +725,7 @@ var LYBAuth = {
 
       // 2. 跳转到 PHP Web 授权页（传统 OAuth 授权码模式）
       //    使用新窗口打开，原窗口保持轮询检测授权结果
-      var state = 'h5_' + Math.random().toString(36).substring(2, 15)
+      saveOAuthState(state)
       // 回调地址指向 PHP index.php，并携带 sid 用于 PHP 端更新会话状态
       var callbackUrl = apiBase + '/index.php?sid=' + encodeURIComponent(_sid)
       var webAuthUrl = _config.authorize_url +
@@ -644,7 +735,6 @@ var LYBAuth = {
         '&state=' + encodeURIComponent(state) +
         '&app_name=' + encodeURIComponent(_config.app_name)
 
-      console.log('[SDK] 打开 Web 授权页:', webAuthUrl)
       window.open(webAuthUrl, '_blank')
 
       // 3. 原窗口开始轮询授权结果（PHP 授权完成后会更新会话状态）
@@ -664,19 +754,24 @@ var LYBAuth = {
       return
     }
 
-    var state = randomState(_config.platform)
-    try { uni.setStorageSync('lyb_oauth_state', state) } catch (e) {}
+    createMiniProgramState(function (state) {
+      if (!state) {
+        emitError(ERR.STATE_MISMATCH, '当前环境无法安全发起登录')
+        return
+      }
+      saveOAuthState(state)
 
-    var sep = _config.authorize_url.indexOf('?') === -1 ? '?' : '&'
-    var url = _config.authorize_url + sep +
-      'client_id=' + encodeURIComponent(_config.client_id) +
-      '&redirect_uri=' + encodeURIComponent(redirectUri) +
-      '&response_type=code' +
-      '&state=' + encodeURIComponent(state) +
-      '&app_name=' + encodeURIComponent(_config.app_name)
+      var sep = _config.authorize_url.indexOf('?') === -1 ? '?' : '&'
+      var url = _config.authorize_url + sep +
+        'client_id=' + encodeURIComponent(_config.client_id) +
+        '&redirect_uri=' + encodeURIComponent(redirectUri) +
+        '&response_type=code' +
+        '&state=' + encodeURIComponent(state) +
+        '&app_name=' + encodeURIComponent(_config.app_name)
 
-    uni.navigateTo({
-      url: '/pages/lyb-webview/lyb-webview?url=' + encodeURIComponent(url)
+      uni.navigateTo({
+        url: '/pages/lyb-webview/lyb-webview?url=' + encodeURIComponent(url)
+      })
     })
   },
 
@@ -689,6 +784,7 @@ var LYBAuth = {
     var qs = parseQuery(window.location.search || window.location.hash.replace(/^#/, ''))
 
     if (qs.error) {
+      ssDel('lyb_oauth_state')
       emitError(ERR.DENIED, qs.error_description || '用户拒绝了授权')
       this._cleanUrl()
       return
@@ -696,17 +792,12 @@ var LYBAuth = {
 
     if (!qs.code) return
 
-    // state 校验
-    var savedState = null
-    try { savedState = uni.getStorageSync('lyb_oauth_state') } catch (e) {}
-
-    if (savedState && qs.state && qs.state !== savedState) {
+    // A code callback must match a fresh, locally initiated transaction.
+    if (!consumeOAuthState(qs.state)) {
       emitError(ERR.STATE_MISMATCH, '回调 state 校验失败')
       this._cleanUrl()
       return
     }
-
-    try { uni.removeStorageSync('lyb_oauth_state') } catch (e) {}
 
     this._exchangeToken(qs.code, _config.redirect_uri || window.location.origin + window.location.pathname)
     this._cleanUrl()

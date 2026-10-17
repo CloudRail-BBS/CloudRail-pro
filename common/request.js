@@ -15,10 +15,9 @@ export const bmsBaseUrl = ADMIN_BASE
 export const webBaseUrl = WEB_BASE
 
 // ═══════════════════════════════════════════════
-// API访问密钥（必填！填写授权码）
-// 获取方式：登录可视化后台 → 终端配置 → Go API配置 → 复制「当前授权码」
-// 作用：授权码同时作为API访问密钥，Go后端校验密钥一致性+授权码域名绑定
-// 注意：使用别人授权码会因域名不匹配被拒绝，确保填写自己的授权码
+// 公开客户端 API 标识（仅在兼容后端要求时配置）
+// 此值会随前端包发布，不能用于保存服务端密钥或作为唯一授权凭证。
+// 后端必须依据用户会话执行授权，并对公开标识实施限权与滥用防护。
 // ═══════════════════════════════════════════════
 export const apiKey = 'YOUR-CALL-API-KEY'
 
@@ -172,27 +171,6 @@ export async function getBuyCardUrl() {
 // ═════════════════════════════════════════════
 // 调试日志（H5测试时设为true，上线前改回false）
 // ═══════════════════════════════════════════════
-const DEBUG = false
-
-const _log = {
-  request(url, method, data) {
-    if (!DEBUG) return
-    try { console.log('[API请求]', url, method, data) } catch(e) {}
-  },
-  response(url, statusCode, body) {
-    if (!DEBUG) return
-    try { console.log('[API响应]', url, 'Status:', statusCode, 'Body:', JSON.stringify(body, null, 2)) } catch(e) {}
-  },
-  error(url, err) {
-    if (!DEBUG) return
-    try { console.error('[API错误]', url, err) } catch(e) {}
-  },
-  finalUrl(url) {
-    if (!DEBUG) return
-    try { console.log('[最终URL]', url) } catch(e) {}
-  }
-}
-
 // PHP 原地址（备用，可切换）
 // export const baseUrl = 'https://your-domain.com/API/'
 
@@ -441,9 +419,6 @@ export const request = async (url, data = {}, options = {}) => {
       // 映射命中时用映射路径（已含路由组前缀），否则回退到旧URL
       const finalUrl = mapping ? (baseUrl + mapping.path) : (customBaseUrl + url)
 
-      _log.request(url, method, sendData)
-      _log.finalUrl(finalUrl)
-
       return new Promise((resolve, reject) => {
         uni.request({
           url: finalUrl,
@@ -453,8 +428,6 @@ export const request = async (url, data = {}, options = {}) => {
           timeout: 30000,
           success: (res) => {
             const body = safeParseBody(res.data)
-            _log.response(url, res.statusCode, body)
-
             if (res.statusCode !== 200) {
               cleanupOnFail()
               const errBody = safeParseBody(res.data)
@@ -488,7 +461,6 @@ export const request = async (url, data = {}, options = {}) => {
             resolve(finalBody)
           },
           fail: (err) => {
-            _log.error(url, err)
             cleanupOnFail()
             reject({ code: -99, msg: '网络连接失败', err })
           }
@@ -591,8 +563,6 @@ export const uploadSigned = async ({
   return new Promise((resolve, reject) => {
     const _typeMap = { post: 'post_img', avatar: 'avatar', background: 'background', chat: 'chat_img', software: 'software_img', software_file: 'software_file', disk: 'disk', video: 'video' }
     const uploadUrl = baseUrl + 'upload/' + (_typeMap[type] || 'image')
-    console.log('%c[Upload]', 'color:#FF5722;font-weight:bold', 'URL:', uploadUrl, 'Type:', type)
-
     uni.uploadFile({
       url: uploadUrl,
       filePath: finalFilePath,
@@ -602,8 +572,6 @@ export const uploadSigned = async ({
       timeout: 120000,
       success: (res) => {
         let body = safeParseBody(res.data)
-        console.log('%c[Upload响应]', body && body.code === 0 ? 'color:#4CAF50' : 'color:#FF9800', 'Status:', res.statusCode, 'Body:', body)
-
         if (!body || typeof body !== 'object') {
           return reject({
             code: -99,
@@ -622,7 +590,6 @@ export const uploadSigned = async ({
         resolve(body)
       },
       fail: (err) => {
-        console.error('%c[Upload错误]', 'color:#f44336', err)
         reject({ code: -99, msg: normalizeServerMessage(err?.errMsg || '', '上传失败'), err })
       }
     })

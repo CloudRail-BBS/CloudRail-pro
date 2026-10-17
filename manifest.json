@@ -1,7 +1,7 @@
 {
-    "name" : "栖屿社区",
+    "name" : "CloudRail-pro",
     "appid" : "__UNI__380A467",
-    "description" : "栖屿社区 - 移动端社区(Uniapp)",
+    "description" : "CloudRail-pro - uni-app 移动端社区前端",
     "versionName" : "1.0.2",
     "versionCode" : 102,
     "transformPx" : false,
@@ -96,6 +96,6 @@
     },
     "vueVersion" : "3",
     "h5" : {
-        "title" : "白鸽社区"
+        "title" : "CloudRail-pro"
     }
 }

@@ -177,7 +177,9 @@
 
 <script>
 import { request, baseUrl, getKefuUrl } from '../../common/request.js'
+import { WEB_BASE } from '../../common/config.js'
 import { isLoggedIn, setAuth } from '../../common/auth.js'
+import { buildSecureOAuthCallbackUrl, createOAuthState } from '../../common/oauthCallback.js'
 import LYBAuth from '../../utils/lyb-auth-uni.js'
 
 export default {
@@ -221,7 +223,7 @@ export default {
         redirect_uri: '',
         authorize_url: 'https://example.com/oauth/authorize.php',
         token_url: 'https://example.com/oauth/token.php',
-        app_name: '栖屿社区'
+        app_name: 'CloudRail-pro'
       }
     }
   },
@@ -246,8 +248,7 @@ export default {
       this.addMode = true;
       try { uni.removeStorageSync('login_add_mode'); } catch (e) {}
     }
-    if (options.token && options.loginSuccess) this.handleTokenLogin(options.token);
-    if (options.loginError) this.showHud('error', decodeURIComponent(options.loginError), true);
+    if (options && options.loginError) this.showHud('error', decodeURIComponent(options.loginError), true);
     this.checkPinhaoCallback(options);
     this.checkOauthStatus();
     this.loadPinhaoConfig();
@@ -407,33 +408,6 @@ export default {
         });
     },
 
-    handleTokenLogin(token) {
-      this.showHud('loading', '验证中...');
-      try { uni.setStorageSync('token', token); } catch (e) {}
-      request('user.php', { action: 'getUserInfo' })
-        .then((res) => {
-          if (res.code === 0) {
-            setAuth(res.data, token);
-            this.showHud('success', '登录成功');
-            if (res.data && !res.data.email) {
-              setTimeout(() => uni.navigateTo({ url: '/pages/user/email?fromLogin=1' }), 800);
-            } else {
-              setTimeout(() => {
-                uni.setStorageSync('_forceRefreshHome', '1');
-                uni.reLaunch({ url: '/pages/index/index' });
-              }, 800);
-            }
-          } else {
-            uni.removeStorageSync('token');
-            this.showHud('error', res.msg || '验证失败', true);
-          }
-        })
-        .catch(() => {
-          uni.removeStorageSync('token');
-          this.showHud('error', '网络异常', true);
-        });
-    },
-
     handleSocialLogin(type) {
       // 使用uniapp官方OAuth登录
       if (type === 'qq') {
@@ -477,11 +451,13 @@ export default {
       // #endif
       // #ifdef H5
       // H5端直接跳转到微信授权页
+      const state = this.createH5OAuthState()
+      if (!state) return
       const callbackUrl = window.location.origin + '/API/oauth.php?action=callback&type=wx'
       const authUrl = 'https://open.weixin.qq.com/connect/qrconnect?' +
         'appid=' + encodeURIComponent('wx737f0ab51bf66a2f') +
         '&redirect_uri=' + encodeURIComponent(callbackUrl) +
-        '&response_type=code&scope=snsapi_login&state=' + Math.random().toString(36).substr(2)
+        '&response_type=code&scope=snsapi_login&state=' + encodeURIComponent(state)
       window.location.href = authUrl
       // #endif
       // #ifdef MP-WEIXIN
@@ -536,7 +512,6 @@ export default {
           })
         },
         fail: (err) => {
-          console.log('微信login失败', err)
           let msg = '微信登录失败'
           if (err && err.errMsg && err.errMsg.indexOf('not installed') >= 0) {
             msg = '未安装微信客户端'
@@ -593,11 +568,13 @@ export default {
       // #endif
       // #ifdef H5
       // H5端直接跳转到QQ授权页
+      const state = this.createH5OAuthState()
+      if (!state) return
       const callbackUrl = window.location.origin + '/API/oauth.php?action=callback&type=qq'
       const authUrl = 'https://graph.qq.com/oauth2.0/authorize?' +
         'response_type=code&client_id=' + encodeURIComponent('102059855') +
         '&redirect_uri=' + encodeURIComponent(callbackUrl) +
-        '&state=' + Math.random().toString(36).substr(2) +
+        '&state=' + encodeURIComponent(state) +
         '&scope=get_user_info'
       window.location.href = authUrl
       // #endif
@@ -637,6 +614,15 @@ export default {
         })
     },
 
+    createH5OAuthState() {
+      try {
+        return createOAuthState()
+      } catch (e) {
+        this.showHud('error', '当前浏览器无法安全发起第三方登录', true)
+        return ''
+      }
+    },
+
     // 拼好社接口响应可能带 UTF-8 BOM, 安全解析 JSON, 避免 App 端解析失败
     _parsePinhaoBody(res) {
       let body = res && res.data
@@ -666,16 +652,13 @@ export default {
               redirect_uri: '',
               authorize_url: this.pinhaoOauthUrl + '/oauth/authorize.php',
               token_url: this.pinhaoOauthUrl + '/oauth/token.php',
-              app_name: '栖屿社区'
+              app_name: 'CloudRail-pro'
             }
-            console.log('[拼好社] 配置已从后台加载:', this.pinhaoConfig)
           } else {
-            console.log('[拼好社] 后台未开启或配置不完整，按钮将隐藏')
             this.pinhaoEnabled = false
           }
         }
       } catch (e) {
-        console.log('拼好社配置加载失败:', e)
         this.pinhaoEnabled = false
       }
     },
@@ -702,15 +685,18 @@ export default {
         }
       } catch (e) {}
 
-      console.log('[拼好社] 开始登录，配置:', this.pinhaoConfig);
-
       if (this.pinhaoLoading) return;
       this.pinhaoLoading = true;
       
       let redirectUri = '';
       // #ifdef H5
       if (typeof window !== 'undefined') {
-        redirectUri = window.location.origin + '/oauth_callback.php';
+        redirectUri = buildSecureOAuthCallbackUrl(WEB_BASE)
+        if (!redirectUri) {
+          this.pinhaoLoading = false
+          this.showHud('error', 'OAuth 回调地址必须配置为 HTTPS', true)
+          return
+        }
       }
       // #endif
       
@@ -722,12 +708,10 @@ export default {
         token_url: this.pinhaoConfig.token_url,
         app_name: this.pinhaoConfig.app_name,
         onLogin: (res) => {
-          console.log('[拼好社] 登录成功:', res);
           this.pinhaoLoading = false;
           this.handlePinhaoLoginSuccess(res);
         },
         onError: (err, msg) => {
-          console.error('[拼好社] 登录失败:', err, msg);
           this.pinhaoLoading = false;
           this.showHud('error', msg || '登录失败，请重试', true);
         }
@@ -738,7 +722,6 @@ export default {
     
     handlePinhaoLoginSuccess(res) {
       // res 里只有code，调用后端接口，后端用code换用户信息
-      console.log('[拼好社] 拿到code，调用后端登录:', res.code)
       request('auth/pinhao_login', {
         code: res.code
       }, 'POST').then((r) => {
@@ -812,10 +795,10 @@ export default {
           try {
             plus.runtime.openURL(appScheme, (err) => {
               // App 未安装: 降级到 WebView 授权页
-              this._pinhaoFallbackWebview(APPID, sid)
+              this._pinhaoFallbackWebview(APPID, sid, apiBase)
             })
           } catch (e) {
-            this._pinhaoFallbackWebview(APPID, sid)
+            this._pinhaoFallbackWebview(APPID, sid, apiBase)
             return
           }
           // 3. 轮询授权结果
@@ -874,13 +857,18 @@ export default {
     // 降级: 未安装拼好社 App 时, 打开 WebView 授权页
     _pinhaoFallbackWebview(APPID, sid, apiBase) {
       this.showHud('loading', '正在打开拼好社授权...')
-      const state = Math.random().toString(36).substr(2) + Date.now()
+      const state = String(sid || '').trim()
+      const redirectUri = buildSecureOAuthCallbackUrl(WEB_BASE, state)
+      const oauthBase = String(apiBase || this.pinhaoOauthUrl || '').trim().replace(/\/+$/, '')
+      if (!state || !redirectUri || !/^https:\/\/[^/?#]+(?:\/[^?#]*)?$/i.test(oauthBase)) {
+        this.showHud('error', '登录会话无效，请重新发起授权', true)
+        return
+      }
       // redirect_uri 携带 sid, 授权页完成授权后会把会话置为 status=2
-      const redirectUri = 'http://your-domain.com/oauth_callback.php?sid=' + encodeURIComponent(sid)
-      const authUrl = 'https://oauth.your-domain.com/oauth/authorize.php' +
-        '?appid=' + APPID +
+      const authUrl = oauthBase + '/oauth/authorize.php' +
+        '?appid=' + encodeURIComponent(APPID) +
         '&redirect_uri=' + encodeURIComponent(redirectUri) +
-        '&state=' + state
+        '&state=' + encodeURIComponent(state)
       const wv = plus.webview.create(authUrl, 'pinhao_oauth_page', {
         top: 0, bottom: 0,
         backButtonAutoControl: 'close'
@@ -900,11 +888,17 @@ export default {
 
     // 用 code 调用后端换取 token 并登录
     _pinhaoExchange(code, extra = {}) {
+      const redirectUri = buildSecureOAuthCallbackUrl(WEB_BASE)
+      if (!redirectUri) {
+        this._closePinhaoWv()
+        this.showHud('error', 'OAuth 回调地址必须配置为 HTTPS', true)
+        return
+      }
       this.showHud('loading', '登录中...')
       request('user.php', Object.assign({
         action: 'oauthLoginPinhao',
         code: code,
-        redirect_uri: 'http://your-domain.com/oauth_callback.php'
+        redirect_uri: redirectUri
       }, extra))
         .then((res) => {
           if (res.code === 0) {
@@ -937,18 +931,11 @@ export default {
       this.hideHud()
     },
 
-    // 处理拼好社 H5 回调参数 (token / loginError)
+    // 处理拼好社回调参数。未经当前端发起的本地事务绑定的 sid 不参与登录。
     checkPinhaoCallback(options) {
       if (!options) return
-      if (options.token && !options.loginSuccess) this.handleTokenLogin(options.token)
       if (options.loginError) this.showHud('error', decodeURIComponent(options.loginError), true)
-      if (options.pinhao_sid) this._pinhaoH5Finish(options.pinhao_sid)
-    },
-
-    // H5 端: 授权回调后凭 sid 直接换取授权码并登录(避免服务端回连)
-    _pinhaoH5Finish(sid) {
-      this.showHud('loading', '正在获取授权信息...')
-      this._pinhaoGetCode(this.pinhaoAppid || '10007', sid, this.pinhaoOauthUrl || 'https://oauth.your-domain.com')
+      if (options.pinhao_sid) this.showHud('error', '登录回调缺少可验证的状态，请重新发起登录', true)
     },
 
     closeOauthQr() {
@@ -961,7 +948,15 @@ export default {
     openOauthUrl() {
       // #ifdef H5
       if (!this.oauthQr.url) return;
-      window.location.href = this.oauthQr.url;
+      const state = this.createH5OAuthState()
+      if (!state) return
+      try {
+        const authUrl = new URL(this.oauthQr.url, window.location.origin)
+        authUrl.searchParams.set('state', state)
+        window.location.href = authUrl.toString()
+      } catch (e) {
+        this.showHud('error', '第三方登录地址无效', true)
+      }
       // #endif
     },
 

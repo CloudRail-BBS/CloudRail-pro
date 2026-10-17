@@ -344,7 +344,13 @@
               @click="goPostDetail(item.id)"
             >
               <view class="post-body">
-                <view class="post-title-row" v-html="highlight(item.title || item.plain_content)"></view>
+                <view class="post-title-row">
+                  <text
+                    v-for="(segment, index) in highlight(item.title || item.plain_content)"
+                    :key="'post-title-' + index"
+                    :class="{ 'search-highlight': segment.highlighted }"
+                  >{{ segment.text }}</text>
+                </view>
                 <text class="post-desc" v-if="item.desc">{{ item.desc }}</text>
                 <view class="post-meta">
                   <image
@@ -389,7 +395,13 @@
               </view>
               <view class="user-info">
                 <view class="user-name-row">
-                  <text class="user-name" v-html="highlight(u.name || u.username)"></text>
+                  <text class="user-name">
+                    <text
+                      v-for="(segment, index) in highlight(u.name || u.username)"
+                      :key="'user-name-' + index"
+                      :class="{ 'search-highlight': segment.highlighted }"
+                    >{{ segment.text }}</text>
+                  </text>
                   <view class="user-tag" v-if="u.user_title"><text class="user-tag-text">{{ u.user_title }}</text></view>
                 </view>
                 <text class="user-fans">粉丝 {{ formatCount(u.fans_count) }}</text>
@@ -418,7 +430,13 @@
             >
               <image :src="item.image || '/static/logo.png'" class="goods-thumb" mode="aspectFill" lazy-load></image>
               <view class="goods-info">
-                <text class="goods-title" v-html="highlight(item.title)"></text>
+                <text class="goods-title">
+                  <text
+                    v-for="(segment, index) in highlight(item.title)"
+                    :key="'goods-title-' + index"
+                    :class="{ 'search-highlight': segment.highlighted }"
+                  >{{ segment.text }}</text>
+                </text>
                 <view class="goods-meta">
                   <text class="goods-price">¥{{ item.price }}</text>
                   <view class="goods-type-tag" :class="item.product_type == 1 ? 'physical' : 'virtual'">
@@ -451,6 +469,7 @@
 
 <script>
 import { request } from '../../common/request.js'
+import { splitHighlightedText } from '../../common/textHighlight.js'
 
 export default {
   data() {
@@ -884,14 +903,8 @@ export default {
       }
     },
 
-    escapeRegExp(str) { return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') },
-
     highlight(str) {
-      if (!str) return ''
-      const kw = String(this.keyword || '').trim()
-      if (!kw) return str
-      const reg = new RegExp(this.escapeRegExp(kw), 'gi')
-      return String(str).replace(reg, m => `<span style="color:#ff2442;font-weight:700;">${m}</span>`)
+      return splitHighlightedText(str, this.keyword)
     },
 
     goPostDetail(id) { uni.navigateTo({ url: `/pages/post-detail/post-detail?postId=${id}` }) },
@@ -1258,6 +1271,7 @@ export default {
   margin-bottom: 10rpx;
   display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
+.search-highlight { color: #ff2442; font-weight: 700; }
 .post-desc {
   font-size: 25rpx; color: #6b7280; line-height: 1.6; margin-bottom: 16rpx;
   display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
