@@ -739,7 +739,7 @@ scroll-view {
 }
 
 page {
-  background-color: #f6f7f9;
+  background-color: #fafafa;
 }
 /* #endif */
 </style>

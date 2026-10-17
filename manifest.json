@@ -6,6 +6,8 @@
     "versionCode" : 102,
     "transformPx" : false,
     "app-plus" : {
+        "darkmode" : true,
+        "themeLocation" : "theme.json",
         "usingComponents" : true,
         "nvueStyleCompiler" : "uni-app",
         "compilerVersion" : 3,
@@ -75,6 +77,8 @@
     },
     "quickapp" : {},
     "mp-weixin" : {
+        "darkmode" : true,
+        "themeLocation" : "theme.json",
         "appid" : "",
         "setting" : {
             "urlCheck" : false,
@@ -96,6 +100,8 @@
     },
     "vueVersion" : "3",
     "h5" : {
+        "darkmode" : true,
+        "themeLocation" : "theme.json",
         "title" : "CloudRail-pro"
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <view class="setting-page">
+  <view class="setting-page" :class="themeClass">
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="goBack">
         <image src="/static/icon/arrow-left-dark.svg" class="back-arrow" mode="aspectFit"></image>
@@ -72,6 +72,26 @@
           <view class="cell-right">
             <text class="cell-val">{{ security.has_pay_password ? '已设置' : '未设置' }}</text>
             <text class="arrow">></text>
+          </view>
+        </view>
+      </view>
+
+      <view class="group-title">外观</view>
+      <view class="cell-group appearance-group">
+        <view
+          v-for="option in themeOptions"
+          :key="option.value"
+          class="cell-item theme-option"
+          :class="{ active: themeState.mode === option.value }"
+          hover-class="theme-option-hover"
+          @click="chooseTheme(option.value)"
+        >
+          <view class="theme-option-copy">
+            <text class="cell-label">{{ option.label }}</text>
+            <text class="cell-desc neutral">{{ option.description }}</text>
+          </view>
+          <view class="theme-option-indicator" :class="{ checked: themeState.mode === option.value }">
+            <text v-if="themeState.mode === option.value" class="theme-option-check">✓</text>
           </view>
         </view>
       </view>
@@ -301,6 +321,7 @@
 <script>
 import { request, getKefuUrl } from '../../common/request.js';
 import { getAccounts, switchAccount, removeAccount } from '../../common/auth.js';
+import { setThemeMode, themeState } from '../../common/theme.js';
 export default {
   data() {
     return {
@@ -329,7 +350,12 @@ export default {
       accounts: [],
       showSwitchModal: false,
       aboutContent: '',
-      aboutLoading: false
+      aboutLoading: false,
+      themeOptions: [
+        { value: 'system', label: '跟随系统', description: '随设备外观自动切换' },
+        { value: 'light', label: '浅色', description: '始终使用明亮界面' },
+        { value: 'dark', label: '深色', description: '始终使用深色界面' }
+      ]
     };
   },
   computed: {
@@ -370,6 +396,10 @@ export default {
   },
   methods: {
     goBack() { uni.navigateBack(); },
+    chooseTheme(mode) {
+      if (!['system', 'light', 'dark'].includes(mode)) return;
+      setThemeMode(mode);
+    },
     // 将QQ头像转换为高清版本
     convertToHighQualityAvatar(avatarUrl) {
       if (!avatarUrl) return avatarUrl;
@@ -734,26 +764,26 @@ export default {
 </script>
 
 <style scoped>
-.setting-page { min-height: 100vh; background: #f6f8fa; }
-.nav-bar { position: fixed; top: 0; left: 0; width: 100%; height: 44px; background: #fff; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; box-sizing: border-box; border-bottom: 1rpx solid #f5f5f5; }
+.setting-page { min-height: 100vh; background: #fafafa; color: #171717; }
+.nav-bar { position: fixed; top: 0; left: 0; width: 100%; height: 44px; background: #ffffff; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 32rpx; box-sizing: border-box; border-bottom: 1rpx solid #e0e0e0; }
 .nav-left { width: 60rpx; height: 100%; display: flex; align-items: center; }
 .back-arrow { width: 24px; height: 24px; }
-.nav-title { font-size: 17px; font-weight: 600; color: #333; }
+.nav-title { font-size: 34rpx; font-weight: 600; color: #171717; letter-spacing: -0.02em; }
 .nav-right { width: 60rpx; }
-.content { padding: 12px; }
-.group-title { font-size: 12px; color: #999; margin: 20px 0 8px 12px; }
-.cell-group { background: #fff; border-radius: 12px; overflow: hidden; }
-.cell-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1rpx solid #f9f9f9; }
+.content { padding: 24rpx 32rpx 0; }
+.group-title { font-size: 24rpx; font-weight: 500; color: #666666; margin: 32rpx 8rpx 14rpx; }
+.cell-group { background: #ffffff; border: 1rpx solid #e0e0e0; border-radius: 24rpx; overflow: hidden; }
+.cell-item { display: flex; justify-content: space-between; align-items: center; min-height: 88rpx; padding: 24rpx 28rpx; border-bottom: 1rpx solid #e0e0e0; box-sizing: border-box; }
 .cell-item:last-child { border-bottom: none; }
-.cell-label { font-size: 15px; color: #333; }
-.cell-right { display: flex; align-items: center; color: #999; font-size: 13px; }
-.cell-val { margin-right: 4px; color: #999; max-width: 360rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.arrow { font-size: 12px; color: #ccc; margin-left: 2px; }
+.cell-label { font-size: 28rpx; color: #171717; }
+.cell-right { display: flex; align-items: center; color: #666666; font-size: 26rpx; }
+.cell-val { margin-right: 8rpx; color: #666666; max-width: 360rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arrow { font-size: 24rpx; color: #a8a8a8; margin-left: 4rpx; }
 .label-box { display: flex; flex-direction: column; max-width: 80%; }
-.cell-desc { font-size: 11px; color: #ff6b81; margin-top: 6px; line-height: 1.3; }
-.logout-btn { margin-top: 40px; background: #fff; text-align: center; color: #333; font-size: 15px; padding: 16px; border-radius: 12px; }
+.cell-desc { font-size: 24rpx; color: #da2f35; margin-top: 8rpx; line-height: 1.5; }`r`n.cell-desc.neutral { color: #666666; }
+.logout-btn { margin-top: 48rpx; background: #ffffff; border: 1rpx solid #e0e0e0; text-align: center; color: #171717; font-size: 28rpx; min-height: 88rpx; line-height: 88rpx; border-radius: 24rpx; }
 
-.switch-btn { margin-bottom: 16px; background: #fff; text-align: center; color: #333; font-size: 15px; padding: 16px; border-radius: 12px; }
+.switch-btn { margin-bottom: 20rpx; background: #ffffff; border: 1rpx solid #e0e0e0; text-align: center; color: #171717; font-size: 28rpx; min-height: 88rpx; line-height: 88rpx; border-radius: 24rpx; }
 .switch-list { max-height: 50vh; }
 .switch-item { display: flex; align-items: center; padding: 22rpx 8rpx; border-bottom: 1rpx solid #f5f5f5; }
 .switch-avatar { width: 84rpx; height: 84rpx; border-radius: 50%; margin-right: 20rpx; background: #f0f0f0; }
@@ -767,7 +797,7 @@ export default {
 .status-bind { color: #ff2442 !important; font-weight: 500; }
 .modal-mask { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24rpx; box-sizing: border-box; visibility: hidden; opacity: 0; transition: all 0.2s; }
 .modal-mask.show { visibility: visible; opacity: 1; }
-.modal-box { width: 560rpx; max-width: 92vw; background: #fff; border-radius: 24rpx; overflow: hidden; transform: scale(0.96); transition: transform 0.2s; max-height: 80vh; display: flex; flex-direction: column; }
+.modal-box { width: 560rpx; max-width: 92vw; background: #ffffff; color: #171717; border: 1rpx solid #e0e0e0; border-radius: 24rpx; overflow: hidden; transform: scale(0.96); transition: transform 0.2s; max-height: 80vh; display: flex; flex-direction: column; }
 .modal-mask.show .modal-box { transform: scale(1); }
 .modal-title { text-align: center; font-size: 34rpx; font-weight: 600; color: #333; padding: 40rpx 0 10rpx; }
 .modal-content { text-align: center; font-size: 26rpx; color: #666; padding: 0 40rpx 20rpx; line-height: 1.6; overflow: auto; }
@@ -808,4 +838,38 @@ export default {
 .ios-error-mark::before, .ios-error-mark::after { content: ''; position: absolute; top: 50%; left: 50%; width: 36rpx; height: 5rpx; background: #fff; transform-origin: center; }
 .ios-error-mark::before { transform: translate(-50%, -50%) rotate(45deg); }
 .ios-error-mark::after { transform: translate(-50%, -50%) rotate(-45deg); }
-</style>
+.theme-option { cursor: pointer; transition: background-color 160ms ease; }
+.theme-option-hover { background: #f2f2f2; }
+.theme-option.active { background: #f2f2f2; }
+.theme-option-copy { display: flex; flex-direction: column; min-width: 0; }
+.theme-option-indicator { width: 38rpx; height: 38rpx; border: 2rpx solid #c9c9c9; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+.theme-option-indicator.checked { background: #000000; border-color: #000000; }
+.theme-option-check { color: #ffffff; font-size: 24rpx; line-height: 1; }
+.theme-dark.setting-page { background: #0a0a0a; color: #ededed; }
+.theme-dark .nav-bar { background: #111111; border-bottom-color: #2e2e2e; }
+.theme-dark .nav-title { color: #ededed; }
+.theme-dark .group-title { color: #a1a1a1; }
+.theme-dark .cell-group { background: #111111; border-color: #2e2e2e; }
+.theme-dark .cell-item { border-bottom-color: #2e2e2e; }
+.theme-dark .cell-label { color: #ededed; }
+.theme-dark .cell-right, .theme-dark .cell-val, .theme-dark .cell-desc.neutral { color: #a1a1a1; }
+.theme-dark .cell-desc { color: #ff6166; }
+.theme-dark .arrow { color: #707070; }
+.theme-dark .theme-option-hover, .theme-dark .theme-option.active { background: #1f1f1f; }
+.theme-dark .theme-option-indicator { border-color: #454545; }
+.theme-dark .theme-option-indicator.checked { background: #ffffff; border-color: #ffffff; }
+.theme-dark .theme-option-check { color: #000000; }
+.theme-dark .switch-btn, .theme-dark .logout-btn { background: #111111; border-color: #2e2e2e; color: #ededed; }
+.theme-dark .modal-box { background: #111111; color: #ededed; border-color: #2e2e2e; }
+.theme-dark .modal-title { color: #ededed; }
+.theme-dark .modal-content, .theme-dark .about-content { color: #a1a1a1; }
+.theme-dark .modal-input { background: #1a1a1a; color: #ededed; }
+.theme-dark .modal-btns, .theme-dark .m-btn.cancel { border-color: #2e2e2e; }
+.theme-dark .m-btn.cancel { color: #a1a1a1; }
+.theme-dark .gender-option { background: #1a1a1a; }
+.theme-dark .gender-option-text { color: #ededed; }
+.theme-dark .gender-option-sub { color: #a1a1a1; }
+.theme-dark .switch-item { border-bottom-color: #2e2e2e; }
+.theme-dark .switch-name { color: #ededed; }
+.theme-dark .switch-uid, .theme-dark .about-empty, .theme-dark .about-loading-text { color: #a1a1a1; }
+.theme-dark .btn-hover, .theme-dark .m-btn-hover { background-color: #1f1f1f; }</style>
