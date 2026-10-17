@@ -1,5 +1,5 @@
 <template>
-  <view class="app-container">
+  <view class="app-container" :class="themeClass">
     <slot></slot>
     <!-- 开屏广告：覆盖全屏，App 启动时由 onLaunch 拉取配置后展示 -->
     <SplashAd ref="splashAd" />
@@ -23,6 +23,9 @@ import {
 import { saveLevelConfig } from '@/common/level.js'
 import { ensureCustomBubbleCss } from '@/common/bubble-style.js'
 import { initCall } from '@/common/call.js'
+// #ifdef VUE3
+import { initTheme, refreshSystemTheme } from '@/common/theme.js'
+// #endif
 
 export default {
   data() {
@@ -41,6 +44,9 @@ export default {
   },
 
   onLaunch() {
+    // #ifdef VUE3
+    initTheme()
+    // #endif
     this.hideNativeTabBar()
 
     /* 把后台「气泡管理」里写的自定义气泡样式注入到页面(不然自定义气泡不生效) */
@@ -89,6 +95,9 @@ export default {
   },
 
   onShow() {
+    // #ifdef VUE3
+    refreshSystemTheme()
+    // #endif
     this.hideNativeTabBar()
     // #ifdef H5
     applyH5DocumentTitle()

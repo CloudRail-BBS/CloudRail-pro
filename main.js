@@ -13,8 +13,16 @@ app.$mount()
 
 // #ifdef VUE3
 import { createSSRApp } from 'vue'
+import { themeState, themeClass, themeTokens } from './common/theme.js'
 export function createApp() {
   const app = createSSRApp(App)
+  app.mixin({
+    computed: {
+      themeState() { return themeState },
+      themeClass() { return themeClass.value },
+      themeTokens() { return themeTokens.value }
+    }
+  })
   return {
     app
   }
