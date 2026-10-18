@@ -46,7 +46,7 @@ test('script setup components import the shared theme class', async () => {
 test('shared neutral theme layer defines both required palettes', async () => {
   const source = await readRepoFile('App.vue')
   for (const pair of [
-    ['--cr-canvas: #fafafa', '--cr-canvas: #0a0a0a'],
+    ['--cr-canvas: #f4f4f4', '--cr-canvas: #0a0a0a'],
     ['--cr-surface: #ffffff', '--cr-surface: #111111'],
     ['--cr-text: #171717', '--cr-text: #ededed'],
     ['--cr-text-muted: #666666', '--cr-text-muted: #a1a1a1'],
@@ -64,5 +64,5 @@ test('fixed tab bar keeps its own height while receiving theme colors', async ()
   assert.match(app, /\.theme-light\.app-container[\s\S]*?min-height:\s*100vh/)
   assert.match(tabBar, /\.custom-tab-bar\s*\{[\s\S]*?bottom:\s*0;[\s\S]*?\/\* #ifdef H5 \*\/[\s\S]*?position:\s*fixed;[\s\S]*?\/\* #ifndef H5 \*\/[\s\S]*?position:\s*absolute;/)
   assert.match(tabBar, /\.custom-tab-bar\s*\{[\s\S]*?min-height:\s*auto;/)
-  assert.match(tabBar, /\.tab-bar-content\s*\{[\s\S]*?height:\s*100rpx;/)
+  assert.match(tabBar, /\.tab-bar-content\s*\{[\s\S]*?height:\s*94rpx;/)
 })

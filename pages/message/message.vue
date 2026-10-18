@@ -899,11 +899,13 @@ export default {
 }
 
 .fixed-header{
-  background: var(--cr-surface);
+  background: var(--cr-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   flex-shrink:0;
   position:relative;
   z-index:10;
-  box-shadow:0 2rpx 6rpx rgba(0,0,0,0.04);
+  box-shadow:0 1rpx 0 var(--cr-border), 0 6rpx 18rpx rgba(0,0,0,0.025);
 }
 
 .main-scroll{
@@ -911,7 +913,7 @@ export default {
   min-height:0;
   background: var(--cr-surface);
   box-sizing:border-box;
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(150rpx + env(safe-area-inset-bottom));
 }
 
 .page-card{

@@ -195,13 +195,18 @@ export default {
   width: 100%;
 }
 .tab-bar-panel {
-  background: var(--cr-surface);
+  background: var(--cr-glass);
   border-top: 1rpx solid var(--cr-border);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: 0 -8rpx 30rpx rgba(0, 0, 0, 0.035);
 }
 .tab-bar-content {
   display: flex;
-  height: 100rpx;
+  height: 94rpx;
   align-items: center;
+  padding: 0 10rpx;
+  box-sizing: border-box;
 }
 .tab-item {
   flex: 1;
@@ -214,13 +219,15 @@ export default {
   justify-content: center;
 }
 .tab-text-large {
-  font-size: 30rpx;
+  font-size: 28rpx;
   color: var(--cr-text-muted);
-  font-weight: 400;
+  font-weight: 600;
+  transition: color 180ms ease, transform 180ms ease;
 }
 .tab-text-large.active {
-  color: #ff2442;
-  font-weight: 600;
+  color: var(--cr-text);
+  font-weight: 800;
+  transform: scale(1.06);
 }
 .text-badge-wrap {
   position: relative;
@@ -234,7 +241,7 @@ export default {
   right: -24rpx;
   min-width: 28rpx;
   height: 28rpx;
-  background: #ff2442;
+  background: var(--cr-danger);
   color: #fff;
   font-size: 18rpx;
   border-radius: 14rpx;
@@ -248,16 +255,17 @@ export default {
   flex: 1;
 }
 .publish-btn {
-  width: 88rpx;
-  height: 56rpx;
-  background: #ff2442;
-  border-radius: 12rpx;
+  width: 84rpx;
+  height: 54rpx;
+  background: var(--cr-action);
+  border-radius: 18rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .publish-plus {
-  color: #fff;
+  color: var(--cr-on-action);
   font-size: 40rpx;
   font-weight: 300;
   line-height: 1;

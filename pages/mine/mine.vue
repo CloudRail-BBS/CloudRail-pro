@@ -1425,7 +1425,7 @@ export default {
 .nav-btn:active { background: rgba(0,0,0,0.25); }
 .nav-icon { width: 36rpx; height: 36rpx; }
 
-.main-scroll { height: var(--tcy-vh, 100vh); position: relative; z-index: 1; }
+.main-scroll { height: var(--tcy-vh, 100vh); position: relative; z-index: 1; padding-bottom: calc(150rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
 .custom-refresher {
   height: 80rpx; width: 100%;
   display: flex; align-items: center; justify-content: center;

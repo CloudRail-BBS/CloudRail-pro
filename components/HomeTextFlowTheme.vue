@@ -918,12 +918,12 @@ export default {
 }
 
 .feed-card {
-  margin: 16rpx 24rpx 0;
-  padding: 24rpx 22rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(180deg, #fffefc 0%, #ffffff 100%);
-  border: 1rpx solid #efe6dc;
-  box-shadow: 0 10rpx 26rpx rgba(31, 41, 55, 0.04);
+  margin: 16rpx 20rpx 0;
+  padding: 26rpx 24rpx 22rpx;
+  border-radius: var(--cr-panel-radius, 28rpx);
+  background: var(--cr-surface);
+  border: 1rpx solid var(--cr-border);
+  box-shadow: var(--cr-panel-shadow);
   position: relative;
   display: flex;
   flex-direction: column;

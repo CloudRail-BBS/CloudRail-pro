@@ -625,7 +625,7 @@ export default {
   position: relative;
   z-index: 100;
   flex-shrink: 0;
-  background: rgba(246, 247, 249, 0.96);
+  background: var(--cr-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 1rpx 3rpx rgba(0,0,0,0.05);
@@ -678,7 +678,7 @@ export default {
   right: auto;
   bottom: auto;
 }
-.page-body { padding: 20rpx 24rpx 220rpx; }
+.page-body { padding: 20rpx 20rpx calc(150rpx + env(safe-area-inset-bottom)); }
 
 /* ── Section head ── */
 .section-head {

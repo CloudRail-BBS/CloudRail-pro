@@ -745,9 +745,9 @@ page {
 
 .theme-light {
   color-scheme: light;
-  --cr-canvas: #fafafa;
+  --cr-canvas: #f4f4f4;
   --cr-surface: #ffffff;
-  --cr-surface-alt: #f2f2f2;
+  --cr-surface-alt: #f0f0f0;
   --cr-selected: #ebebeb;
   --cr-hover: #f2f2f2;
   --cr-text: #171717;
@@ -760,6 +760,9 @@ page {
   --cr-success: #297c3b;
   --cr-mask: rgba(0, 0, 0, 0.42);
   --cr-shadow: rgba(0, 0, 0, 0.06);
+  --cr-panel-shadow: 0 12rpx 36rpx rgba(0, 0, 0, 0.055);
+  --cr-panel-radius: 28rpx;
+  --cr-glass: rgba(255, 255, 255, 0.92);
 }
 
 .theme-dark {
@@ -779,6 +782,9 @@ page {
   --cr-success: #62c073;
   --cr-mask: rgba(0, 0, 0, 0.62);
   --cr-shadow: rgba(0, 0, 0, 0.34);
+  --cr-panel-shadow: 0 12rpx 36rpx rgba(0, 0, 0, 0.28);
+  --cr-panel-radius: 28rpx;
+  --cr-glass: rgba(17, 17, 17, 0.92);
 }
 
 .theme-light,

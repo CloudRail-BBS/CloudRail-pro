@@ -437,10 +437,11 @@ export default {
 /* Dynamic Item */
 .dynamic-item {
   background: var(--cr-surface);
-  border-radius: 24rpx;
+  border-radius: var(--cr-panel-radius, 28rpx);
   padding: 28rpx 24rpx;
-  margin-bottom: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.03);
+  margin: 0 20rpx 16rpx;
+  border: 1rpx solid var(--cr-border);
+  box-shadow: var(--cr-panel-shadow);
 }
 
 .item-head {

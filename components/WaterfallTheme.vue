@@ -840,8 +840,8 @@ export default {
 .waterfall-wrap {
   display: flex;
   align-items: flex-start;
-  gap: 12rpx;
-  padding: 0 16rpx;
+  gap: 16rpx;
+  padding: 8rpx 20rpx 0;
   box-sizing: border-box;
   width: 100%;
 }
@@ -851,18 +851,19 @@ export default {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 16rpx;
 }
 
 .post-card {
   position: relative;
   width: 100%;
   overflow: hidden;
-  border-radius: 20rpx;
+  border-radius: var(--cr-panel-radius, 28rpx);
   background: var(--cr-surface);
-  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06);
+  border: 1rpx solid var(--cr-border);
+  box-shadow: var(--cr-panel-shadow);
   box-sizing: border-box;
-  transition: all 0.2s ease;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .post-card:active {

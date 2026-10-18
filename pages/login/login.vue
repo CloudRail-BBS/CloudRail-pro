@@ -1039,12 +1039,12 @@ export default {
 </script>
 
 <style scoped>
-.xhs-login { min-height: 100vh; background-color: var(--cr-surface); padding: 0 60rpx; display: flex; flex-direction: column; }
-.logo-box { margin-top: 100rpx; margin-bottom: 60rpx; display: flex; justify-content: center; }
-.logo-img { width: 160rpx; height: 160rpx; }
+.xhs-login { min-height: 100vh; background-color: var(--cr-canvas); padding: 0 48rpx; display: flex; flex-direction: column; }
+.logo-box { margin-top: 76rpx; margin-bottom: 48rpx; display: flex; justify-content: center; }
+.logo-img { width: 152rpx; height: 152rpx; border-radius: 38rpx; box-shadow: var(--cr-panel-shadow); }
 .text-header { margin-bottom: 60rpx; text-align: center; }
-.h1 { display: block; font-size: 44rpx; color: var(--cr-text); font-weight: bold; margin-bottom: 16rpx; }
-.h2 { font-size: 28rpx; color: var(--cr-text-muted); }
+.h1 { display: block; font-size: 42rpx; color: var(--cr-text); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 14rpx; }
+.h2 { font-size: 27rpx; color: var(--cr-text-muted); line-height: 1.6; }
 
 /* 按钮布局：上下排列 + 间距 + 底部留白 */
 .quick-login-box {
@@ -1059,29 +1059,32 @@ export default {
 }
 /* 注册按钮 = 蓝色 */
 .register-btn {
-  background-color: #2b4c7e !important;
-  box-shadow: 0 8rpx 20rpx rgba(43, 76, 126, 0.2) !important;
+  background-color: var(--cr-surface) !important;
+  color: var(--cr-text) !important;
+  border: 1rpx solid var(--cr-border-strong) !important;
+  box-shadow: none !important;
 }
 /* 登录按钮 = 红色（保持原样） */
 .login-btn {
-  background-color: #ff2442 !important;
-  box-shadow: 0 8rpx 20rpx rgba(255, 36, 66, 0.2) !important;
+  background-color: var(--cr-action) !important;
+  color: var(--cr-on-action) !important;
+  box-shadow: var(--cr-panel-shadow) !important;
 }
 .guest-btn {
-  background-color: #e8e8e8 !important;
-  color: #888 !important;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05) !important;
+  background-color: var(--cr-surface-alt) !important;
+  color: var(--cr-text-muted) !important;
+  box-shadow: none !important;
 }
 
-.input-group { background-color: #f6f6f6; border-radius: 44rpx; height: 96rpx; display: flex; align-items: center; padding: 0 40rpx; margin-bottom: 30rpx; border: 2rpx solid transparent; transition: all 0.3s; position: relative; }
-.input-group.active { border-color: #ff2442; background-color: #fff; }
+.input-group { background-color: var(--cr-surface); border-radius: 24rpx; height: 96rpx; display: flex; align-items: center; padding: 0 30rpx; margin-bottom: 24rpx; border: 1rpx solid var(--cr-border); box-shadow: 0 4rpx 18rpx rgba(0,0,0,0.025); transition: border-color 180ms ease, box-shadow 180ms ease; position: relative; }
+.input-group.active { border-color: var(--cr-action); background-color: var(--cr-surface); box-shadow: 0 0 0 3rpx var(--cr-selected); }
 .xhs-input { flex: 1; font-size: 30rpx; color: var(--cr-text); height: 100%; }
 .ph-style { color: var(--cr-border-strong); }
 .clear-icon { color: var(--cr-border-strong); font-size: 36rpx; padding: 10rpx; margin-right: -10rpx; }
 .action-links { display: flex; justify-content: flex-end; margin-bottom: 50rpx; font-size: 26rpx; color: var(--cr-text-muted); }
-.xhs-btn { background-color: #ff2442; color: #fff; border-radius: 48rpx; font-size: 32rpx; font-weight: 600; height: 96rpx; line-height: 96rpx; border: none; box-shadow: 0 8rpx 20rpx rgba(255, 36, 66, 0.2); display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+.xhs-btn { background-color: var(--cr-action); color: var(--cr-on-action); border-radius: 24rpx; font-size: 30rpx; font-weight: 700; height: 92rpx; line-height: 92rpx; border: none; box-shadow: var(--cr-panel-shadow); display: flex; align-items: center; justify-content: center; transition: transform 180ms ease, opacity 180ms ease; }
 .xhs-btn::after { border: none; }
-.xhs-btn.disabled { background-color: #ffb4c1; box-shadow: none; opacity: 0.8; }
+.xhs-btn.disabled { background-color: var(--cr-border-strong); color: var(--cr-text-muted); box-shadow: none; opacity: 0.8; }
 .register-row { margin-top: 40rpx; display: flex; justify-content: center; font-size: 28rpx; }
 .reg-tip { color: var(--cr-text-muted); }
 .reg-btn { color: #2b4c7e; margin-left: 10rpx; font-weight: 500; }
@@ -1099,7 +1102,7 @@ export default {
 .text { font-size: 24rpx; color: var(--cr-text-muted); margin: 0 20rpx; }
 .social-icons { display: flex; justify-content: center; gap: 80rpx; }
 .icon-item { display: flex; flex-direction: column; align-items: center; }
-.s-icon { width: 88rpx; height: 88rpx; background: #f6f6f6; border-radius: 50%; padding: 20rpx; box-sizing: border-box; margin-bottom: 10rpx; }
+.s-icon { width: 84rpx; height: 84rpx; background: var(--cr-surface); border: 1rpx solid var(--cr-border); border-radius: 24rpx; padding: 20rpx; box-sizing: border-box; margin-bottom: 10rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.03); }
 .icon-item text { font-size: 24rpx; color: var(--cr-text-muted); }
 .kefu-row { margin-top: 30rpx; text-align: center; font-size: 24rpx; color: var(--cr-text-muted); text-decoration: underline; padding-bottom: 20rpx; }
 
