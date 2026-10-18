@@ -38,3 +38,12 @@ test('content cards use the quieter reference-inspired surface treatment', async
   assert.match(textFlow, /\.feed-card[\s\S]*?box-shadow:\s*var\(--cr-panel-shadow\)/)
   assert.match(dynamicFeed, /\.dynamic-item[\s\S]*?box-shadow:\s*var\(--cr-panel-shadow\)/)
 })
+test('home quick entries inherit the product text theme', async () => {
+  for (const path of ['components/HomeTextFlowTheme.vue', 'components/WaterfallTheme.vue']) {
+    const source = await readRepoFile(path)
+    assert.match(source, /\.quick-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(6,\s*1fr\)/)
+    assert.match(source, /\.quick-grid\s*\{[\s\S]*?gap:\s*12rpx/)
+    assert.match(source, /\.quick-item\s*\{[\s\S]*?gap:\s*12rpx/)
+    assert.match(source, /\.quick-title\s*\{[\s\S]*?color:\s*var\(--cr-text\)/)
+  }
+})

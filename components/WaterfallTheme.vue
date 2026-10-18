@@ -1389,19 +1389,19 @@ export default {
 .quick-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 8rpx;
-  padding: 24rpx 18rpx;
+  gap: 12rpx;
+  padding: 26rpx 18rpx 24rpx;
   background: var(--cr-surface);
 }
 .quick-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10rpx;
+  gap: 12rpx;
 }
 .quick-icon {
-  width: 80rpx;
-  height: 80rpx;
+  width: 78rpx;
+  height: 78rpx;
   border-radius: 24rpx;
   display: flex;
   align-items: center;
@@ -1412,27 +1412,27 @@ export default {
 }
 .quick-icon-hub {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 6rpx 16rpx rgba(118, 75, 162, 0.32);
+  box-shadow: 0 6rpx 18rpx rgba(118, 75, 162, 0.32);
 }
 .quick-icon-lottery {
   background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 107, 0.32);
+  box-shadow: 0 6rpx 18rpx rgba(255, 107, 107, 0.32);
 }
 .quick-icon-shop {
   background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  box-shadow: 0 6rpx 16rpx rgba(17, 153, 142, 0.32);
+  box-shadow: 0 6rpx 18rpx rgba(17, 153, 142, 0.32);
 }
 .quick-icon-cert {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  box-shadow: 0 6rpx 16rpx rgba(79, 172, 254, 0.32);
+  box-shadow: 0 6rpx 18rpx rgba(79, 172, 254, 0.32);
 }
 .quick-icon-task {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  box-shadow: 0 6rpx 16rpx rgba(245, 87, 108, 0.32);
+  box-shadow: 0 6rpx 18rpx rgba(245, 87, 108, 0.32);
 }
 .quick-icon-blackhole {
   background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
-  box-shadow: 0 6rpx 16rpx rgba(31, 41, 55, 0.32);
+  box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.32);
 }
 .quick-icon-svg {
   width: 48rpx;
@@ -1448,7 +1448,15 @@ export default {
   height: 100%;
 }
 .quick-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
   font-size: 23rpx;
-  color: #5a463c;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  color: var(--cr-text);
 }
 </style>
