@@ -62,3 +62,10 @@ test('main-flow icon containers use one restrained visual treatment', async () =
     assert.match(source, /\.quick-icon-svg\s*\{[\s\S]*?width:\s*44rpx;[\s\S]*?height:\s*44rpx;/)
   }
 })
+
+test('home placeholder icon has explicit fixed sizing', async () => {
+  const home = await readRepoFile('pages/index/index.vue')
+  assert.match(home, /\.nav-avatar-placeholder-icon\s*\{[\s\S]*?width:\s*34rpx;/)
+  assert.match(home, /\.nav-avatar-placeholder-icon\s*\{[\s\S]*?height:\s*34rpx;/)
+  assert.doesNotMatch(home, /\\n\.nav-avatar-placeholder/)
+})

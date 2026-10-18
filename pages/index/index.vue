@@ -1413,7 +1413,23 @@ export default {
 .header-img { width: 44rpx; height: 44rpx; display: block; }
 .nav-left-avatar-wrap { position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .nav-left-avatar-wrap:active { opacity: .65; }
-.nav-avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: var(--cr-surface-alt); }\n.nav-avatar-placeholder { display: flex; align-items: center; justify-content: center; border: 1rpx solid var(--cr-border); }\n.nav-avatar-placeholder-icon { width: 34rpx; height: 34rpx; opacity: .72; }
+.nav-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--cr-surface-alt);
+}
+.nav-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid var(--cr-border);
+}
+.nav-avatar-placeholder-icon {
+  width: 34rpx;
+  height: 34rpx;
+  opacity: .72;
+}
 .nav-center-area { flex: 1; display: flex; justify-content: center; align-items: center; }
 .refresh-status-bar { display: flex; align-items: center; justify-content: center; gap: 12rpx; min-height: 40rpx; }
 .r-text { font-size: 28rpx; color: var(--cr-text); font-weight: 500; }
