@@ -47,3 +47,18 @@ test('home quick entries inherit the product text theme', async () => {
     assert.match(source, /\.quick-title\s*\{[\s\S]*?color:\s*var\(--cr-text\)/)
   }
 })
+
+test('home avatar uses a neutral placeholder instead of the brand logo', async () => {
+  const home = await readRepoFile('pages/index/index.vue')
+  assert.match(home, /nav-avatar-placeholder/)
+  assert.match(home, /user-circle-white\.svg/)
+  assert.doesNotMatch(home, /defaultAvatar:\s*'\/static\/logo\.png'/)
+})
+
+test('main-flow icon containers use one restrained visual treatment', async () => {
+  for (const path of ['components/HomeTextFlowTheme.vue', 'components/WaterfallTheme.vue']) {
+    const source = await readRepoFile(path)
+    assert.match(source, /\.quick-icon\s*\{[\s\S]*?border:\s*1rpx solid rgba\(255, 255, 255, 0\.22\)/)
+    assert.match(source, /\.quick-icon-svg\s*\{[\s\S]*?width:\s*44rpx;[\s\S]*?height:\s*44rpx;/)
+  }
+})

@@ -10,7 +10,7 @@
         <view class="nav-left">
           <view class="nav-left-avatar-wrap" @click.stop="openSidebar">
             <image v-if="userInfo?.avatar" :src="userInfo?.avatar" class="nav-avatar" mode="aspectFill"></image>
-            <image v-else :src="defaultAvatar" class="nav-avatar" mode="aspectFill"></image>
+            <view v-else class="nav-avatar nav-avatar-placeholder"><image src="/static/icon/user-circle-white.svg" class="nav-avatar-placeholder-icon" mode="aspectFit"></image></view>
           </view>
         </view>
 
@@ -313,7 +313,7 @@ export default {
 
       showPublishModal: false,
       hud: { show: false, text: '', mode: 'loading' },
-      defaultAvatar: '/static/logo.png',
+      defaultAvatar: '/static/icon/user-circle-white.svg',
 
       currentTab: 0,
       /* 抖音式视频播放器是否开着（给 onBackPress 用） */
@@ -1413,7 +1413,7 @@ export default {
 .header-img { width: 44rpx; height: 44rpx; display: block; }
 .nav-left-avatar-wrap { position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .nav-left-avatar-wrap:active { opacity: .65; }
-.nav-avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: var(--cr-surface-alt); }
+.nav-avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: var(--cr-surface-alt); }\n.nav-avatar-placeholder { display: flex; align-items: center; justify-content: center; border: 1rpx solid var(--cr-border); }\n.nav-avatar-placeholder-icon { width: 34rpx; height: 34rpx; opacity: .72; }
 .nav-center-area { flex: 1; display: flex; justify-content: center; align-items: center; }
 .refresh-status-bar { display: flex; align-items: center; justify-content: center; gap: 12rpx; min-height: 40rpx; }
 .r-text { font-size: 28rpx; color: var(--cr-text); font-weight: 500; }
