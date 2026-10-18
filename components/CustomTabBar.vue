@@ -175,8 +175,6 @@ export default {
 
 <style scoped>
 .custom-tab-bar {
-  position: fixed;
-  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
@@ -186,6 +184,12 @@ export default {
   box-sizing: border-box;
   transform: none;
   z-index: 999;
+  /* #ifdef H5 */
+  position: fixed;
+  /* #endif */
+  /* #ifndef H5 */
+  position: absolute;
+  /* #endif */
 }
 .tab-bar-wrapper {
   width: 100%;
